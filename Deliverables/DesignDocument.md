@@ -40,12 +40,8 @@ The design must satisfy the Official Requirements document, notably functional a
 
 # Verification traceability matrix
 
-
-
-
-
-
-
+![](diagramsImages/matrix1.png)
+![](diagramsImages/matrix2.png)
 
 
 # Verification sequence diagrams 
