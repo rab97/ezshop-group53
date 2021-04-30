@@ -101,6 +101,6 @@ Version:
 |Tracking&replanning|	3 ph|
 |Configuration management | 3	
 
-###
-Insert here Gantt chart with above activities
+####  Gantt chart
+
 ![](diagramsImages/gantt.png)
