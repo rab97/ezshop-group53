@@ -15,10 +15,6 @@ Version: 1.0.0
 - [Verification traceability matrix](#verification-traceability-matrix)
 - [Verification sequence diagrams](#verification-sequence-diagrams)
 
-# Instructions
-
-The design must satisfy the Official Requirements document, notably functional and non functional requirements
-
 # High level design 
 
 ![](diagramsImages/package_diagram.png)
