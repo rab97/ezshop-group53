@@ -21,9 +21,7 @@ The design must satisfy the Official Requirements document, notably functional a
 
 # High level design 
 
-<discuss architectural styles used, if any>
-<report package diagram>
-
+![](diagramsImages/package_diagram.png)
 
 
 
@@ -31,9 +29,8 @@ The design must satisfy the Official Requirements document, notably functional a
 
 # Low level design
 
-<for each package, report class diagram>
 
-
+![](diagramsImages/ClassDiagram.png)
 
 
 
@@ -58,3 +55,18 @@ The design must satisfy the Official Requirements document, notably functional a
 # Verification sequence diagrams 
 \<select key scenarios from the requirement document. For each of them define a sequence diagram showing that the scenario can be implemented by the classes and methods in the design>
 
+Scenario 1.1
+
+![](sequenceDiagrams/Scenario_1.1.png)
+
+Scenario 2.2
+
+![](sequenceDiagrams/Scenario_2.3.png)
+
+Scenario 3.1
+
+![](sequenceDiagrams/Scenario_3.1.png)
+
+Scenario 3.3
+
+![](sequenceDiagrams/Scenario_3.3.png)
