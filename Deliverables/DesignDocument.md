@@ -1,11 +1,11 @@
 # Design Document 
 
 
-Authors: 
+Authors: Marco Sapio, Marta Caggiano, Emma Marrocu, Francesco Rabezzano
 
-Date:
+Date: April 2021
 
-Version:
+Version: 1.0.0
 
 
 # Contents
