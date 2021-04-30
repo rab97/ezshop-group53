@@ -40,10 +40,6 @@ The design must satisfy the Official Requirements document, notably functional a
 
 # Verification traceability matrix
 
-\<for each functional requirement from the requirement document, list which classes concur to implement it>
-
-
-
 
 
 
@@ -53,20 +49,35 @@ The design must satisfy the Official Requirements document, notably functional a
 
 
 # Verification sequence diagrams 
-\<select key scenarios from the requirement document. For each of them define a sequence diagram showing that the scenario can be implemented by the classes and methods in the design>
 
-Scenario 1.1
+#### Scenario 1.1
 
 ![](sequenceDiagrams/Scenario_1.1.png)
 
-Scenario 2.2
+#### Scenario 2.2
 
 ![](sequenceDiagrams/Scenario_2.3.png)
 
-Scenario 3.1
+#### Scenario 3.1
 
 ![](sequenceDiagrams/Scenario_3.1.png)
 
-Scenario 3.3
+#### Scenario 3.3
 
 ![](sequenceDiagrams/Scenario_3.3.png)
+
+#### Scenario 6.1 + 7.1
+
+![](sequenceDiagrams/Scenario_6.1_7.1.png)
+
+#### Scenario 6.1 + 7.4
+
+![](sequenceDiagrams/Scenario_6.1_7.4.png)
+
+#### Scenario 8.1
+
+![](sequenceDiagrams/Scenario_8.1.png)
+
+#### Scenario 9.1
+
+![](sequenceDiagrams/Scenario_9.1.png)
