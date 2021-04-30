@@ -50,9 +50,10 @@
 50
 51
 # Project Estimation  
-Authors:
-Date:
-Version:
+Authors: Marco Sapio, Francesco Rabezzano, Marta Caggiano, Emma Marrocu
+Date: April 2021
+Version: 1.0.1
+
 # Contents
 - [Estimate by product decomposition]
 - [Estimate by activity decomposition ]
