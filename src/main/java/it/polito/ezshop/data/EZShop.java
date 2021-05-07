@@ -1,14 +1,19 @@
 package it.polito.ezshop.data;
 
 import it.polito.ezshop.exceptions.*;
+import it.polito.ezshop.persistence.DAOEZShop;
+import it.polito.ezshop.persistence.DAOException;
+import it.polito.ezshop.persistence.IDAOEZshop;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
 
 public class EZShop implements EZShopInterface {
 
-
+	IDAOEZshop dao = new DAOEZShop();
+	
     @Override
     public void reset() {
 
@@ -41,7 +46,22 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public User login(String username, String password) throws InvalidUsernameException, InvalidPasswordException {
-        return null;
+    	User user = null;
+    	if(username == null || username.isEmpty()){
+    		throw new InvalidUsernameException();
+    	}
+    	if(password == null || password.isEmpty()){
+    		throw new InvalidPasswordException();
+    	}
+    	try {
+    		user = dao.searchUser(username, password);
+    	} catch (DAOException e){
+    		System.out.println(e);
+    	}
+    	if(user != null && (user.getPassword().equals(password))) {
+    		return user;
+    	}
+    	return null;
     }
 
     @Override
