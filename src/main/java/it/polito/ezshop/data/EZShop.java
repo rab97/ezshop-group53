@@ -1,6 +1,7 @@
 package it.polito.ezshop.data;
 
 import it.polito.ezshop.exceptions.*;
+import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
@@ -12,7 +13,8 @@ import java.util.List;
 
 public class EZShop implements EZShopInterface {
 
-	IDAOEZshop dao = new DAOEZShop();
+	private IDAOEZshop dao = new DAOEZShop();
+	private User runningUser = null;
 	
     @Override
     public void reset() {
@@ -59,6 +61,7 @@ public class EZShop implements EZShopInterface {
     		System.out.println(e);
     	}
     	if(user != null && (user.getPassword().equals(password))) {
+    		runningUser = new ConcreteUser(user);
     		return user;
     	}
     	return null;
@@ -86,7 +89,26 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getAllProductTypes() throws UnauthorizedException {
-        return null;
+        List<ProductType> productTypeList = null;
+		try {
+			productTypeList = dao.getAllProducTypet();
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("db excepiton");
+		}
+//    	for (ProductType productType : productTypeList) {
+//			System.out.println(productType.getBarCode());
+//			System.out.println(productType.getProductDescription());
+//			System.out.println(productType.getBarCode());
+//			System.out.println(productType.getNote());
+//			System.out.println(productType.getQuantity());
+//			System.out.println(productType.getPricePerUnit());
+//			System.out.println(productType.getLocation());
+//		}
+    	if(runningUser == null) {
+    		throw new UnauthorizedException();
+    	}
+    	return productTypeList;
     }
 
     @Override
@@ -96,7 +118,8 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getProductTypesByDescription(String description) throws UnauthorizedException {
-        return null;
+        
+    	return null;
     }
 
     @Override

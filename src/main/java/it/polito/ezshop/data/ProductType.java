@@ -2,6 +2,7 @@ package it.polito.ezshop.data;
 
 public interface ProductType {
 
+	
     Integer getQuantity();
 
     void setQuantity(Integer quantity);

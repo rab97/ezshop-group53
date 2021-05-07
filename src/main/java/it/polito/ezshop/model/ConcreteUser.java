@@ -9,6 +9,18 @@ public class ConcreteUser implements User {
 	private String password;
 	private String role;
 		
+	public ConcreteUser() {
+		// TODO Auto-generated constructor stub
+	}
+	
+	public ConcreteUser(User user) {
+		// TODO Auto-generated constructor stub
+		this.username = user.getUsername();
+		this.id = user.getId();
+		this.password = user.getPassword();
+		this.role = user.getRole();
+	}
+	
 	@Override
 	public Integer getId() {
 		return id;
