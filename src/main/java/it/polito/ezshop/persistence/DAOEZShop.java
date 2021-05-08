@@ -44,7 +44,7 @@ public class DAOEZShop  implements IDAOEZshop {
             	String pass = resultSet .getString("password");
             	String role = resultSet .getString("role");
             	Integer id= resultSet.getInt("id");
-            	user.setUsername(username);
+            	user.setUsername(name);
             	user.setPassword(pass);
             	user.setId(id);
             	user.setRole(role);
