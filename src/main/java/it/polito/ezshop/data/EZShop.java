@@ -1,6 +1,8 @@
 package it.polito.ezshop.data;
 
+import it.polito.ezshop.Constants;
 import it.polito.ezshop.exceptions.*;
+import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
@@ -8,7 +10,10 @@ import it.polito.ezshop.persistence.IDAOEZshop;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.text.StyleConstants.CharacterConstants;
 
 
 public class EZShop implements EZShopInterface {
@@ -74,7 +79,36 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer createProductType(String description, String productCode, double pricePerUnit, String note) throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
-        return null;
+    	
+    	if(description.isEmpty()) {
+        	throw new InvalidProductDescriptionException();
+        }
+    	if(productCode == null || productCode.isEmpty()) {
+        	throw new InvalidProductCodeException();	
+        }
+    	try {
+        	int tmp = Integer.parseInt(productCode);
+        } catch (Exception e) {
+        	throw new InvalidProductCodeException();
+		}
+        if(pricePerUnit <= 0) {
+        	throw new InvalidPricePerUnitException();
+        }
+        System.out.println(runningUser.getRole());
+        System.out.println(Constants.ADMINISTRATOR);
+        System.out.println(runningUser.getRole().equals(Constants.ADMINISTRATOR));
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+        
+    	ProductType productType = new ConcreteProductType(null, description, productCode, note, null, pricePerUnit, null, null);
+        try {
+			dao.createProductType(productType);
+		} catch (DAOException e) {
+			System.out.println(e);
+			return -1;
+		}
+    	return productType.getId();
     }
 
     @Override
@@ -89,22 +123,13 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getAllProductTypes() throws UnauthorizedException {
-        List<ProductType> productTypeList = null;
+        List<ProductType> productTypeList = new ArrayList<>();
 		try {
 			productTypeList = dao.getAllProducTypet();
 		} catch (DAOException e) {
 			// TODO Auto-generated catch block
 			System.out.println("db excepiton");
 		}
-//    	for (ProductType productType : productTypeList) {
-//			System.out.println(productType.getBarCode());
-//			System.out.println(productType.getProductDescription());
-//			System.out.println(productType.getBarCode());
-//			System.out.println(productType.getNote());
-//			System.out.println(productType.getQuantity());
-//			System.out.println(productType.getPricePerUnit());
-//			System.out.println(productType.getLocation());
-//		}
     	if(runningUser == null) {
     		throw new UnauthorizedException();
     	}

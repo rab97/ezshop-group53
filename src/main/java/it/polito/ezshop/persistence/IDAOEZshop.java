@@ -12,5 +12,6 @@ public interface IDAOEZshop {
     public User searchUser(String username, String password) throws DAOException;
     
     public ArrayList<ProductType> getAllProducTypet()  throws DAOException;
+    public void  createProductType(ProductType productType)  throws DAOException;
 
 }
