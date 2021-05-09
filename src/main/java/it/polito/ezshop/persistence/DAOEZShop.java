@@ -41,8 +41,8 @@ public class DAOEZShop  implements IDAOEZshop {
             while(resultSet.next()){
             	user = new ConcreteUser();
             	String name = resultSet.getString("username");
-            	String pass = resultSet .getString("password");
-            	String role = resultSet .getString("role");
+            	String pass = resultSet.getString("password");
+            	String role = resultSet.getString("role");
             	Integer id= resultSet.getInt("id");
             	user.setUsername(name);
             	user.setPassword(pass);
@@ -69,7 +69,7 @@ public class DAOEZShop  implements IDAOEZshop {
             String query = "SELECT * FROM product_type";
             //statement.executeUpdate(query.toString());
             resultSet = statement.executeQuery(query);
-             ArrayList<ProductType> productTypeList = new ArrayList<>();
+            ArrayList<ProductType> productTypeList = new ArrayList<>();
             while(resultSet.next()){
             	Integer id = resultSet.getInt("id");
             	String description = resultSet.getString("description");
