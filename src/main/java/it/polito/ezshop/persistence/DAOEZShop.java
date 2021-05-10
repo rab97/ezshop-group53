@@ -1,7 +1,8 @@
 package it.polito.ezshop.persistence;
 
 import java.util.List;
-
+import java.beans.Customizer;
+import java.lang.Thread.State;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,8 +12,8 @@ import java.util.ArrayList;
 
 import it.polito.ezshop.data.ProductType;
 import it.polito.ezshop.data.User;
-import it.polito.ezshop.model.ConcreteProductType;
-import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.data.*;
+import it.polito.ezshop.model.*;
 
 public class DAOEZShop implements IDAOEZshop {
 
@@ -229,37 +230,7 @@ public class DAOEZShop implements IDAOEZshop {
         return null;
     }
 
-    public Integer insertCustomer(String customerName) throws DAOException {
 
-        Connection connection = null;
-        Statement statement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = dataSource.getConnection();
-            statement = connection.createStatement();
-
-            // Insert
-            PreparedStatement pstm;
-
-            pstm = connection.prepareStatement("insert into customer(name) values (?)");
-            pstm.setString(1, customerName);
-            pstm.execute();
-
-            // Recover the id
-            String query = "SELECT id FROM customer WHERE name= '" + customerName + "';";
-
-            resultSet = statement.executeQuery(query);
-            System.out.println("id: " + resultSet.getString("id"));
-            Integer id = resultSet.getInt("id");
-
-            return id;
-
-        } catch (SQLException ex) {
-            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
-        } finally {
-            dataSource.close(connection);
-        }
-    }
 
     @Override
     public User searchUserById(Integer id) throws DAOException {
@@ -305,4 +276,168 @@ public class DAOEZShop implements IDAOEZshop {
         }
         return true;
     }
+
+    public Integer insertCustomer(String customerName) throws DAOException {
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            // Insert
+            PreparedStatement pstm;
+
+            pstm = connection.prepareStatement("insert into customer(name) values (?)");
+            pstm.setString(1, customerName);
+            pstm.execute();
+
+            // Recover the id
+            String query = "SELECT id FROM customer WHERE name= '" + customerName + "';";
+
+            resultSet = statement.executeQuery(query);
+            System.out.println("id: " + resultSet.getString("id"));
+            Integer id = resultSet.getInt("id");
+
+            return id;
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+    }
+
+    @Override
+    public boolean updateCustomer(Integer id, String newCustomerName, String newCustomerCard) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        int update;
+
+        try{
+            connection= dataSource.getConnection();
+            statement = connection.createStatement();
+
+            //update query creation
+            String query= "UPDATE customer SET name= '" + newCustomerName + "'";
+
+            if(newCustomerCard.isEmpty()){ //remove previous card and its points
+                query= query + ", card= '" + null + "', points= '" + null + "'";
+            
+            }else if(newCustomerCard!= null){ //numeric value: create new card with 0 points
+                query= query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
+            }
+
+            query= query + "WHERE customer.id= '"+ id + "';";
+
+            //update execution
+            update= statement.executeUpdate(query);
+            System.out.println("Update query executed succesfully?--> update= " + update);
+
+        }catch(SQLException ex){
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+        	dataSource.close(connection);
+        }        
+
+       if(update!=1){ //something goes wrong
+            return false;
+        }
+
+        //exactly one row was affected by our update
+        return true;
+
+    }
+    
+    @Override
+    public boolean deleteCustomer(Integer id) throws DAOException{
+
+        Connection connection = null;
+        PreparedStatement prstm = null;
+        boolean result= false;
+
+        try{
+            connection= dataSource.getConnection();
+            prstm = connection.prepareStatement("DELETE FROM customer WHERE id=?;");
+            prstm.setInt(1, id);
+
+            int del = prstm.executeUpdate();
+
+            if(del!=1){ //Something goes wrong
+                result= false;
+            }else{
+                result= true;
+            }
+
+        }catch(SQLException ex){
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+        	dataSource.close(connection);
+        } 
+
+        return result;
+
+    }
+
+    @Override
+    public Customer getCustomer(Integer id) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        Customer c = null;
+
+        try{
+            connection= dataSource.getConnection();
+            statement= connection.createStatement();
+
+            String query= "SELECT * FROM customer WHERE id = '"+ id + "';";
+            ResultSet resultSet= statement.executeQuery(query);
+
+            if(resultSet.next()){
+                c = new ConcreteCustomer(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("card"), resultSet.getInt("points"));
+            }
+
+
+        }catch(SQLException ex){
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+        	dataSource.close(connection);
+        } 
+
+        return c;
+    }
+    
+
+    @Override
+    public ArrayList<Customer> getAllCustomers() throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        ArrayList<Customer> customers= new ArrayList<>();
+
+        try{
+            connection= dataSource.getConnection();
+            statement= connection.createStatement();
+
+            String query= "SELECT * FROM customer";
+            ResultSet resultSet= statement.executeQuery(query);
+
+
+            while(resultSet.next()){
+                Customer c= new ConcreteCustomer(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("card"), resultSet.getInt("points"));
+                customers.add(c);
+            }
+
+        }catch(SQLException ex){
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        }finally{
+        	dataSource.close(connection);
+        }
+
+        return customers;
+
+    }
+
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import it.polito.ezshop.data.ProductType;
 import it.polito.ezshop.data.User;
 import it.polito.ezshop.model.ConcreteProductType;
+import it.polito.ezshop.data.Customer;
 
 public interface IDAOEZshop {
 
@@ -26,10 +27,14 @@ public interface IDAOEZshop {
 
     public java.util.List<User> getAllUsers() throws DAOException;
 
-    public Integer insertCustomer(String customerName) throws DAOException;
-
     public User searchUserById(Integer id) throws DAOException;
 
     public boolean updateRights(Integer id, String role) throws DAOException;
+
+    public Integer insertCustomer(String customerName) throws DAOException;
+    public boolean updateCustomer(Integer id, String newCustomerName, String newCustomerCard) throws DAOException;
+    public boolean deleteCustomer(Integer id) throws DAOException;
+    public Customer getCustomer(Integer id) throws DAOException;
+    public ArrayList<Customer> getAllCustomers() throws DAOException;
 
 }

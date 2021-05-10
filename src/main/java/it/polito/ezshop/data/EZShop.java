@@ -307,25 +307,97 @@ public class EZShop implements EZShopInterface {
     }
 
     @Override
-    public boolean modifyCustomer(Integer id, String newCustomerName, String newCustomerCard)
-            throws InvalidCustomerNameException, InvalidCustomerCardException, InvalidCustomerIdException,
-            UnauthorizedException {
-        return false;
+    public boolean modifyCustomer(Integer id, String newCustomerName, String newCustomerCard) throws InvalidCustomerNameException, InvalidCustomerCardException, InvalidCustomerIdException, UnauthorizedException {
+        
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        if(newCustomerName==null | newCustomerName.isEmpty()){
+            throw new InvalidCustomerNameException();
+        }
+        if(newCustomerCard.length()>10){    //Perché lanciare l'eccezione anche su empty o null quando queste hanno dei significati ben precisi?
+            throw new InvalidCustomerCardException();
+        }
+
+        boolean modification= false;
+
+        try{
+            modification= dao.updateCustomer(id, newCustomerName, newCustomerCard);
+            System.out.println("modification= " + modification);
+
+        }catch(DAOException e){
+			System.out.println("db excepiton");
+        }
+        
+        return modification;
     }
 
     @Override
     public boolean deleteCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
-        return false;
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        if(id==null | id<=0){
+            throw new InvalidCustomerIdException();
+        }
+        
+        boolean del= false;
+        try{
+            del= dao.deleteCustomer(id);
+        }catch(DAOException e){
+			System.out.println("db excepiton");
+        }
+        return del;
     }
+
+    /**
+         * This method returns a customer with given id. It can be invoked only after a
+         * user with role "Administrator", "ShopManager" or "Cashier" is logged in.
+         *
+         * @param id the id of the customer
+         *
+         * @return the customer with given id null if that user does not exists
+        
+         */
 
     @Override
     public Customer getCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
-        return null;
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        if(id==null | id<=0){
+            throw new InvalidCustomerIdException();
+        }
+
+        Customer c= null;
+        try{
+            c = dao.getCustomer(id);
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return c;
     }
+
 
     @Override
     public List<Customer> getAllCustomers() throws UnauthorizedException {
-        return null;
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+
+        List<Customer> customersList = new ArrayList<>();
+        try{
+            customersList= dao.getAllCustomers();
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return customersList;
     }
 
     @Override
