@@ -20,6 +20,7 @@ public class EZShop implements EZShopInterface {
 
 	private IDAOEZshop dao = new DAOEZShop();
 	private User runningUser = null;
+    static int user_id;
 	
     @Override
     public void reset() {
@@ -28,17 +29,54 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer createUser(String username, String password, String role) throws InvalidUsernameException, InvalidPasswordException, InvalidRoleException {
-        return null;
+        if(username == null || username.isEmpty()){
+    		throw new InvalidUsernameException();
+    	}
+    	if(password == null || password.isEmpty()){
+    		throw new InvalidPasswordException();
+        }
+        if(role == null || role.isEmpty() && (!role.equalsIgnoreCase("Administrator") || !role.equalsIgnoreCase("Cashier") || !role.equalsIgnoreCase("ShopManager"))) {
+            throw new InvalidRoleException();
+        }
+        try {
+            user_id = dao.getLastUserId();
+            dao.insertUser(username, password, role, user_id + 1);
+        } catch (DAOException e){
+            System.out.println(e);
+        } 
+        return user_id;
     }
 
     @Override
     public boolean deleteUser(Integer id) throws InvalidUserIdException, UnauthorizedException {
-        return false;
+        boolean state = true;
+        if(id == null || id <= 0) {
+            throw new InvalidUserIdException();
+        }
+        if(runningUser == null || !runningUser.getRole().equalsIgnoreCase("Administrator")) {
+            throw new UnauthorizedException();
+        }
+        try {
+            state = dao.removeUser(id);
+        } catch (DAOException e){
+            System.out.println(e);
+        }
+
+        return state;
     }
 
     @Override
     public List<User> getAllUsers() throws UnauthorizedException {
-        return null;
+        List<User> users = new ArrayList<>();
+        if(runningUser == null || !runningUser.getRole().equalsIgnoreCase("Administrator")) {
+            throw new UnauthorizedException();
+        }
+        try {
+            users = dao.getAllUsers();
+        } catch (DAOException e) {
+            System.out.println("getAllUsers exception");
+        }
+        return users;
     }
 
     @Override
@@ -65,11 +103,11 @@ public class EZShop implements EZShopInterface {
     	} catch (DAOException e){
     		System.out.println(e);
     	}
-    	if(user != null && (user.getPassword().equals(password))) {
+        if(user != null && (user.getPassword().equals(password))) {
     		runningUser = new ConcreteUser(user);
-    		return user;
+            return user;
     	}
-    	return null;
+        return null;
     }
 
     @Override
@@ -127,8 +165,7 @@ public class EZShop implements EZShopInterface {
 		try {
 			productTypeList = dao.getAllProducTypet();
 		} catch (DAOException e) {
-			// TODO Auto-generated catch block
-			System.out.println("db excepiton");
+			System.out.println("getAllProductType exception");
 		}
     	if(runningUser == null) {
     		throw new UnauthorizedException();
@@ -138,6 +175,20 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public ProductType getProductTypeByBarCode(String barCode) throws InvalidProductCodeException, UnauthorizedException {
+    	if(barCode == null || barCode.isEmpty()) {
+    		throw new InvalidProductCodeException();
+    	}
+    	if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+    	ProductType productType = null;
+    	try {
+    		productType = dao.getProductTypeByBarCode(barCode);
+    		return productType;
+    	}catch (Exception e) {
+			// TODO: handle exception
+    		System.out.println("errror");
+    	}
         return null;
     }
 

@@ -24,6 +24,10 @@ public class ConcreteProductType implements ProductType{
 		this.location = location;
 	}
 	
+	public ConcreteProductType() {
+		// TODO Auto-generated constructor stub
+	}
+
 	@Override
 	public Integer getQuantity() {
 		return this.quantity;
