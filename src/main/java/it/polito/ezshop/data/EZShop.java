@@ -100,6 +100,8 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean updateUserRights(Integer id, String role)
             throws InvalidUserIdException, InvalidRoleException, UnauthorizedException {
+        boolean state = true;
+
         if (runningUser == null || !runningUser.getRole().equalsIgnoreCase("Administrator")) {
             throw new UnauthorizedException();
         }
@@ -110,8 +112,13 @@ public class EZShop implements EZShopInterface {
                 || !role.equalsIgnoreCase("Cashier") || !role.equalsIgnoreCase("ShopManager"))) {
             throw new InvalidRoleException();
         }
+        try {
+            state = dao.updateRights(id, role);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
 
-        return false;
+        return state;
     }
 
     @Override

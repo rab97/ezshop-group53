@@ -284,4 +284,25 @@ public class DAOEZShop implements IDAOEZshop {
             dataSource.close(connection);
         }
     }
+
+    @Override
+    public boolean updateRights(Integer id, String role) throws DAOException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        try {
+            connection = dataSource.getConnection();
+            String query = "UPDATE user SET role= ? WHERE id= ?";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, role);
+            preparedStatement.setInt(2, id);
+            int ps = preparedStatement.executeUpdate();
+            if(ps <= 0)
+                return false;
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return true;
+    }
 }

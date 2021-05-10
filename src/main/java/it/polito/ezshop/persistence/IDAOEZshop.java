@@ -30,4 +30,6 @@ public interface IDAOEZshop {
 
     public User searchUserById(Integer id) throws DAOException;
 
+    public boolean updateRights(Integer id, String role) throws DAOException;
+
 }
