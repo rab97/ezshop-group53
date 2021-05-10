@@ -3,7 +3,7 @@ package it.polito.ezshop.persistence;
 import java.sql.*;
 
 public class DataSource {
-    private String url ="jdbc:sqlite:db.db";
+    private String url = "jdbc:sqlite:db.db";
 
     public DataSource() {
         try {

@@ -11,7 +11,8 @@ public class ConcreteOrder implements Order {
     String status;
     Integer orderId;
 
-    public ConcreteOrder(Integer balanceId, String productCode, double pricePerUnit, int quantity, String status, Integer orderId) {
+    public ConcreteOrder(Integer balanceId, String productCode, double pricePerUnit, int quantity, String status,
+            Integer orderId) {
         this.balanceId = balanceId;
         this.productCode = productCode;
         this.pricePerUnit = pricePerUnit;
@@ -79,5 +80,5 @@ public class ConcreteOrder implements Order {
     public void setOrderId(Integer orderId) {
         this.orderId = orderId;
     }
-    
+
 }

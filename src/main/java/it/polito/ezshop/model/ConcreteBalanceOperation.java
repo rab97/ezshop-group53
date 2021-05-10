@@ -58,5 +58,5 @@ public class ConcreteBalanceOperation implements BalanceOperation {
     public void setType(String type) {
         this.type = type;
     }
-    
+
 }

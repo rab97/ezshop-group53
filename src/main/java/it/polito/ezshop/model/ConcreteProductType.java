@@ -2,7 +2,7 @@ package it.polito.ezshop.model;
 
 import it.polito.ezshop.data.ProductType;
 
-public class ConcreteProductType implements ProductType{
+public class ConcreteProductType implements ProductType {
 	Integer id;
 	String productDescription;
 	String barCode;
@@ -10,10 +10,11 @@ public class ConcreteProductType implements ProductType{
 	Integer quantity;
 	Double pricePerUnit;
 	Double discountRate;
-	//Position location;
+	// Position location;
 	String location;
-	
-	public ConcreteProductType(Integer id, String productDescription, String barCode, String note, Integer quantity, Double pricePerUnit, Double discountRate, String location) {
+
+	public ConcreteProductType(Integer id, String productDescription, String barCode, String note, Integer quantity,
+			Double pricePerUnit, Double discountRate, String location) {
 		this.id = id;
 		this.productDescription = productDescription;
 		this.barCode = barCode;
@@ -23,7 +24,7 @@ public class ConcreteProductType implements ProductType{
 		this.discountRate = discountRate;
 		this.location = location;
 	}
-	
+
 	public ConcreteProductType() {
 		// TODO Auto-generated constructor stub
 	}
@@ -35,7 +36,7 @@ public class ConcreteProductType implements ProductType{
 
 	@Override
 	public void setQuantity(Integer quantity) {
-		this.quantity = quantity;		
+		this.quantity = quantity;
 	}
 
 	@Override
@@ -56,7 +57,7 @@ public class ConcreteProductType implements ProductType{
 	@Override
 	public void setNote(String note) {
 		this.note = note;
-		
+
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public class ConcreteProductType implements ProductType{
 	@Override
 	public void setProductDescription(String productDescription) {
 		this.productDescription = productDescription;
-		
+
 	}
 
 	@Override
@@ -79,6 +80,7 @@ public class ConcreteProductType implements ProductType{
 	public void setBarCode(String barCode) {
 		this.barCode = barCode;
 	}
+
 	@Override
 	public Double getPricePerUnit() {
 		return this.pricePerUnit;
