@@ -175,6 +175,20 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public ProductType getProductTypeByBarCode(String barCode) throws InvalidProductCodeException, UnauthorizedException {
+    	if(barCode == null || barCode.isEmpty()) {
+    		throw new InvalidProductCodeException();
+    	}
+    	if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+    	ProductType productType = null;
+    	try {
+    		productType = dao.getProductTypeByBarCode(barCode);
+    		return productType;
+    	}catch (Exception e) {
+			// TODO: handle exception
+    		System.out.println("errror");
+    	}
         return null;
     }
 

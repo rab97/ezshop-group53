@@ -71,18 +71,17 @@ public class DAOEZShop  implements IDAOEZshop {
         	connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "SELECT * FROM product_type";
-            //statement.executeUpdate(query.toString());
             resultSet = statement.executeQuery(query);
             ArrayList<ProductType> productTypeList = new ArrayList<>();
             while(resultSet.next()){
             	Integer id = resultSet.getInt("id");
+            	Integer quantity = resultSet.getInt("quantity");
+            	String location = resultSet.getString("location");
+            	String notes = resultSet.getString("note");
             	String description = resultSet.getString("description");
             	String barCode = resultSet.getString("bar_code");
-            	String notes = resultSet.getString("notes");
-            	Integer quantity = resultSet.getInt("quantity");
             	Double pricePerUnit = resultSet.getDouble("price_per_unit");
             	Double discountRate = resultSet.getDouble("discount_rate");
-            	String location = resultSet.getString("location");
             	ProductType product = new ConcreteProductType(id, description, barCode, notes, quantity, pricePerUnit, discountRate, location);
             	productTypeList.add(product);
             }
@@ -171,4 +170,64 @@ public class DAOEZShop  implements IDAOEZshop {
             dataSource.close(connection);
         }
     }
+
+	@Override
+	public void createProductType(ProductType productType) throws DAOException {
+		Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+        	connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            StringBuilder query = new StringBuilder();
+            query.append("insert into product_type (description, note, bar_code, price_per_unit) values (");
+            query.append("'" + productType.getProductDescription() + "','");
+            query.append(productType.getNote() + "','");
+            query.append(productType.getBarCode() + "','");
+            query.append(productType.getPricePerUnit() + "');");
+            statement.executeUpdate(query.toString());
+            String q = "select id from product_type where bar_code = '" + productType.getBarCode() + "'";
+            resultSet = statement.executeQuery(q);
+            int id = resultSet.getInt("id");
+            productType.setId(id);
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+        	dataSource.close(connection);
+        }
+		
+	}
+
+	@Override
+	public ConcreteProductType getProductTypeByBarCode(String barCode) throws DAOException {
+		// TODO Auto-generated method stub
+		Connection connection = null;
+		Statement statment = null;
+		ResultSet resultSet = null;
+		try {
+			connection = dataSource.getConnection();
+			statment = connection.createStatement();
+			String query = "select * from product_type where bar_code = '" + barCode + "';";
+			resultSet = statment.executeQuery(query);
+			ConcreteProductType productType = null;
+			while(resultSet.next()) {
+				Integer id = resultSet.getInt("id");
+            	Integer quantity = resultSet.getInt("quantity");
+            	String location = resultSet.getString("location");
+            	String notes = resultSet.getString("note");
+            	String description = resultSet.getString("description");
+            	String bar_code = resultSet.getString("bar_code");
+            	Double pricePerUnit = resultSet.getDouble("price_per_unit");
+            	Double discountRate = resultSet.getDouble("discount_rate");
+            	productType = new ConcreteProductType(id, description, bar_code, notes, quantity, pricePerUnit, discountRate, location);
+			}
+			return productType;
+		}catch (SQLException e) {
+			// TODO: handle exception
+			System.out.println(e);
+		} finally {
+			dataSource.close(connection);
+		}
+		return null;
+	}
 }
