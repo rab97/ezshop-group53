@@ -31,15 +31,7 @@ public class DAOEZShop  implements IDAOEZshop {
         try {
         	connection = dataSource.getConnection();
             statement = connection.createStatement();
-            //logger.debug(query.toString());
-            
-            /*StringBuilder query = new StringBuilder();
-            query.append("insert into user values (");
-            query.append("'" + username + "',");
-            query.append("'" + password + "');");
-            //String  query="SELECT * FROM user";*/
             String query = "SELECT * FROM user where username= '" + username + "' AND password='" + password +"'";
-            //statement.executeUpdate(query.toString());
             resultSet = statement.executeQuery(query);
             User user = null;
             while(resultSet.next()){
@@ -230,4 +222,109 @@ public class DAOEZShop  implements IDAOEZshop {
 		}
 		return null;
 	}
+	
+	@Override
+	public List<ProductType> getProductTypeByDescription(String description) throws DAOException {
+	   	Connection connection = null;
+		Statement statement = null;
+		ResultSet resultSet = null;
+		try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "select * from product_type where description = '" + description + "';";
+            resultSet = statement.executeQuery(query);
+            List<ProductType> productTypeList = new ArrayList<>();
+            while(resultSet.next()) {
+            	Integer id = resultSet.getInt("id");
+            	Integer quantity = resultSet.getInt("quantity");
+            	String location = resultSet.getString("location");
+            	String notes = resultSet.getString("note");
+            	String desc = resultSet.getString("description");
+            	String bar_code = resultSet.getString("bar_code");
+            	Double pricePerUnit = resultSet.getDouble("price_per_unit");
+            	Double discountRate = resultSet.getDouble("discount_rate");
+            	ProductType productType = new ConcreteProductType(id, desc, bar_code, notes, quantity, pricePerUnit, discountRate, location);
+            	productTypeList.add(productType);
+            }
+            return productTypeList;
+		} catch (SQLException e) {
+			// TODO: handle exception
+			System.out.println(e);
+		} finally {
+			dataSource.close(connection);
+		}
+		return null;
+	}
+
+	@Override
+	public boolean updateQuantity(Integer productId, int toBeAdded) throws DAOException {
+		// TODO Auto-generated method stub
+		Connection connection = null;
+		Statement statement = null;
+		ResultSet resultSet = null;
+		try {
+
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "select quantity, location from product_type where id = " + productId;
+            resultSet = statement.executeQuery(query);
+            int quantity = 0;
+            String location = null;
+            if(resultSet.next()) {
+            	quantity = resultSet.getInt("quantity");
+            	location = resultSet.getString("location");
+            }
+            int value = quantity + toBeAdded;
+            if(value < 0 || location == null ||  location.isEmpty()) {
+            	return false;
+            }
+            query = "update product_type  set quantity = " + value + " where id = " +  productId;
+            statement.executeUpdate(query.toString());
+            return true;
+		} catch (Exception e) {
+			System.out.println(e);
+			return false;
+		} finally {
+			dataSource.close(connection);
+		}
+	}
+
+	
+	
+	@Override
+	public void updatePosition(Integer productId, String position) throws DAOException {
+		// TODO Auto-generated method stub
+		Connection connection = null;
+		Statement statement = null;
+		try {
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			String query = "update product_type set location = " + position + " where id = " + productId;
+			statement.executeUpdate(query);
+		}catch (Exception e) {
+			
+		} finally {
+			dataSource.close(connection);
+		}
+	}
+
+	@Override
+	public boolean searchPosition(String position) throws DAOException {
+		Connection connection = null;
+		Statement statement = null;
+		ResultSet resultSet = null;
+		try {
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			String query = "select * from product_type where location = '" + position + "'";
+			resultSet = statement.executeQuery(query);
+			return (resultSet.next() ? true : false);
+		}catch (Exception e) {
+			System.out.println(e);
+		} finally {
+			dataSource.close(connection);
+		}
+		return false;
+	}
+	
 }

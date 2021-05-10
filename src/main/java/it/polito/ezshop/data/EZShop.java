@@ -194,18 +194,67 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getProductTypesByDescription(String description) throws UnauthorizedException {
-        
-    	return null;
+    	if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+    	List<ProductType> productTypeList = new ArrayList<>();
+    	try {
+    		productTypeList = dao.getProductTypeByDescription(description);
+    	} catch (Exception e) {
+    		System.out.println("errror");
+    	}
+        return productTypeList;
     }
 
     @Override
     public boolean updateQuantity(Integer productId, int toBeAdded) throws InvalidProductIdException, UnauthorizedException {
-        return false;
+
+    	if(productId == null || productId <= 0) {
+        	throw new InvalidProductIdException();
+        }
+        if((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER))) {
+        	throw new UnauthorizedException();
+        }
+        boolean result = false;
+        try {
+        	result = dao.updateQuantity(productId, toBeAdded);
+        }catch (Exception e) {
+			System.out.println(e);
+		}
+        return result;
     }
 
     @Override
     public boolean updatePosition(Integer productId, String newPos) throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
-        return false;
+        String position[] = newPos.split("-");
+        System.out.println(newPos);
+        System.out.println("position lemgth: " + position.length);
+        if(position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
+        	throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
+        }
+        try {
+			Integer.parseInt(position[0]);
+			Integer.parseInt(position[2]);
+			
+		} catch (Exception e) {
+			System.out.println("eccezione : " + e);
+			throw  new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
+		}
+    	if(productId == null || productId <= 0) {
+        	throw new InvalidProductIdException();
+        }
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+        try {
+			if(dao.searchPosition(newPos)) {
+				return false;
+			}
+		} catch (DAOException e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+    	return true;
     }
 
     @Override

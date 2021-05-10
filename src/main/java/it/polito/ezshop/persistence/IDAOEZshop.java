@@ -1,6 +1,6 @@
 package it.polito.ezshop.persistence;
 
-import java.awt.List;
+import java.util.List;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
@@ -16,6 +16,11 @@ public interface IDAOEZshop {
     public void  createProductType(ProductType productType)  throws DAOException;
     
     public ConcreteProductType getProductTypeByBarCode(String barCode) throws DAOException;
+    public List<ProductType> getProductTypeByDescription(String description) throws DAOException;
+    public boolean updateQuantity(Integer productId, int toBeAdded) throws DAOException;
+    public void updatePosition(Integer productId, String position) throws DAOException;
+    public boolean searchPosition(String position) throws DAOException;
+    
     public void insertUser(String username, String password, String role, Integer id) throws DAOException;
 
     public Integer getLastUserId() throws DAOException;
