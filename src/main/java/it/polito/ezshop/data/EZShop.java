@@ -81,7 +81,19 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public User getUser(Integer id) throws InvalidUserIdException, UnauthorizedException {
-        return null;
+        User user = null;
+        if(runningUser == null || !runningUser.getRole().equalsIgnoreCase("Administrator")) {
+            throw new UnauthorizedException();
+        }
+        if(id <= 0 || id == null) {
+            throw new InvalidUserIdException();
+        }
+        try {
+            user =  dao.searchUserById(id);
+        } catch (DAOException e) {
+           System.out.println(e);
+        }
+        return user;
     }
 
     @Override

@@ -263,5 +263,26 @@ public class DAOEZShop  implements IDAOEZshop {
         }
     }
 
+    @Override
+    public User searchUserById(Integer id) throws DAOException{
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
 
+        try {
+        	connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "SELECT * FROM user WHERE id= '" + id + "'";
+            resultSet = statement.executeQuery(query);
+            User u;
+            if(!resultSet.next())
+                u = null;
+            u = new ConcreteUser(resultSet.getString("username"), resultSet.getInt("id"), resultSet.getString("password"), resultSet.getString("role"));
+            return u;
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+        	dataSource.close(connection);
+        }
+    }
 }

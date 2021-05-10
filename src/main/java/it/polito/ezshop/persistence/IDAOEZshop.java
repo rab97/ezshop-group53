@@ -26,5 +26,7 @@ public interface IDAOEZshop {
 
     public Integer insertCustomer(String customerName) throws DAOException;
 
+    public User searchUserById(Integer id) throws DAOException;
+
 
 }
