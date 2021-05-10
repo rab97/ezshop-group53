@@ -144,7 +144,10 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public boolean logout() {
-        return false;
+        if(runningUser == null)
+            return false;
+        runningUser = null;
+        return true;
     }
 
     @Override
