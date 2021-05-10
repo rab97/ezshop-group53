@@ -14,4 +14,7 @@ public interface IDAOEZshop {
     public ArrayList<ProductType> getAllProducTypet()  throws DAOException;
     public void  createProductType(ProductType productType)  throws DAOException;
 
+    public Integer insertCustomer(String customerName) throws DAOException;
+
+
 }

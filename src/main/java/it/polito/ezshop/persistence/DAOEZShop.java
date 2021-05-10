@@ -3,6 +3,7 @@ package it.polito.ezshop.persistence;
 import java.util.List;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -114,4 +115,42 @@ public class DAOEZShop  implements IDAOEZshop {
         	dataSource.close(connection);
         }
     }
+
+    public Integer insertCustomer(String customerName) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+        	connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            System.out.println("dentro dao prima della prima query");
+
+            //Insert
+            PreparedStatement pstm;
+
+            pstm= connection.prepareStatement("insert into customer(name) values (?)");
+            pstm.setString(1, customerName);
+            pstm.execute();
+
+            System.out.println("query di insert andata a buon fine");
+
+            //Recover the id
+            String query= "SELECT id FROM customer WHERE name= '" + customerName + "';";
+            System.out.println(query);
+
+            resultSet= statement.executeQuery(query);   
+            System.out.println("id: " + resultSet.getString("id"));         
+            Integer id = resultSet.getInt("id");
+            
+            return id;
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+        	dataSource.close(connection);
+        }
+    }
+    
 }

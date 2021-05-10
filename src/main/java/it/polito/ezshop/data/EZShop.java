@@ -184,7 +184,28 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer defineCustomer(String customerName) throws InvalidCustomerNameException, UnauthorizedException {
-        return null;
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        
+        if(customerName== null | customerName.isEmpty()){
+            throw new InvalidCustomerNameException();
+        }
+
+        Integer newCustomerId= -1;
+        System.out.println("newCustomerId before query=");
+        System.out.println(newCustomerId);
+
+        try{
+             newCustomerId= dao.insertCustomer(customerName);
+             System.out.println("newCustomerId after query=");
+             System.out.println(newCustomerId);
+
+        }catch(DAOException e){
+			System.out.println("db excepiton");
+        }
+
+        return newCustomerId;
     }
 
     @Override
