@@ -3,30 +3,30 @@ package it.polito.ezshop.model;
 import it.polito.ezshop.data.User;
 
 public class ConcreteUser implements User {
-	
+
 	private String username;
 	private Integer id;
 	private String password;
 	private String role;
 
 	public ConcreteUser() {
-		
+
 	}
-		
+
 	public ConcreteUser(String username, Integer id, String password, String role) {
 		this.username = username;
 		this.id = id;
 		this.password = password;
 		this.role = role;
 	}
-	
+
 	public ConcreteUser(User user) {
 		this.username = user.getUsername();
 		this.id = user.getId();
 		this.password = user.getPassword();
 		this.role = user.getRole();
 	}
-	
+
 	@Override
 	public Integer getId() {
 		return id;
@@ -45,7 +45,7 @@ public class ConcreteUser implements User {
 	@Override
 	public void setUsername(String username) {
 		this.username = username;
-		
+
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class ConcreteUser implements User {
 
 	@Override
 	public void setRole(String role) {
-		this.role = role;	
+		this.role = role;
 	}
-	
+
 }

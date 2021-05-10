@@ -7,7 +7,7 @@ public class ConcreteCustomer implements Customer {
     String customerName;
     String customerCard;
     Integer points;
-    //Card customerCard or String customerCard;
+    // Card customerCard or String customerCard;
 
     public ConcreteCustomer(Integer id, String customerName, String customerCard, Integer points) {
         this.id = id;
@@ -28,7 +28,7 @@ public class ConcreteCustomer implements Customer {
 
     @Override
     public String getCustomerCard() {
-        //return customerCard.getCustomerCard();
+        // return customerCard.getCustomerCard();
         return customerCard;
     }
 
@@ -56,5 +56,5 @@ public class ConcreteCustomer implements Customer {
     public void setPoints(Integer points) {
         this.points = points;
     }
-    
+
 }
