@@ -13,4 +13,12 @@ public interface IDAOEZshop {
     
     public ArrayList<ProductType> getAllProducTypet()  throws DAOException;
 
+    public void insertUser(String username, String password, String role, Integer id) throws DAOException;
+
+    public Integer getLastUserId() throws DAOException;
+
+    public boolean removeUser(Integer id) throws DAOException;
+
+    public java.util.List<User> getAllUsers() throws DAOException;
+
 }
