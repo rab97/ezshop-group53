@@ -1,8 +1,6 @@
 package it.polito.ezshop.persistence;
 
 import java.util.List;
-import java.beans.Customizer;
-import java.lang.Thread.State;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,20 +25,8 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-<<<<<<< HEAD
             String query = "SELECT * FROM user where username= '" + username + "' AND password='" + password +"'";
-=======
-            // logger.debug(query.toString());
 
-            /*
-             * StringBuilder query = new StringBuilder();
-             * query.append("insert into user values ("); query.append("'" + username +
-             * "',"); query.append("'" + password + "');"); //String
-             * query="SELECT * FROM user";
-             */
-            String query = "SELECT * FROM user where username= '" + username + "' AND password='" + password + "'";
-            // statement.executeUpdate(query.toString());
->>>>>>> 8517e3d7d8cf3dfb52680e928539862378e16290
             resultSet = statement.executeQuery(query);
             User user = null;
             while (resultSet.next()) {
@@ -199,10 +185,10 @@ public class DAOEZShop implements IDAOEZshop {
             dataSource.close(connection);
         }
     }
+    
 
     @Override
     public ConcreteProductType getProductTypeByBarCode(String barCode) throws DAOException {
-        // TODO Auto-generated method stub
         Connection connection = null;
         Statement statment = null;
         ResultSet resultSet = null;
@@ -433,48 +419,15 @@ public class DAOEZShop implements IDAOEZshop {
                 Customer c= new ConcreteCustomer(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("card"), resultSet.getInt("points"));
                 customers.add(c);
             }
-
+            
         }catch(SQLException ex){
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         }finally{
         	dataSource.close(connection);
         }
-<<<<<<< HEAD
-		
+		return customers;
 	}
 
-	@Override
-	public ConcreteProductType getProductTypeByBarCode(String barCode) throws DAOException {
-		// TODO Auto-generated method stub
-		Connection connection = null;
-		Statement statment = null;
-		ResultSet resultSet = null;
-		try {
-			connection = dataSource.getConnection();
-			statment = connection.createStatement();
-			String query = "select * from product_type where bar_code = '" + barCode + "';";
-			resultSet = statment.executeQuery(query);
-			ConcreteProductType productType = null;
-			while(resultSet.next()) {
-				Integer id = resultSet.getInt("id");
-            	Integer quantity = resultSet.getInt("quantity");
-            	String location = resultSet.getString("location");
-            	String notes = resultSet.getString("note");
-            	String description = resultSet.getString("description");
-            	String bar_code = resultSet.getString("bar_code");
-            	Double pricePerUnit = resultSet.getDouble("price_per_unit");
-            	Double discountRate = resultSet.getDouble("discount_rate");
-            	productType = new ConcreteProductType(id, description, bar_code, notes, quantity, pricePerUnit, discountRate, location);
-			}
-			return productType;
-		}catch (SQLException e) {
-			// TODO: handle exception
-			System.out.println(e);
-		} finally {
-			dataSource.close(connection);
-		}
-		return null;
-	}
 	
 	@Override
 	public List<ProductType> getProductTypeByDescription(String description) throws DAOException {
@@ -579,12 +532,4 @@ public class DAOEZShop implements IDAOEZshop {
 		}
 		return false;
 	}
-	
-=======
-
-        return customers;
-
-    }
-
->>>>>>> 8517e3d7d8cf3dfb52680e928539862378e16290
 }

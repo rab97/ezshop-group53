@@ -235,7 +235,6 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getProductTypesByDescription(String description) throws UnauthorizedException {
-<<<<<<< HEAD
     	if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
         	throw new UnauthorizedException();
         }
@@ -297,23 +296,8 @@ public class EZShop implements EZShopInterface {
 			e.printStackTrace();
 		}
     	return true;
-=======
-
-        return null;
     }
 
-    @Override
-    public boolean updateQuantity(Integer productId, int toBeAdded)
-            throws InvalidProductIdException, UnauthorizedException {
-        return false;
-    }
-
-    @Override
-    public boolean updatePosition(Integer productId, String newPos)
-            throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
-        return false;
->>>>>>> 8517e3d7d8cf3dfb52680e928539862378e16290
-    }
 
     @Override
     public Integer issueOrder(String productCode, int quantity, double pricePerUnit) throws InvalidProductCodeException,
