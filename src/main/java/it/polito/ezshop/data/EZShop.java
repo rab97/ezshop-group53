@@ -12,8 +12,9 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Random;
 import javax.swing.text.StyleConstants.CharacterConstants;
+
 
 public class EZShop implements EZShopInterface {
 
@@ -144,7 +145,7 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public boolean logout() {
-        if(runningUser == null)
+        if (runningUser == null)
             return false;
         runningUser = null;
         return true;
@@ -235,21 +236,69 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getProductTypesByDescription(String description) throws UnauthorizedException {
-
-        return null;
+    	if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+    	List<ProductType> productTypeList = new ArrayList<>();
+    	try {
+    		productTypeList = dao.getProductTypeByDescription(description);
+    	} catch (Exception e) {
+    		System.out.println("errror");
+    	}
+        return productTypeList;
     }
 
     @Override
-    public boolean updateQuantity(Integer productId, int toBeAdded)
-            throws InvalidProductIdException, UnauthorizedException {
-        return false;
+    public boolean updateQuantity(Integer productId, int toBeAdded) throws InvalidProductIdException, UnauthorizedException {
+
+    	if(productId == null || productId <= 0) {
+        	throw new InvalidProductIdException();
+        }
+        if((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER))) {
+        	throw new UnauthorizedException();
+        }
+        boolean result = false;
+        try {
+        	result = dao.updateQuantity(productId, toBeAdded);
+        }catch (Exception e) {
+			System.out.println(e);
+		}
+        return result;
     }
 
     @Override
-    public boolean updatePosition(Integer productId, String newPos)
-            throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
-        return false;
+    public boolean updatePosition(Integer productId, String newPos) throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+        String position[] = newPos.split("-");
+        System.out.println(newPos);
+        System.out.println("position lemgth: " + position.length);
+        if(position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
+        	throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
+        }
+        try {
+			Integer.parseInt(position[0]);
+			Integer.parseInt(position[2]);
+			
+		} catch (Exception e) {
+			System.out.println("eccezione : " + e);
+			throw  new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
+		}
+    	if(productId == null || productId <= 0) {
+        	throw new InvalidProductIdException();
+        }
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+        try {
+			if(dao.searchPosition(newPos)) {
+				return false;
+			}
+		} catch (DAOException e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+    	return true;
     }
+
 
     @Override
     public Integer issueOrder(String productCode, int quantity, double pricePerUnit) throws InvalidProductCodeException,
@@ -282,7 +331,9 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer defineCustomer(String customerName) throws InvalidCustomerNameException, UnauthorizedException {
-        if (this.runningUser == null) {
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
 
@@ -309,7 +360,9 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean modifyCustomer(Integer id, String newCustomerName, String newCustomerCard) throws InvalidCustomerNameException, InvalidCustomerCardException, InvalidCustomerIdException, UnauthorizedException {
         
-        if(this.runningUser== null){
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)){
             throw new UnauthorizedException();
         }
         if(newCustomerName==null | newCustomerName.isEmpty()){
@@ -335,7 +388,9 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean deleteCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
 
-        if(this.runningUser== null){
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)){
             throw new UnauthorizedException();
         }
         if(id==null | id<=0){
@@ -355,7 +410,9 @@ public class EZShop implements EZShopInterface {
     @Override
     public Customer getCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
 
-        if(this.runningUser== null){
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
         if(id==null | id<=0){
@@ -376,7 +433,9 @@ public class EZShop implements EZShopInterface {
     @Override
     public List<Customer> getAllCustomers() throws UnauthorizedException {
 
-        if(this.runningUser== null){
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)){
             throw new UnauthorizedException();
         }
 
@@ -392,26 +451,83 @@ public class EZShop implements EZShopInterface {
     }
 
 
-     /**
-         * This method returns a string containing the code of a new assignable card.
-         * @return the code of a new available card. An empty string if the db is
-         *         unreachable
-         */
-
     @Override
     public String createCard() throws UnauthorizedException {
 
-        if(this.runningUser== null){
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)){
             throw new UnauthorizedException();
         }
-        //TODO: chiamata al db con generazione automatica del codice della carta
-        return null;
+
+        //Card String generation
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 10;
+        Random random = new Random();
+        StringBuilder buffer = new StringBuilder(targetStringLength);
+        for (int i = 0; i < targetStringLength; i++) {
+            int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+            buffer.append((char) randomLimitedInt);
+        }
+
+        String generatedString = buffer.toString();
+        System.out.println(generatedString);
+
+        //call the db
+        /*
+        boolean cardInsertion= false;
+        try{
+            cardInsertion = dao.createNewCard(generatedString);
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        
+        }
+
+        if(cardInsertion ==false){
+            return "";
+        }else{
+            return generatedString;
+        }*/
+        return generatedString;
+
     }
 
+
+    /**
+         * This method assigns a card with given card code to a customer with given
+         * identifier. A card with given card code can be assigned to one customer only.
+         *
+         *
+         * @return true if the operation was successful false if the card is already
+         *         assigned to another user, if there is no customer with given id, if
+         *         the db is unreachable
+         */
     @Override
-    public boolean attachCardToCustomer(String customerCard, Integer customerId)
-            throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
-        return false;
+    public boolean attachCardToCustomer(String customerCard, Integer customerId) throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
+        
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
+            throw new UnauthorizedException();
+        }
+        if(customerId== null | customerId<= 0){
+            throw new InvalidCustomerIdException();
+        }
+        if(customerCard== null| customerCard.isEmpty() | customerCard.length()>10){
+            throw new InvalidCustomerCardException();
+        }
+
+        boolean result= false;
+        try{
+            result= dao.bindCardToCustomer(customerCard, customerId);
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return result;
     }
 
       /**
@@ -433,7 +549,9 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded) throws InvalidCustomerCardException, UnauthorizedException {
 
-        if(this.runningUser== null){
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
         if(customerCard==null| customerCard.isEmpty()|customerCard.length()>10){
@@ -453,6 +571,12 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer startSaleTransaction() throws UnauthorizedException {
+        if (runningUser == null && (!runningUser.getRole().equalsIgnoreCase("Administrator")
+                || !runningUser.getRole().equalsIgnoreCase("ShopManager")
+                || !runningUser.getRole().equalsIgnoreCase("Cashier"))) {
+            throw new UnauthorizedException();
+        }
+        
         return null;
     }
 
