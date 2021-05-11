@@ -3,6 +3,7 @@ package it.polito.ezshop.data;
 import it.polito.ezshop.Constants;
 import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteProductType;
+import it.polito.ezshop.model.ConcreteTicketEntry;
 import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
@@ -16,11 +17,11 @@ import java.util.Random;
 import javax.swing.text.StyleConstants.CharacterConstants;
 //import javax.transaction.InvalidTransactionException;
 
-
 public class EZShop implements EZShopInterface {
 
     private IDAOEZshop dao = new DAOEZShop();
     private User runningUser = null;
+    List<TicketEntry> productsToSale; // è giusto metterlo qui???
 
     @Override
     public void reset() {
@@ -190,48 +191,48 @@ public class EZShop implements EZShopInterface {
     public boolean updateProduct(Integer id, String newDescription, String newCode, double newPrice, String newNote)
             throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException,
             InvalidPricePerUnitException, UnauthorizedException {
-    	if (newDescription == null || newDescription.isEmpty()) {
+        if (newDescription == null || newDescription.isEmpty()) {
             throw new InvalidProductDescriptionException();
         }
         if (newCode == null || newCode.isEmpty()) {
             throw new InvalidProductCodeException();
         }
-        //valid bar code
+        // valid bar code
         try {
             int tmp = Integer.parseInt(newCode);
         } catch (Exception e) {
             throw new InvalidProductCodeException();
         }
-        if ( newPrice <= 0) {
+        if (newPrice <= 0) {
             throw new InvalidPricePerUnitException();
         }
         if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
             throw new UnauthorizedException();
         }
         try {
-        	ProductType p = new ConcreteProductType(id, newDescription,newCode, newNote, null, newPrice, null, null);
-        	return dao.updateProduct(p);
+            ProductType p = new ConcreteProductType(id, newDescription, newCode, newNote, null, newPrice, null, null);
+            return dao.updateProduct(p);
         } catch (Exception e) {
-			System.out.println(e);
+            System.out.println(e);
         }
         return false;
     }
 
     @Override
     public boolean deleteProductType(Integer id) throws InvalidProductIdException, UnauthorizedException {
-        if(id == null || id <= 0) {
-        	throw new InvalidProductIdException();
+        if (id == null || id <= 0) {
+            throw new InvalidProductIdException();
         }
         if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
             throw new UnauthorizedException();
         }
         boolean delete = false;
         try {
-        	delete = dao.deleteProductType(id);
-        	delete = true;
-        }catch (Exception e) {
-        	System.out.println(e);
-		}
+            delete = dao.deleteProductType(id);
+            delete = true;
+        } catch (Exception e) {
+            System.out.println(e);
+        }
         return delete;
     }
 
@@ -372,9 +373,9 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer defineCustomer(String customerName) throws InvalidCustomerNameException, UnauthorizedException {
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
-            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
-            && !runningUser.getRole().equals(Constants.CASHIER)) {
+        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
 
@@ -484,17 +485,16 @@ public class EZShop implements EZShopInterface {
         return customersList;
     }
 
-
     @Override
     public String createCard() throws UnauthorizedException {
 
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
-            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
-            && !runningUser.getRole().equals(Constants.CASHIER)){
+        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
 
-        //Card String generation
+        // Card String generation
         int leftLimit = 97; // letter 'a'
         int rightLimit = 122; // letter 'z'
         int targetStringLength = 10;
@@ -508,95 +508,90 @@ public class EZShop implements EZShopInterface {
         String generatedString = buffer.toString();
         System.out.println(generatedString);
 
-        //call the db
+        // call the db
         /*
-        boolean cardInsertion= false;
-        try{
-            cardInsertion = dao.createNewCard(generatedString);
-
-        }catch(DAOException e){
-            System.out.println("db excepiton");
-        
-        }
-
-        if(cardInsertion ==false){
-            return "";
-        }else{
-            return generatedString;
-        }*/
+         * boolean cardInsertion= false; try{ cardInsertion =
+         * dao.createNewCard(generatedString);
+         * 
+         * }catch(DAOException e){ System.out.println("db excepiton");
+         * 
+         * }
+         * 
+         * if(cardInsertion ==false){ return ""; }else{ return generatedString; }
+         */
         return generatedString;
 
     }
 
-
     /**
-         * This method assigns a card with given card code to a customer with given
-         * identifier. A card with given card code can be assigned to one customer only.
-         *
-         *
-         * @return true if the operation was successful false if the card is already
-         *         assigned to another user, if there is no customer with given id, if
-         *         the db is unreachable
-         */
+     * This method assigns a card with given card code to a customer with given
+     * identifier. A card with given card code can be assigned to one customer only.
+     *
+     *
+     * @return true if the operation was successful false if the card is already
+     *         assigned to another user, if there is no customer with given id, if
+     *         the db is unreachable
+     */
     @Override
-    public boolean attachCardToCustomer(String customerCard, Integer customerId) throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
-        
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
-            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
-            && !runningUser.getRole().equals(Constants.CASHIER)) {
+    public boolean attachCardToCustomer(String customerCard, Integer customerId)
+            throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
+
+        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
-        if(customerId== null | customerId<= 0){
+        if (customerId == null | customerId <= 0) {
             throw new InvalidCustomerIdException();
         }
-        if(customerCard== null| customerCard.isEmpty() | customerCard.length()>10){
+        if (customerCard == null | customerCard.isEmpty() | customerCard.length() > 10) {
             throw new InvalidCustomerCardException();
         }
 
-        boolean result= false;
-        try{
-            result= dao.bindCardToCustomer(customerCard, customerId);
+        boolean result = false;
+        try {
+            result = dao.bindCardToCustomer(customerCard, customerId);
 
-        }catch(DAOException e){
+        } catch (DAOException e) {
             System.out.println("db excepiton");
         }
 
         return result;
     }
 
-      /**
-         * This method updates the points on a card adding to the number of points
-         * available on the card the value assumed by <pointsToBeAdded>. The points on a
-         * card should always be greater than or equal to 0. 
-         *
-         * @param customerCard    the card the points should be added to
-         * @param pointsToBeAdded the points to be added or subtracted ( this could
-         *                        assume a negative value)
-         *
-         * @return true if the operation is successful 
-         *         false if there is no card with
-         *         given code, if pointsToBeAdded is negative and there were not enough
-         *         points on that card before this operation, if we cannot reach the db.
-        
-         */
+    /**
+     * This method updates the points on a card adding to the number of points
+     * available on the card the value assumed by <pointsToBeAdded>. The points on a
+     * card should always be greater than or equal to 0.
+     *
+     * @param customerCard    the card the points should be added to
+     * @param pointsToBeAdded the points to be added or subtracted ( this could
+     *                        assume a negative value)
+     *
+     * @return true if the operation is successful false if there is no card with
+     *         given code, if pointsToBeAdded is negative and there were not enough
+     *         points on that card before this operation, if we cannot reach the db.
+     * 
+     */
 
     @Override
-    public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded) throws InvalidCustomerCardException, UnauthorizedException {
+    public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded)
+            throws InvalidCustomerCardException, UnauthorizedException {
 
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
-            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
-            && !runningUser.getRole().equals(Constants.CASHIER)) {
+        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
-        if(customerCard==null| customerCard.isEmpty()|customerCard.length()>10){
+        if (customerCard == null | customerCard.isEmpty() | customerCard.length() > 10) {
             throw new InvalidCustomerCardException();
         }
 
-        boolean modification= false;
-        try{
-            modification= dao.updatePoints(customerCard, pointsToBeAdded);
+        boolean modification = false;
+        try {
+            modification = dao.updatePoints(customerCard, pointsToBeAdded);
 
-        }catch(DAOException e){
+        } catch (DAOException e) {
             System.out.println("db excepiton");
         }
 
@@ -618,7 +613,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-
+        productsToSale = new ArrayList<TicketEntry>();
         System.out.println(sale_transaction_id);
         return sale_transaction_id;
     }
@@ -627,6 +622,7 @@ public class EZShop implements EZShopInterface {
     public boolean addProductToSale(Integer transactionId, String productCode, int amount)
             throws InvalidTransactionIdException, InvalidProductCodeException, InvalidQuantityException,
             UnauthorizedException {
+
         if (transactionId == null || transactionId <= 0) {
             throw new InvalidTransactionIdException();
         }
@@ -642,13 +638,34 @@ public class EZShop implements EZShopInterface {
             throw new InvalidProductCodeException();
         }
 
-        boolean state = false;
+        // check on product
+        ProductType pt = getProductTypeByBarCode(productCode);
+        if (pt == null || pt.getQuantity() < amount)
+            return false;
+        // la ricerca sulla sale transaction aperta come la
+        // implemento? devo necessariamente avere uno stato salvato
+        // nel database?
+        TicketEntry te = new ConcreteTicketEntry(productCode, pt.getProductDescription(), amount, pt.getPricePerUnit(),
+                0);
+
+        // decrement product availability
         try {
-            state = dao.insertProductToSale(transactionId, productCode, amount);
-        } catch (Exception e) {
+            dao.updateQuantity(pt.getId(), (-2) * amount);
+        } catch (DAOException e) {
             System.out.println(e);
+            return false;
         }
-        return state;
+
+        // add to list
+        productsToSale.add(te);
+
+        // print log
+        System.out.println("Added product to sale:");
+        for (TicketEntry td : productsToSale) {
+            System.out.println(td.getProductDescription());
+        }
+
+        return true;
 
     }
 
@@ -670,13 +687,8 @@ public class EZShop implements EZShopInterface {
         if (productCode.isEmpty() || productCode == null) { // manca invalid
             throw new InvalidProductCodeException();
         }
-        boolean state = false;
-        try {
-            state = dao.removeProductToSale(transactionId, productCode, amount);
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return state;
+
+        return false;
     }
 
     @Override
@@ -723,13 +735,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
 
-        SaleTransaction sT = null;
-        try {
-            sT = dao.selectSaleTransaction(transactionId);
-        } catch (DAOException e) {
-           System.out.print(e);
-        }
-        return sT;
+        return null;
     }
 
     @Override

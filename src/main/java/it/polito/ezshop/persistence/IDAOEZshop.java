@@ -55,10 +55,4 @@ public interface IDAOEZshop {
 
     public Integer insertSaleTransaction() throws DAOException;
 
-    public boolean insertProductToSale(Integer transactionId, String productCode, int amount) throws DAOException;
-
-    public boolean removeProductToSale(Integer transactionId, String productCode, int amount) throws DAOException;
-
-    public SaleTransaction selectSaleTransaction(Integer transactionId) throws DAOException;
-
 }
