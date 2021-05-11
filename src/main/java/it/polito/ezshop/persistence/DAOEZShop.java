@@ -662,8 +662,9 @@ public class DAOEZShop implements IDAOEZshop {
             SaleTransaction sT;
             if (!resultSet.next())
                 sT = null;
-        //    sT = new ConcreteSaleTransaction(transactionId, entries, discountRate, price);
-        //    return u;
+            // sT = new ConcreteSaleTransaction(transactionId, entries, discountRate,
+            // price);
+            // return u;
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
@@ -671,4 +672,62 @@ public class DAOEZShop implements IDAOEZshop {
         }
         return null;
     }
+
+    // TODO: capire se questo metodo serve davvero nel db: dovrei creare una tabella
+    // Card
+    @Override
+    public boolean createNewCard(String newCard) throws DAOException {
+
+        /*
+         * Connection connection = null; Statement statement = null;
+         * 
+         * try{}
+         */
+        return true;
+    }
+
+    @Override
+    public boolean bindCardToCustomer(String card, Integer customerId) throws DAOException {
+
+        Connection connection = null;
+        Statement statement = null;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            String query = "SELECT * FROM customer WHERE customerId= '" + customerId + "' OR card= '" + card + "';";
+            ResultSet rs = statement.executeQuery(query);
+
+            boolean customerExistance = false;
+            while (rs.next()) { // check all the rows to find a non-existing user or an already assigned card
+
+                if (rs.getInt("id") == customerId) {
+                    customerExistance = true;
+                }
+                if (rs.getString("card") == card) {
+                    System.out.println("This card is already attached to a customer");
+                    return false;
+                }
+            }
+
+            if (customerExistance != true) {
+                System.out.println("The given customer doesn't exist");
+                return false;
+            }
+
+            query = "UPDATE customer SET card= '" + card + "' WHERE id= '" + customerId + "';";
+            statement.executeUpdate(query);
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        }
+
+        return true;
+    }
+
+    public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException{
+        return true;
+    }
+
 }

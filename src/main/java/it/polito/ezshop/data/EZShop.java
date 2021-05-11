@@ -12,9 +12,10 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Random;
 import javax.swing.text.StyleConstants.CharacterConstants;
 import javax.transaction.InvalidTransactionException;
+
 
 public class EZShop implements EZShopInterface {
 
@@ -337,7 +338,9 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer defineCustomer(String customerName) throws InvalidCustomerNameException, UnauthorizedException {
-        if (this.runningUser == null) {
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
 
@@ -447,21 +450,123 @@ public class EZShop implements EZShopInterface {
         return customersList;
     }
 
+
     @Override
     public String createCard() throws UnauthorizedException {
-        return null;
+
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)){
+            throw new UnauthorizedException();
+        }
+
+        //Card String generation
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 10;
+        Random random = new Random();
+        StringBuilder buffer = new StringBuilder(targetStringLength);
+        for (int i = 0; i < targetStringLength; i++) {
+            int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+            buffer.append((char) randomLimitedInt);
+        }
+
+        String generatedString = buffer.toString();
+        System.out.println(generatedString);
+
+        //call the db
+        /*
+        boolean cardInsertion= false;
+        try{
+            cardInsertion = dao.createNewCard(generatedString);
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        
+        }
+
+        if(cardInsertion ==false){
+            return "";
+        }else{
+            return generatedString;
+        }*/
+        return generatedString;
+
     }
 
+
+    /**
+         * This method assigns a card with given card code to a customer with given
+         * identifier. A card with given card code can be assigned to one customer only.
+         *
+         *
+         * @return true if the operation was successful false if the card is already
+         *         assigned to another user, if there is no customer with given id, if
+         *         the db is unreachable
+         */
     @Override
-    public boolean attachCardToCustomer(String customerCard, Integer customerId)
-            throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
-        return false;
+    public boolean attachCardToCustomer(String customerCard, Integer customerId) throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
+        
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
+            throw new UnauthorizedException();
+        }
+        if(customerId== null | customerId<= 0){
+            throw new InvalidCustomerIdException();
+        }
+        if(customerCard== null| customerCard.isEmpty() | customerCard.length()>10){
+            throw new InvalidCustomerCardException();
+        }
+
+        boolean result= false;
+        try{
+            result= dao.bindCardToCustomer(customerCard, customerId);
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return result;
     }
 
+      /**
+         * This method updates the points on a card adding to the number of points
+         * available on the card the value assumed by <pointsToBeAdded>. The points on a
+         * card should always be greater than or equal to 0. 
+         *
+         * @param customerCard    the card the points should be added to
+         * @param pointsToBeAdded the points to be added or subtracted ( this could
+         *                        assume a negative value)
+         *
+         * @return true if the operation is successful 
+         *         false if there is no card with
+         *         given code, if pointsToBeAdded is negative and there were not enough
+         *         points on that card before this operation, if we cannot reach the db.
+        
+         */
+
     @Override
-    public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded)
-            throws InvalidCustomerCardException, UnauthorizedException {
-        return false;
+    public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded) throws InvalidCustomerCardException, UnauthorizedException {
+
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
+            throw new UnauthorizedException();
+        }
+        if(customerCard==null| customerCard.isEmpty()|customerCard.length()>10){
+            throw new InvalidCustomerCardException();
+        }
+
+        boolean modification= false;
+        try{
+            modification= dao.updatePoints(customerCard, pointsToBeAdded);
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return modification;
     }
 
     @Override
