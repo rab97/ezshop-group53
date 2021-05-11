@@ -8,8 +8,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
-import it.polito.ezshop.data.ProductType;
-import it.polito.ezshop.data.User;
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.model.*;
 
@@ -25,7 +23,7 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            String query = "SELECT * FROM user where username= '" + username + "' AND password='" + password +"'";
+            String query = "SELECT * FROM user where username= '" + username + "' AND password='" + password + "'";
 
             resultSet = statement.executeQuery(query);
             User user = null;
@@ -40,7 +38,6 @@ public class DAOEZShop implements IDAOEZshop {
                 user.setId(id);
                 user.setRole(role);
             }
-
             return user;
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -82,41 +79,38 @@ public class DAOEZShop implements IDAOEZshop {
     }
 
     @Override
-    public void insertUser(String username, String password, String role, Integer id) throws DAOException {
+    public Integer insertUser(String username, String password, String role) throws DAOException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        Integer id = -1;
         try {
             connection = dataSource.getConnection();
-            String query = "INSERT INTO user(username, password, role, id) VALUES(?, ?, ?, ?)";
+            statement = connection.createStatement();
+            String query = "SELECT * FROM user WHERE username= '" + username + "'";
+            resultSet = statement.executeQuery(query);
+            if (resultSet.next())
+                return -1;
+
+            query = "INSERT INTO user(username, password, role) VALUES(?, ?, ?)";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, username);
             preparedStatement.setString(2, password);
             preparedStatement.setString(3, role);
-            preparedStatement.setInt(4, id);
-            preparedStatement.executeUpdate();
-        } catch (SQLException ex) {
-            throw new DAOException("Impossible to execute query: " + ex.getMessage());
-        } finally {
-            dataSource.close(connection);
-        }
-    }
 
-    @Override
-    public Integer getLastUserId() throws DAOException {
-        Connection connection = null;
-        Statement statement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = dataSource.getConnection();
-            statement = connection.createStatement();
-            String query = "SELECT MAX(id) FROM user";
-            resultSet = statement.executeQuery(query);
-            return (resultSet.next() ? resultSet.getInt(1) : 0);
+            preparedStatement.executeUpdate();
+            resultSet = preparedStatement.getGeneratedKeys();
+
+            if (resultSet.next()) {
+                id = resultSet.getInt(1);
+            }
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
+        return id;
     }
 
     @Override
@@ -185,7 +179,6 @@ public class DAOEZShop implements IDAOEZshop {
             dataSource.close(connection);
         }
     }
-    
 
     @Override
     public ConcreteProductType getProductTypeByBarCode(String barCode) throws DAOException {
@@ -219,8 +212,6 @@ public class DAOEZShop implements IDAOEZshop {
         }
         return null;
     }
-
-
 
     @Override
     public User searchUserById(Integer id) throws DAOException {
@@ -257,7 +248,7 @@ public class DAOEZShop implements IDAOEZshop {
             preparedStatement.setString(1, role);
             preparedStatement.setInt(2, id);
             int ps = preparedStatement.executeUpdate();
-            if(ps <= 0)
+            if (ps <= 0)
                 return false;
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
@@ -300,18 +291,18 @@ public class DAOEZShop implements IDAOEZshop {
     }
 
     @Override
-    public boolean updateCustomer(Integer id, String newCustomerName, String newCustomerCard) throws DAOException{
+    public boolean updateCustomer(Integer id, String newCustomerName, String newCustomerCard) throws DAOException {
 
         Connection connection = null;
         Statement statement = null;
         int update;
 
-        try{
-            connection= dataSource.getConnection();
+        try {
+            connection = dataSource.getConnection();
             statement = connection.createStatement();
 
-            //update query creation
-            String query= "UPDATE customer SET name= '" + newCustomerName + "'";
+            // update query creation
+            String query = "UPDATE customer SET name= '" + newCustomerName + "'";
 
             if(newCustomerCard.isEmpty()){ //remove previous card and its points
                 query= query + ", card= '" + null + "', points= '"+ 0 + "'";
@@ -320,281 +311,380 @@ public class DAOEZShop implements IDAOEZshop {
                 query= query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
-            query= query + "WHERE customer.id= '"+ id + "';";
+            query = query + "WHERE customer.id= '" + id + "';";
 
-            //update execution
-            update= statement.executeUpdate(query);
+            // update execution
+            update = statement.executeUpdate(query);
             System.out.println("Update query executed succesfully?--> update= " + update);
 
-        }catch(SQLException ex){
+        } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
-        	dataSource.close(connection);
-        }        
+            dataSource.close(connection);
+        }
 
-       if(update!=1){ //something goes wrong
+        if (update != 1) { // something goes wrong
             return false;
         }
 
-        //exactly one row was affected by our update
+        // exactly one row was affected by our update
         return true;
 
     }
-    
+
     @Override
-    public boolean deleteCustomer(Integer id) throws DAOException{
+    public boolean deleteCustomer(Integer id) throws DAOException {
 
         Connection connection = null;
         PreparedStatement prstm = null;
-        boolean result= false;
+        boolean result = false;
 
-        try{
-            connection= dataSource.getConnection();
+        try {
+            connection = dataSource.getConnection();
             prstm = connection.prepareStatement("DELETE FROM customer WHERE id=?;");
             prstm.setInt(1, id);
 
             int del = prstm.executeUpdate();
 
-            if(del!=1){ //Something goes wrong
-                result= false;
-            }else{
-                result= true;
+            if (del != 1) { // Something goes wrong
+                result = false;
+            } else {
+                result = true;
             }
 
-        }catch(SQLException ex){
+        } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
-        	dataSource.close(connection);
-        } 
+            dataSource.close(connection);
+        }
 
         return result;
 
     }
 
     @Override
-    public Customer getCustomer(Integer id) throws DAOException{
+    public Customer getCustomer(Integer id) throws DAOException {
 
         Connection connection = null;
         Statement statement = null;
         Customer c = null;
 
-        try{
-            connection= dataSource.getConnection();
-            statement= connection.createStatement();
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
 
-            String query= "SELECT * FROM customer WHERE id = '"+ id + "';";
-            ResultSet resultSet= statement.executeQuery(query);
+            String query = "SELECT * FROM customer WHERE id = '" + id + "';";
+            ResultSet resultSet = statement.executeQuery(query);
 
-            if(resultSet.next()){
-                c = new ConcreteCustomer(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("card"), resultSet.getInt("points"));
+            if (resultSet.next()) {
+                c = new ConcreteCustomer(resultSet.getInt("id"), resultSet.getString("name"),
+                        resultSet.getString("card"), resultSet.getInt("points"));
             }
 
-
-        }catch(SQLException ex){
+        } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
-        	dataSource.close(connection);
-        } 
+            dataSource.close(connection);
+        }
 
         return c;
     }
 
-
-
     @Override
-    public ArrayList<Customer> getAllCustomers() throws DAOException{
+    public ArrayList<Customer> getAllCustomers() throws DAOException {
 
         Connection connection = null;
         Statement statement = null;
-        ArrayList<Customer> customers= new ArrayList<>();
+        ArrayList<Customer> customers = new ArrayList<>();
 
-        try{
-            connection= dataSource.getConnection();
-            statement= connection.createStatement();
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
 
-            String query= "SELECT * FROM customer";
-            ResultSet resultSet= statement.executeQuery(query);
+            String query = "SELECT * FROM customer";
+            ResultSet resultSet = statement.executeQuery(query);
 
-
-            while(resultSet.next()){
-                Customer c= new ConcreteCustomer(resultSet.getInt("id"), resultSet.getString("name"), resultSet.getString("card"), resultSet.getInt("points"));
+            while (resultSet.next()) {
+                Customer c = new ConcreteCustomer(resultSet.getInt("id"), resultSet.getString("name"),
+                        resultSet.getString("card"), resultSet.getInt("points"));
                 customers.add(c);
             }
-            
-        }catch(SQLException ex){
+
+        } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
-        }finally{
-        	dataSource.close(connection);
+        } finally {
+            dataSource.close(connection);
         }
-		return customers;
-	}
-
-    //TODO: capire se questo metodo serve davvero nel db: dovrei creare una tabella Card
-    @Override
-    public boolean createNewCard(String newCard) throws DAOException{
-
-        /*
-        Connection connection = null;
-        Statement statement = null;
-
-        try{}
-        */
-        return true;
+        return customers;
     }
 
     @Override
-    public boolean bindCardToCustomer(String card, Integer customerId) throws DAOException{
-
+    public List<ProductType> getProductTypeByDescription(String description) throws DAOException {
         Connection connection = null;
         Statement statement = null;
-
-        try{
-            connection= dataSource.getConnection();
-            statement= connection.createStatement();
-
-            String query= "SELECT * FROM customer WHERE customerId= '"+ customerId + "' OR card= '"+ card + "';";
-            ResultSet rs= statement.executeQuery(query);
-
-            boolean customerExistance= false;
-            while(rs.next()){   //check all the rows to find a non-existing user or an already assigned card
-
-                if(rs.getInt("id")==customerId){
-                    customerExistance= true;
-                }
-                if(rs.getString("card")==card){
-                    System.out.println("This card is already attached to a customer");
-                    return false;
-                }
-            }
-
-            if(customerExistance!=true){
-                System.out.println("The given customer doesn't exist");
-                return false;
-            }
-
-            query= "UPDATE customer SET card= '" + card + "' WHERE id= '"+ customerId + "';";
-            statement.executeUpdate(query);
-
-        }catch(SQLException ex){
-            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
-        }
-
-        return true;
-    }
-
-
-	
-	@Override
-	public List<ProductType> getProductTypeByDescription(String description) throws DAOException {
-	   	Connection connection = null;
-		Statement statement = null;
-		ResultSet resultSet = null;
-		try {
+        ResultSet resultSet = null;
+        try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "select * from product_type where description = '" + description + "';";
             resultSet = statement.executeQuery(query);
             List<ProductType> productTypeList = new ArrayList<>();
-            while(resultSet.next()) {
-            	Integer id = resultSet.getInt("id");
-            	Integer quantity = resultSet.getInt("quantity");
-            	String location = resultSet.getString("location");
-            	String notes = resultSet.getString("note");
-            	String desc = resultSet.getString("description");
-            	String bar_code = resultSet.getString("bar_code");
-            	Double pricePerUnit = resultSet.getDouble("price_per_unit");
-            	Double discountRate = resultSet.getDouble("discount_rate");
-            	ProductType productType = new ConcreteProductType(id, desc, bar_code, notes, quantity, pricePerUnit, discountRate, location);
-            	productTypeList.add(productType);
+            while (resultSet.next()) {
+                Integer id = resultSet.getInt("id");
+                Integer quantity = resultSet.getInt("quantity");
+                String location = resultSet.getString("location");
+                String notes = resultSet.getString("note");
+                String desc = resultSet.getString("description");
+                String bar_code = resultSet.getString("bar_code");
+                Double pricePerUnit = resultSet.getDouble("price_per_unit");
+                Double discountRate = resultSet.getDouble("discount_rate");
+                ProductType productType = new ConcreteProductType(id, desc, bar_code, notes, quantity, pricePerUnit,
+                        discountRate, location);
+                productTypeList.add(productType);
             }
             return productTypeList;
-		} catch (SQLException e) {
-			// TODO: handle exception
-			System.out.println(e);
-		} finally {
-			dataSource.close(connection);
-		}
-		return null;
-	}
+        } catch (SQLException e) {
+            // TODO: handle exception
+            System.out.println(e);
+        } finally {
+            dataSource.close(connection);
+        }
+        return null;
+    }
 
+    @Override
+    public boolean updateQuantity(Integer productId, int toBeAdded) throws DAOException {
+        // TODO Auto-generated method stub
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
 
-
-	@Override
-	public boolean updateQuantity(Integer productId, int toBeAdded) throws DAOException {
-		// TODO Auto-generated method stub
-		Connection connection = null;
-		Statement statement = null;
-		ResultSet resultSet = null;
-		try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "select quantity, location from product_type where id = " + productId;
             resultSet = statement.executeQuery(query);
             int quantity = 0;
             String location = null;
-            if(resultSet.next()) {
-            	quantity = resultSet.getInt("quantity");
-            	location = resultSet.getString("location");
+            if (resultSet.next()) {
+                quantity = resultSet.getInt("quantity");
+                location = resultSet.getString("location");
             }
             int value = quantity + toBeAdded;
-            if(value < 0 || location == null ||  location.isEmpty()) {
-            	return false;
+            if (value < 0 || location == null || location.isEmpty()) {
+                return false;
             }
-            query = "update product_type  set quantity = " + value + " where id = " +  productId;
+            query = "update product_type  set quantity = " + value + " where id = " + productId;
             statement.executeUpdate(query.toString());
             return true;
-		} catch (Exception e) {
-			System.out.println(e);
-			return false;
-		} finally {
-			dataSource.close(connection);
-		}
-	}
+        } catch (Exception e) {
+            System.out.println(e);
+            return false;
+        } finally {
+            dataSource.close(connection);
+        }
+    }
 
-   
+    @Override
+    public Integer insertSaleTransaction() throws DAOException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        Integer id = -1;
+        try {
+            connection = dataSource.getConnection();
+            String query = "INSERT INTO sale_transaction(entries, discountRate, price) VALUES(null, null, null)";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.executeUpdate();
+            resultSet = preparedStatement.getGeneratedKeys();
 
+            if (resultSet.next()) {
+                id = resultSet.getInt(1);
+            }
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return id;
+    }
 
-    public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException{
+    @Override
+    public boolean insertProductToSale(Integer transactionId, String productCode, int amount) throws DAOException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        boolean state = false;
+        try {
+            // check on the productType
+            ConcreteProductType productType = getProductTypeByBarCode(productCode);
+            if (productType == null || productType.getQuantity() < amount)
+                return false;
+
+            // check on the transaction
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "SELECT * from sale_transaction WHERE id= '" + transactionId + "'";
+            resultSet = statement.executeQuery(query);
+            if (!resultSet.next() || resultSet.getBoolean("closed") != false) // if it does not exist it is no STARTED;
+                                                                              // if it it not closed, it is OPENED
+                return false;
+
+            // selection of sale transaction products
+            query = "SELECT entries FROM sale_transaction WHERE id='" + transactionId + "'";
+            resultSet = statement.executeQuery(query);
+            String entries = null;
+            if (!resultSet.next()) {
+                entries = resultSet.getString("entries");
+                if (entries == null)
+                    entries = productCode;
+                else
+                    entries = entries + " " + productCode;
+            }
+
+            // update of sale transaction entries
+            query = "UPDATE sale_transaction SET entries=?";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, entries);
+            preparedStatement.executeUpdate();
+
+            // temporary update of product amount
+            state = updateQuantity(productType.getId(), (-2) * amount);
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return state;
+    }
+
+    @Override
+    public boolean removeProductToSale(Integer transactionId, String productCode, int amount) throws DAOException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        boolean state = false;
+        try {
+            // check on the productType
+            ConcreteProductType productType = getProductTypeByBarCode(productCode);
+            if (productType == null || productType.getQuantity() >= amount)
+                return false;
+
+            // check on the transaction
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "SELECT * from sale_transaction WHERE id= '" + transactionId + "'";
+            resultSet = statement.executeQuery(query);
+            if (!resultSet.next() || resultSet.getBoolean("closed") != false) // if it does not exist it is no STARTED;
+                                                                              // if it it not closed, it is OPENED
+                return false;
+
+            // selection of sale transaction products
+            query = "SELECT entries FROM sale_transaction WHERE id='" + transactionId + "'";
+            resultSet = statement.executeQuery(query);
+            String entries = null;
+            if (!resultSet.next()) {
+                entries = resultSet.getString("entries");
+                if (entries == null)
+                    entries = productCode;
+                else
+                    entries = entries + " " + productCode;
+            }
+
+            // update of sale transaction entries
+            query = "UPDATE sale_transaction SET entries=?";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, entries);
+            preparedStatement.executeUpdate();
+
+            // temporary update of product amount
+            state = updateQuantity(productType.getId(), (-2) * amount);
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return state;
+    }
+
+    @Override
+    public SaleTransaction selectSaleTransaction(Integer transactionId) throws DAOException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "SELECT * FROM sale_transaction WHERE id= '" + transactionId + "'";
+            resultSet = statement.executeQuery(query);
+
+            SaleTransaction sT;
+            if (!resultSet.next())
+                sT = null;
+            // sT = new ConcreteSaleTransaction(transactionId, entries, discountRate,
+            // price);
+            // return u;
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return null;
+    }
+
+    // TODO: capire se questo metodo serve davvero nel db: dovrei creare una tabella
+    // Card
+    @Override
+    public boolean createNewCard(String newCard) throws DAOException {
+
+        /*
+         * Connection connection = null; Statement statement = null;
+         * 
+         * try{}
+         */
+        return true;
+    }
+
+    @Override
+    public boolean bindCardToCustomer(String card, Integer customerId) throws DAOException {
 
         Connection connection = null;
         Statement statement = null;
-        ResultSet rs;
 
-        try{
-            connection= dataSource.getConnection();
-            statement= connection.createStatement();
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
 
-            String query= "SELECT * FROM customer WHERE card= '" + customerCard + "';";
-            rs= statement.executeQuery(query);
+            String query = "SELECT * FROM customer WHERE customerId= '" + customerId + "' OR card= '" + card + "';";
+            ResultSet rs = statement.executeQuery(query);
 
-            if(!rs.next()){ //if doesn't exist a customer with this card
-                System.out.println("A customer with the inserted card doesn't exist");
-                return false;
-            }
+            boolean customerExistance = false;
+            while (rs.next()) { // check all the rows to find a non-existing user or an already assigned card
 
-            if(pointsToBeAdded<0){ //Check if the previous points are enough
-                if(rs.getInt("points")< (0-pointsToBeAdded)){
-                    System.out.println("There are not enough points on the card to be subtracted");
+                if (rs.getInt("id") == customerId) {
+                    customerExistance = true;
+                }
+                if (rs.getString("card") == card) {
+                    System.out.println("This card is already attached to a customer");
                     return false;
                 }
             }
 
-            //UPDATE POINTS ON CARD
-            //String updateQuery= "UPDATE customer SET points= '"+ (rs.getInt("points")+ pointsToBeAdded)+ "' WHERE id = '" + rs.getInt("id")+ "';";
-            PreparedStatement prstm= connection.prepareStatement( "UPDATE customer SET points= ? WHERE id = ?;");
-            prstm.setInt(1, (rs.getInt("points")+ pointsToBeAdded));
-            prstm.setInt(2, rs.getInt("id"));
-
-            int result = prstm.executeUpdate();
-            if(result!=1){ //Something goes wrong
+            if (customerExistance != true) {
+                System.out.println("The given customer doesn't exist");
                 return false;
             }
 
+            query = "UPDATE customer SET card= '" + card + "' WHERE id= '" + customerId + "';";
+            statement.executeUpdate(query);
 
-        }catch(SQLException ex){
+        } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
-        }finally{
-        	dataSource.close(connection);
         }
 
         return true;
@@ -611,10 +701,10 @@ public class DAOEZShop implements IDAOEZshop {
 		try {
 			connection = dataSource.getConnection();
 			statement = connection.createStatement();
-			String query = "update product_type set location = " + position + " where id = " + productId;
+			String query = "update product_type set location = '" + position + "' where id = '" + productId + "'";
 			statement.executeUpdate(query);
 		}catch (Exception e) {
-			
+			System.out.println(e);
 		} finally {
 			dataSource.close(connection);
 		}
@@ -639,4 +729,55 @@ public class DAOEZShop implements IDAOEZshop {
 		}
 		return false;
 	}
+
+	@Override
+	public boolean updateProduct(ProductType productType) throws DAOException {
+		 	Connection connection = null;
+	        Statement statement = null;
+	        ResultSet resultSet = null;
+	        try {
+	            connection = dataSource.getConnection();
+	            statement = connection.createStatement();
+	            StringBuilder query = new StringBuilder();
+	            query.append("update product_type set ");
+	            query.append("description ='" + productType.getProductDescription() + "',");
+	            query.append("note = '" + productType.getNote() + "', ");
+	            query.append("bar_code = '" + productType.getBarCode() + "', ");
+	            query.append("price_per_unit = '" + productType.getPricePerUnit() + "' ");
+	            query.append("where id = '").append(productType.getId() + "'");
+	            System.out.println(query.toString());
+	            int i = statement.executeUpdate(query.toString());
+	            return (i == 0 ? false : true);
+	        } catch (SQLException ex) {
+	            throw new DAOException("Impossibile to execute query: " + ex.getMessage());	            
+	        } finally {
+	            dataSource.close(connection);
+	        }
+	}
+
+	@Override
+	public boolean deleteProductType(Integer id) throws DAOException {
+		Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "delete from product_type where id= '" + id + "'";
+            int i = statement.executeUpdate(query.toString());
+            return (i == 0 ? false : true);
+        } catch (SQLException e) {
+        	System.out.println(e);
+            throw new DAOException("Impossibile to execute query: " + e.getMessage());	            
+        } finally {
+            dataSource.close(connection);
+        }
+	}
+
+    @Override
+    public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException {
+        // TODO Auto-generated method stub
+        return false;
+    }
+
 }
