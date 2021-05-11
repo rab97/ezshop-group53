@@ -820,11 +820,4 @@ public class DAOEZShop implements IDAOEZshop {
         return true;
     }
 
-
-    @Override
-    public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
 }
