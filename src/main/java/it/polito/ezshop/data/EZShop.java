@@ -170,9 +170,6 @@ public class EZShop implements EZShopInterface {
         if (pricePerUnit <= 0) {
             throw new InvalidPricePerUnitException();
         }
-        System.out.println(runningUser.getRole());
-        System.out.println(Constants.ADMINISTRATOR);
-        System.out.println(runningUser.getRole().equals(Constants.ADMINISTRATOR));
         if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
             throw new UnauthorizedException();
         }
@@ -192,12 +189,49 @@ public class EZShop implements EZShopInterface {
     public boolean updateProduct(Integer id, String newDescription, String newCode, double newPrice, String newNote)
             throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException,
             InvalidPricePerUnitException, UnauthorizedException {
+    	if (newDescription == null || newDescription.isEmpty()) {
+            throw new InvalidProductDescriptionException();
+        }
+        if (newCode == null || newCode.isEmpty()) {
+            throw new InvalidProductCodeException();
+        }
+        //valid bar code
+        try {
+            int tmp = Integer.parseInt(newCode);
+        } catch (Exception e) {
+            throw new InvalidProductCodeException();
+        }
+        if ( newPrice <= 0) {
+            throw new InvalidPricePerUnitException();
+        }
+        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+            throw new UnauthorizedException();
+        }
+        try {
+        	ProductType p = new ConcreteProductType(id, newDescription,newCode, newNote, null, newPrice, null, null);
+        	return dao.updateProduct(p);
+        } catch (Exception e) {
+			System.out.println(e);
+        }
         return false;
     }
 
     @Override
     public boolean deleteProductType(Integer id) throws InvalidProductIdException, UnauthorizedException {
-        return false;
+        if(id == null || id <= 0) {
+        	throw new InvalidProductIdException();
+        }
+        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+            throw new UnauthorizedException();
+        }
+        boolean delete = false;
+        try {
+        	delete = dao.deleteProductType(id);
+        	delete = true;
+        }catch (Exception e) {
+        	System.out.println(e);
+		}
+        return delete;
     }
 
     @Override
@@ -269,8 +303,6 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean updatePosition(Integer productId, String newPos) throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
         String position[] = newPos.split("-");
-        System.out.println(newPos);
-        System.out.println("position lemgth: " + position.length);
         if(position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
         	throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
         }
@@ -289,14 +321,15 @@ public class EZShop implements EZShopInterface {
         	throw new UnauthorizedException();
         }
         try {
-			if(dao.searchPosition(newPos)) {
-				return false;
+			if(!dao.searchPosition(newPos)) {
+				dao.updatePosition(productId, newPos);
+				return true;
 			}
 		} catch (DAOException e) {
 			System.out.println(e);
 			e.printStackTrace();
 		}
-    	return true;
+    	return false;
     }
 
 
@@ -399,7 +432,8 @@ public class EZShop implements EZShopInterface {
         
         boolean del= false;
         try{
-            del= dao.deleteCustomer(id);
+        	del = dao.deleteCustomer(id);
+        	del = true;
         }catch(DAOException e){
 			System.out.println("db excepiton");
         }

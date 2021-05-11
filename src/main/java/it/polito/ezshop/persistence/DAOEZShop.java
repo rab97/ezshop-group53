@@ -40,7 +40,6 @@ public class DAOEZShop implements IDAOEZshop {
                 user.setId(id);
                 user.setRole(role);
             }
-
             return user;
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -542,6 +541,7 @@ public class DAOEZShop implements IDAOEZshop {
             }
             query = "update product_type  set quantity = " + value + " where id = " +  productId;
             statement.executeUpdate(query.toString());
+            System.out.print("query excetute");
             return true;
 		} catch (Exception e) {
 			System.out.println(e);
@@ -611,10 +611,10 @@ public class DAOEZShop implements IDAOEZshop {
 		try {
 			connection = dataSource.getConnection();
 			statement = connection.createStatement();
-			String query = "update product_type set location = " + position + " where id = " + productId;
+			String query = "update product_type set location = '" + position + "' where id = '" + productId + "'";
 			statement.executeUpdate(query);
 		}catch (Exception e) {
-			
+			System.out.println(e);
 		} finally {
 			dataSource.close(connection);
 		}
@@ -638,5 +638,49 @@ public class DAOEZShop implements IDAOEZshop {
 			dataSource.close(connection);
 		}
 		return false;
+	}
+
+	@Override
+	public boolean updateProduct(ProductType productType) throws DAOException {
+		 	Connection connection = null;
+	        Statement statement = null;
+	        ResultSet resultSet = null;
+	        try {
+	            connection = dataSource.getConnection();
+	            statement = connection.createStatement();
+	            StringBuilder query = new StringBuilder();
+	            query.append("update product_type set ");
+	            query.append("description ='" + productType.getProductDescription() + "',");
+	            query.append("note = '" + productType.getNote() + "', ");
+	            query.append("bar_code = '" + productType.getBarCode() + "', ");
+	            query.append("price_per_unit = '" + productType.getPricePerUnit() + "' ");
+	            query.append("where id = '").append(productType.getId() + "'");
+	            System.out.println(query.toString());
+	            int i = statement.executeUpdate(query.toString());
+	            return (i == 0 ? false : true);
+	        } catch (SQLException ex) {
+	            throw new DAOException("Impossibile to execute query: " + ex.getMessage());	            
+	        } finally {
+	            dataSource.close(connection);
+	        }
+	}
+
+	@Override
+	public boolean deleteProductType(Integer id) throws DAOException {
+		Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "delete from product_type where id= '" + id + "'";
+            int i = statement.executeUpdate(query.toString());
+            return (i == 0 ? false : true);
+        } catch (SQLException e) {
+        	System.out.println(e);
+            throw new DAOException("Impossibile to execute query: " + e.getMessage());	            
+        } finally {
+            dataSource.close(connection);
+        }
 	}
 }
