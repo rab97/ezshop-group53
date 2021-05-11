@@ -773,5 +773,52 @@ public class DAOEZShop implements IDAOEZshop {
             dataSource.close(connection);
         }
 	}
+	
+	public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet rs;
+
+        try{
+            connection= dataSource.getConnection();
+            statement= connection.createStatement();
+
+            String query= "SELECT * FROM customer WHERE card= '" + customerCard + "';";
+            rs= statement.executeQuery(query);
+
+            if(!rs.next()){ //if doesn't exist a customer with this card
+                System.out.println("A customer with the inserted card doesn't exist");
+                return false;
+            }
+
+            if(pointsToBeAdded<0){ //Check if the previous points are enough
+                if(rs.getInt("points")< (0-pointsToBeAdded)){
+                    System.out.println("There are not enough points on the card to be subtracted");
+                    return false;
+                }
+            }
+
+            //UPDATE POINTS ON CARD
+            //String updateQuery= "UPDATE customer SET points= '"+ (rs.getInt("points")+ pointsToBeAdded)+ "' WHERE id = '" + rs.getInt("id")+ "';";
+            PreparedStatement prstm= connection.prepareStatement( "UPDATE customer SET points= ? WHERE id = ?;");
+            prstm.setInt(1, (rs.getInt("points")+ pointsToBeAdded));
+            prstm.setInt(2, rs.getInt("id"));
+
+            int result = prstm.executeUpdate();
+            if(result!=1){ //Something goes wrong
+                return false;
+            }
+
+
+        }catch(SQLException ex){
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        }finally{
+        	dataSource.close(connection);
+        }
+
+        return true;
+    }
+
 
 }
