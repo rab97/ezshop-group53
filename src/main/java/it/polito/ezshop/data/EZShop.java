@@ -235,21 +235,69 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getProductTypesByDescription(String description) throws UnauthorizedException {
-
-        return null;
+    	if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+    	List<ProductType> productTypeList = new ArrayList<>();
+    	try {
+    		productTypeList = dao.getProductTypeByDescription(description);
+    	} catch (Exception e) {
+    		System.out.println("errror");
+    	}
+        return productTypeList;
     }
 
     @Override
-    public boolean updateQuantity(Integer productId, int toBeAdded)
-            throws InvalidProductIdException, UnauthorizedException {
-        return false;
+    public boolean updateQuantity(Integer productId, int toBeAdded) throws InvalidProductIdException, UnauthorizedException {
+
+    	if(productId == null || productId <= 0) {
+        	throw new InvalidProductIdException();
+        }
+        if((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER))) {
+        	throw new UnauthorizedException();
+        }
+        boolean result = false;
+        try {
+        	result = dao.updateQuantity(productId, toBeAdded);
+        }catch (Exception e) {
+			System.out.println(e);
+		}
+        return result;
     }
 
     @Override
-    public boolean updatePosition(Integer productId, String newPos)
-            throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
-        return false;
+    public boolean updatePosition(Integer productId, String newPos) throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+        String position[] = newPos.split("-");
+        System.out.println(newPos);
+        System.out.println("position lemgth: " + position.length);
+        if(position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
+        	throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
+        }
+        try {
+			Integer.parseInt(position[0]);
+			Integer.parseInt(position[2]);
+			
+		} catch (Exception e) {
+			System.out.println("eccezione : " + e);
+			throw  new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
+		}
+    	if(productId == null || productId <= 0) {
+        	throw new InvalidProductIdException();
+        }
+        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        	throw new UnauthorizedException();
+        }
+        try {
+			if(dao.searchPosition(newPos)) {
+				return false;
+			}
+		} catch (DAOException e) {
+			System.out.println(e);
+			e.printStackTrace();
+		}
+    	return true;
     }
+
 
     @Override
     public Integer issueOrder(String productCode, int quantity, double pricePerUnit) throws InvalidProductCodeException,
@@ -307,25 +355,97 @@ public class EZShop implements EZShopInterface {
     }
 
     @Override
-    public boolean modifyCustomer(Integer id, String newCustomerName, String newCustomerCard)
-            throws InvalidCustomerNameException, InvalidCustomerCardException, InvalidCustomerIdException,
-            UnauthorizedException {
-        return false;
+    public boolean modifyCustomer(Integer id, String newCustomerName, String newCustomerCard) throws InvalidCustomerNameException, InvalidCustomerCardException, InvalidCustomerIdException, UnauthorizedException {
+        
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        if(newCustomerName==null | newCustomerName.isEmpty()){
+            throw new InvalidCustomerNameException();
+        }
+        if(newCustomerCard.length()>10){    //Perché lanciare l'eccezione anche su empty o null quando queste hanno dei significati ben precisi?
+            throw new InvalidCustomerCardException();
+        }
+
+        boolean modification= false;
+
+        try{
+            modification= dao.updateCustomer(id, newCustomerName, newCustomerCard);
+            System.out.println("modification= " + modification);
+
+        }catch(DAOException e){
+			System.out.println("db excepiton");
+        }
+        
+        return modification;
     }
 
     @Override
     public boolean deleteCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
-        return false;
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        if(id==null | id<=0){
+            throw new InvalidCustomerIdException();
+        }
+        
+        boolean del= false;
+        try{
+            del= dao.deleteCustomer(id);
+        }catch(DAOException e){
+			System.out.println("db excepiton");
+        }
+        return del;
     }
+
+    /**
+         * This method returns a customer with given id. It can be invoked only after a
+         * user with role "Administrator", "ShopManager" or "Cashier" is logged in.
+         *
+         * @param id the id of the customer
+         *
+         * @return the customer with given id null if that user does not exists
+        
+         */
 
     @Override
     public Customer getCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
-        return null;
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        if(id==null | id<=0){
+            throw new InvalidCustomerIdException();
+        }
+
+        Customer c= null;
+        try{
+            c = dao.getCustomer(id);
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return c;
     }
+
 
     @Override
     public List<Customer> getAllCustomers() throws UnauthorizedException {
-        return null;
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+
+        List<Customer> customersList = new ArrayList<>();
+        try{
+            customersList= dao.getAllCustomers();
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return customersList;
     }
 
     @Override
