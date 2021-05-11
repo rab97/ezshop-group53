@@ -29,9 +29,6 @@ public interface IDAOEZshop {
     public boolean searchPosition(String position) throws DAOException;
     public boolean updateProduct(ProductType productType) throws DAOException;
     public boolean deleteProductType(Integer id) throws DAOException;
-    
-    public void insertUser(String username, String password, String role, Integer id) throws DAOException;
-
 
     public Integer insertUser(String username, String password, String role) throws DAOException;
 

@@ -304,11 +304,11 @@ public class DAOEZShop implements IDAOEZshop {
             // update query creation
             String query = "UPDATE customer SET name= '" + newCustomerName + "'";
 
-            if (newCustomerCard.isEmpty()) { // remove previous card and its points
-                query = query + ", card= '" + null + "', points= '" + null + "'";
-
-            } else if (newCustomerCard != null) { // numeric value: create new card with 0 points
-                query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
+            if(newCustomerCard.isEmpty()){ //remove previous card and its points
+                query= query + ", card= '" + null + "', points= '"+ 0 + "'";
+            
+            }else if(newCustomerCard!= null){ //numeric value: create new card with 0 points
+                query= query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
             query = query + "WHERE customer.id= '" + id + "';";
@@ -820,5 +820,11 @@ public class DAOEZShop implements IDAOEZshop {
         return true;
     }
 
+
+    @Override
+    public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
 }

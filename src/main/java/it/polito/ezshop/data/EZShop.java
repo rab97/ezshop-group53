@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import javax.swing.text.StyleConstants.CharacterConstants;
-import javax.transaction.InvalidTransactionException;
+//import javax.transaction.InvalidTransactionException;
 
 
 public class EZShop implements EZShopInterface {
@@ -309,16 +309,11 @@ public class EZShop implements EZShopInterface {
     public boolean updatePosition(Integer productId, String newPos)
             throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
         String position[] = newPos.split("-");
-<<<<<<< HEAD
-        if(position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
-        	throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
-=======
         System.out.println(newPos);
         System.out.println("position lemgth: " + position.length);
         if (position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
             throw new InvalidLocationException(
                     "location wrong: assure that you use this pattern: number-string-number");
->>>>>>> efd2c21899ea78c5555129cf2810b2abe44e965d
         }
         try {
             Integer.parseInt(position[0]);
@@ -336,17 +331,6 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         try {
-<<<<<<< HEAD
-			if(!dao.searchPosition(newPos)) {
-				dao.updatePosition(productId, newPos);
-				return true;
-			}
-		} catch (DAOException e) {
-			System.out.println(e);
-			e.printStackTrace();
-		}
-    	return false;
-=======
             if (dao.searchPosition(newPos)) {
                 return false;
             }
@@ -355,7 +339,6 @@ public class EZShop implements EZShopInterface {
             e.printStackTrace();
         }
         return true;
->>>>>>> efd2c21899ea78c5555129cf2810b2abe44e965d
     }
 
     @Override
@@ -453,22 +436,12 @@ public class EZShop implements EZShopInterface {
         if (id == null | id <= 0) {
             throw new InvalidCustomerIdException();
         }
-<<<<<<< HEAD
-        
-        boolean del= false;
-        try{
-        	del = dao.deleteCustomer(id);
-        	del = true;
-        }catch(DAOException e){
-			System.out.println("db excepiton");
-=======
 
         boolean del = false;
         try {
             del = dao.deleteCustomer(id);
         } catch (DAOException e) {
             System.out.println("db excepiton");
->>>>>>> efd2c21899ea78c5555129cf2810b2abe44e965d
         }
         return del;
     }
