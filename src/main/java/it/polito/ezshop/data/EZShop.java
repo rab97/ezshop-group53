@@ -144,7 +144,7 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public boolean logout() {
-        if(runningUser == null)
+        if (runningUser == null)
             return false;
         runningUser = null;
         return true;
@@ -347,6 +347,12 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer startSaleTransaction() throws UnauthorizedException {
+        if (runningUser == null && (!runningUser.getRole().equalsIgnoreCase("Administrator")
+                || !runningUser.getRole().equalsIgnoreCase("ShopManager")
+                || !runningUser.getRole().equalsIgnoreCase("Cashier"))) {
+            throw new UnauthorizedException();
+        }
+        
         return null;
     }
 
