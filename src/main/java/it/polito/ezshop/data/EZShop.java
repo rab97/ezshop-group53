@@ -351,15 +351,6 @@ public class EZShop implements EZShopInterface {
         return del;
     }
 
-    /**
-         * This method returns a customer with given id. It can be invoked only after a
-         * user with role "Administrator", "ShopManager" or "Cashier" is logged in.
-         *
-         * @param id the id of the customer
-         *
-         * @return the customer with given id null if that user does not exists
-        
-         */
 
     @Override
     public Customer getCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
@@ -400,8 +391,20 @@ public class EZShop implements EZShopInterface {
         return customersList;
     }
 
+
+     /**
+         * This method returns a string containing the code of a new assignable card.
+         * @return the code of a new available card. An empty string if the db is
+         *         unreachable
+         */
+
     @Override
     public String createCard() throws UnauthorizedException {
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        //TODO: chiamata al db con generazione automatica del codice della carta
         return null;
     }
 
@@ -411,10 +414,41 @@ public class EZShop implements EZShopInterface {
         return false;
     }
 
+      /**
+         * This method updates the points on a card adding to the number of points
+         * available on the card the value assumed by <pointsToBeAdded>. The points on a
+         * card should always be greater than or equal to 0. 
+         *
+         * @param customerCard    the card the points should be added to
+         * @param pointsToBeAdded the points to be added or subtracted ( this could
+         *                        assume a negative value)
+         *
+         * @return true if the operation is successful 
+         *         false if there is no card with
+         *         given code, if pointsToBeAdded is negative and there were not enough
+         *         points on that card before this operation, if we cannot reach the db.
+        
+         */
+
     @Override
-    public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded)
-            throws InvalidCustomerCardException, UnauthorizedException {
-        return false;
+    public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded) throws InvalidCustomerCardException, UnauthorizedException {
+
+        if(this.runningUser== null){
+            throw new UnauthorizedException();
+        }
+        if(customerCard==null| customerCard.isEmpty()|customerCard.length()>10){
+            throw new InvalidCustomerCardException();
+        }
+
+        boolean modification= false;
+        try{
+            modification= dao.updatePoints(customerCard, pointsToBeAdded);
+
+        }catch(DAOException e){
+            System.out.println("db excepiton");
+        }
+
+        return modification;
     }
 
     @Override
