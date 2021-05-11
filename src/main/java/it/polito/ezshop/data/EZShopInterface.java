@@ -68,7 +68,7 @@ public interface EZShopInterface {
          * @param id the user id, this value should not be less than or equal to 0 or
          *           null.
          *
-         * @return true if the user was deleted false if the user cannot be deleted
+         * @return tru e if theuser was deleted false if the user cannot be deleted
          *
          * @throws InvalidUserIdException if id is less than or equal to 0 or if it is
          *                                null.
