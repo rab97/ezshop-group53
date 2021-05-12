@@ -60,4 +60,8 @@ public interface IDAOEZshop {
     public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
     public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;
 
+    public boolean storeSaleTransaction(SaleTransaction saleTransaction) throws DAOException;
+
+  //  public boolean removeSaleTransaction(Integer saleNumber) throws DAOException;
+
 }
