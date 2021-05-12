@@ -2,7 +2,10 @@ package it.polito.ezshop.model;
 
 import it.polito.ezshop.data.Order;
 
-public class ConcreteOrder implements Order {
+import java.time.LocalDate;
+import java.util.Date;
+
+public class ConcreteOrder extends ConcreteBalanceOperation implements Order {
 
     Integer balanceId;
     String productCode;
@@ -11,9 +14,11 @@ public class ConcreteOrder implements Order {
     String status;
     Integer orderId;
 
-    public ConcreteOrder(Integer balanceId, String productCode, double pricePerUnit, int quantity, String status,
-            Integer orderId) {
-        this.balanceId = balanceId;
+    public ConcreteOrder(Integer balanceId, String productCode, double pricePerUnit, int quantity, String status, Integer orderId) {
+        
+        super();
+        //Initializing ConcreteOrder attributes
+        this.balanceId= balanceId;
         this.productCode = productCode;
         this.pricePerUnit = pricePerUnit;
         this.quantity = quantity;
@@ -23,7 +28,7 @@ public class ConcreteOrder implements Order {
 
     @Override
     public Integer getBalanceId() {
-        return balanceId;
+        return this.balanceId;
     }
 
     @Override

@@ -11,6 +11,7 @@ import it.polito.ezshop.data.User;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.data.BalanceOperation;
 import it.polito.ezshop.data.Customer;
+import it.polito.ezshop.data.Order;
 
 public interface IDAOEZshop {
 
@@ -42,14 +43,13 @@ public interface IDAOEZshop {
 
     public boolean updateRights(Integer id, String role) throws DAOException;
 
+    public Integer insertNewOrder(String productCode, int quantity, double pricePerUnit) throws DAOException;
+    public ArrayList<Order> getAllOrders() throws DAOException;
+
     public Integer insertCustomer(String customerName) throws DAOException;
-
     public boolean updateCustomer(Integer id, String newCustomerName, String newCustomerCard) throws DAOException;
-
     public boolean deleteCustomer(Integer id) throws DAOException;
-
     public Customer getCustomer(Integer id) throws DAOException;
-
     public ArrayList<Customer> getAllCustomers() throws DAOException;
     public boolean createNewCard(String newCard) throws DAOException;
     public boolean bindCardToCustomer(String card, Integer customerId) throws DAOException;
