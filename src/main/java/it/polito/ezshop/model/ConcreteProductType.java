@@ -9,19 +9,17 @@ public class ConcreteProductType implements ProductType {
 	String note;
 	Integer quantity;
 	Double pricePerUnit;
-	Double discountRate;
 	// Position location;
 	String location;
 
 	public ConcreteProductType(Integer id, String productDescription, String barCode, String note, Integer quantity,
-			Double pricePerUnit, Double discountRate, String location) {
+			Double pricePerUnit, String location) {
 		this.id = id;
 		this.productDescription = productDescription;
 		this.barCode = barCode;
 		this.note = note;
 		this.quantity = quantity;
 		this.pricePerUnit = pricePerUnit;
-		this.discountRate = discountRate;
 		this.location = location;
 	}
 
