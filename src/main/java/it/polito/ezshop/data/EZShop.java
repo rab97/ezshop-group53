@@ -7,6 +7,7 @@ import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
 import it.polito.ezshop.model.ConcreteTicketEntry;
 import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
@@ -25,9 +26,7 @@ public class EZShop implements EZShopInterface {
 
     private IDAOEZshop dao = new DAOEZShop();
     private User runningUser = null;
-    List<TicketEntry> productsToSale;
-    List<TicketEntry> soldProducts;
-    List<TicketEntry> productsToReturn;
+    ReturnTransaction returnTransaction;
     SaleTransaction saleTransaction;
     boolean saleTransaction_state;
     boolean returnTransaction_state;
@@ -973,7 +972,7 @@ public class EZShop implements EZShopInterface {
         }
 
 
-        return saleTransaction;
+        return saleTransaction;						
     }
 
     @Override
@@ -997,14 +996,7 @@ public class EZShop implements EZShopInterface {
 	        } catch (DAOException e) {
 	            System.out.println(e);
 	        }
-	        soldProducts = new ArrayList<TicketEntry>();
-	        try {
-	        	soldProducts = dao.getSoldProducts(transactionId);
-	        } catch (DAOException e) {
-	            System.out.println(e);
-	        }
-	        returnTransaction_state = Constants.NOT_COMMITTED;
-	        System.out.println(return_transaction_id);
+	        returnTransaction = new ConcreteReturnTransaction(return_transaction_id+1, transactionId, new ArrayList<TicketEntry>(), 0.0);
         }
         return return_transaction_id;
 
@@ -1029,21 +1021,35 @@ public class EZShop implements EZShopInterface {
              throw new InvalidProductCodeException();
         }
     	
-    	boolean res=false;
-    	try {
-    		res=dao.getReturnTransactionById(returnId);
-    	} catch (DAOException e) {
-    		System.out.println(e);
-    	}
+    	if (returnTransaction==null || returnTransaction.getReturnId()!=returnId) 
+    		return false;
+    	
+    	ArrayList<TicketEntry> soldProducts = new ArrayList<TicketEntry>();
+        try {
+        	soldProducts = dao.getSoldProducts(returnTransaction.getTransactionId());
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
     	
     	TicketEntry prodToReturn=null;
     	for (TicketEntry prod : soldProducts) {
     		if(prod.getBarCode().equals(productCode))
     			prodToReturn=prod;
     	}
-    	if(prodToReturn==null|| res==false || prodToReturn.getAmount()<amount)
+    	if(prodToReturn==null || prodToReturn.getAmount()<amount)
     		return false;
-    	productsToReturn.add(prodToReturn);
+    	
+    	// add to list
+        boolean toAdd = true;
+        for (TicketEntry t : returnTransaction.getEntries()) {
+            if (t.getBarCode().equals(productCode)) {
+                t.setAmount(t.getAmount() + amount);
+                toAdd = false;
+                break;
+            }
+        }
+        if (toAdd)
+            returnTransaction.getEntries().add(prodToReturn);
     	
     	return true;
     }
@@ -1051,13 +1057,54 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean endReturnTransaction(Integer returnId, boolean commit)
             throws InvalidTransactionIdException, UnauthorizedException {
-        return false;
+    	
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	if(returnId<=0 || returnId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	
+    	if (returnTransaction==null || returnTransaction.getReturnId()!=returnId) 
+    		return false;
+    	
+    	//rollback
+    	if(commit==false) 
+    		returnTransaction=null;
+    	//commit
+    	else {
+    		//increase product availability
+    		
+    		//update sale transaction
+    		
+    		//insert return transaction in db
+    	}
+    	
+    	return true;
     }
 
     @Override
     public boolean deleteReturnTransaction(Integer returnId)
             throws InvalidTransactionIdException, UnauthorizedException {
-        return false;
+    	
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	if(returnId<=0 || returnId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	
+    	boolean state = false;
+        try {
+            state = dao.deleteReturnTransaction(returnId);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+        return state;
     }
 
     @Override

@@ -63,7 +63,8 @@ public interface IDAOEZshop {
     
     public Integer insertReturnTransaction() throws DAOException;
     public ArrayList<TicketEntry> getSoldProducts(Integer transactionId) throws DAOException;
-    public boolean getReturnTransactionById(Integer returnId) throws DAOException;
+    //public boolean getReturnTransactionById(Integer returnId) throws DAOException;
+    public boolean deleteReturnTransaction(Integer returnId) throws DAOException;
     
     public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
     public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;

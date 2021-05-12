@@ -715,19 +715,17 @@ public class DAOEZShop implements IDAOEZshop {
     @Override
     public Integer insertReturnTransaction() throws DAOException {
         Connection connection = null;
-        PreparedStatement preparedStatement = null;
+        Statement statement = null;
         ResultSet resultSet = null;
         Integer id = -1;
         try {
             connection = dataSource.getConnection();
-            String query = "INSERT INTO return_transaction(amount) VALUES(null)";
-            preparedStatement = connection.prepareStatement(query);
-            preparedStatement.executeUpdate();
-            resultSet = preparedStatement.getGeneratedKeys();
+            String query = "SELECT MAX(id) FROM return_transaction";
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(query);
 
-            if (resultSet.next()) {
-                id = resultSet.getInt(1);
-            }
+            id = resultSet.next() ? resultSet.getInt(1) : 1;
+            
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
@@ -759,6 +757,13 @@ public class DAOEZShop implements IDAOEZshop {
         }
     }
     
+    
+    public boolean deleteReturnTransaction(Integer returnId) throws DAOException {
+    	
+    }
+    
+    
+    /*
     public boolean getReturnTransactionById(Integer returnId) throws DAOException {
     	Connection connection = null;
         Statement statment = null;
@@ -774,7 +779,7 @@ public class DAOEZShop implements IDAOEZshop {
         } finally {
             dataSource.close(connection);
         }
-    }
+    }*/
 
     // TODO: capire se questo metodo serve davvero nel db: dovrei creare una tabella
     // Card
