@@ -353,30 +353,24 @@ public class EZShop implements EZShopInterface {
         return false;
     }
 
-    /**
-     * This method issues an order of <quantity> units of product with given
-     * <productCode>, each unit will be payed <pricePerUnit> to the supplier.
-     * 
-     * @return the id of the order (> 0) -1 if there are problems with the db
-     * 
-     */
+    
     @Override
     public Integer issueOrder(String productCode, int quantity, double pricePerUnit) throws InvalidProductCodeException,
             InvalidQuantityException, InvalidPricePerUnitException, UnauthorizedException {
 
         if (runningUser == null | !runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
-            throw new UnauthorizedException();
-        }
-        if (productCode == null | productCode.isEmpty() | productCode.length() != 12) {
-            throw new InvalidProductCodeException();
-        }
-        if (quantity <= 0) {
-            throw new InvalidQuantityException();
-        }
-        if (pricePerUnit <= 0) {
-            throw new InvalidPricePerUnitException();
-        }
+                throw new UnauthorizedException();
+            }
+            if(productCode== null| productCode.isEmpty() | !o.isValidCode(productCode)){
+                throw new InvalidProductCodeException();
+            }
+            if(quantity<=0){
+                throw new InvalidQuantityException();
+            }
+            if(pricePerUnit<=0){
+                throw new InvalidPricePerUnitException();
+            }
 
         Integer newOrderId = 0;
         try {
@@ -391,16 +385,62 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer payOrderFor(String productCode, int quantity, double pricePerUnit)
-            throws InvalidProductCodeException, InvalidQuantityException, InvalidPricePerUnitException,
-            UnauthorizedException {
-        return null;
+            throws InvalidProductCodeException, InvalidQuantityException, InvalidPricePerUnitException, UnauthorizedException {
+
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+             && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+            throw new UnauthorizedException();
+        }
+        if(productCode== null| productCode.isEmpty() | !o.isValidCode(productCode)){
+            throw new InvalidProductCodeException();
+        }
+        if(quantity<=0){
+            throw new InvalidQuantityException();
+        }
+        if(pricePerUnit<=0){
+            throw new InvalidPricePerUnitException();
+        }
+        //return -1 if the balance is not enough to satisfy the order
+        if(computeBalance()< (quantity*pricePerUnit)){
+            return -1;
+        }
+
+        Integer newOrderId= -1;
+        try {
+            newOrderId= dao.payOrderDirectly(productCode, quantity, pricePerUnit);
+
+       } catch (DAOException e) {
+           System.out.println("db excepiton");
+       }
+
+        return newOrderId;
     }
+
 
     @Override
     public boolean payOrder(Integer orderId) throws InvalidOrderIdException, UnauthorizedException {
-        return false;
+
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+                throw new UnauthorizedException();
+        }
+        if(orderId== null | orderId<=0){
+            throw new InvalidOrderIdException();
+        }
+
+        boolean payment= false;
+        try {
+            payment= dao.payOrder(orderId);
+
+       } catch (DAOException e) {
+           System.out.println("db excepiton");
+       }
+
+        return payment;
     }
 
+
+    
     @Override
     public boolean recordOrderArrival(Integer orderId)
             throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {
