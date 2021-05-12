@@ -55,4 +55,6 @@ public interface IDAOEZshop {
 
     public Integer insertSaleTransaction() throws DAOException;
 
+    public double computeBalance() throws DAOException;
+    
 }

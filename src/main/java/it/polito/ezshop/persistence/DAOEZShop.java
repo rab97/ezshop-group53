@@ -685,4 +685,25 @@ public class DAOEZShop implements IDAOEZshop {
         return true;
     }
 
+	@Override
+	public double computeBalance() throws DAOException {
+		Connection connection = null;
+		ResultSet resultSet = null;
+		Statement statement = null;
+		try {
+			connection = dataSource.getConnection();
+			statement = connection.createStatement();
+			
+			String query = "select SUM(money) from balance_operation as sum_balance";
+			resultSet = statement.executeQuery(query);
+			return (resultSet.next() ? resultSet.getDouble("sum_balance") : 0);
+			
+		} catch (SQLException e) {
+			System.out.println(e);
+		}finally {
+			dataSource.close(connection);
+		}
+		return 0;
+	}
+
 }

@@ -340,14 +340,15 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         try {
-            if (dao.searchPosition(newPos)) {
-                return false;
+            if (!dao.searchPosition(newPos)) {
+            	dao.updatePosition(productId, newPos);
+                return true;
             }
         } catch (DAOException e) {
             System.out.println(e);
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     @Override
@@ -836,7 +837,16 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public double computeBalance() throws UnauthorizedException {
-        return 0;
+    	//solo !admin ????
+    	double balance = 0;
+    	if(!runningUser.getRole().equals(Constants.ADMINISTRATOR)) {
+    		try {
+    			balance = dao.computeBalance();
+    		} catch (Exception e) {
+				System.out.println(e);
+			}
+    	}
+        return balance;
     }
     
 }
