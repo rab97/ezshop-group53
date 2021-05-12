@@ -56,12 +56,6 @@ public interface IDAOEZshop {
     public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException;
 
     public Integer insertSaleTransaction() throws DAOException;
-
-    public boolean insertProductToSale(Integer transactionId, String productCode, int amount) throws DAOException;
-
-    public boolean removeProductToSale(Integer transactionId, String productCode, int amount) throws DAOException;
-
-    public SaleTransaction selectSaleTransaction(Integer transactionId) throws DAOException;
     
     public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
     public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;
