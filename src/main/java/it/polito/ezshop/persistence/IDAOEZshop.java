@@ -46,6 +46,8 @@ public interface IDAOEZshop {
     public boolean updateRights(Integer id, String role) throws DAOException;
 
     public Integer insertNewOrder(String productCode, int quantity, double pricePerUnit) throws DAOException;
+    public Integer payOrderDirectly(String productCode, int quantity, double pricePerUnit) throws DAOException;
+    public boolean payOrder(Integer orderId) throws DAOException;
     public ArrayList<Order> getAllOrders() throws DAOException;
 
     public Integer insertCustomer(String customerName) throws DAOException;
@@ -65,5 +67,9 @@ public interface IDAOEZshop {
     
     public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
     public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;
+
+    public boolean storeSaleTransaction(SaleTransaction saleTransaction) throws DAOException;
+
+  //  public boolean removeSaleTransaction(Integer saleNumber) throws DAOException;
 
 }
