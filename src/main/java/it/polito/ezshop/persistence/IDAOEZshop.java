@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 import it.polito.ezshop.data.ProductType;
 import it.polito.ezshop.data.SaleTransaction;
+import it.polito.ezshop.data.TicketEntry;
 import it.polito.ezshop.data.User;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.data.BalanceOperation;
@@ -71,6 +72,9 @@ public interface IDAOEZshop {
 
     public boolean storeSaleTransaction(SaleTransaction saleTransaction) throws DAOException;
 
-  //  public boolean removeSaleTransaction(Integer saleNumber) throws DAOException;
+    public SaleTransaction searchSaleTransaction(Integer transactionId) throws DAOException;
+    public List<TicketEntry> getEntries(Integer transactionId) throws DAOException;
+
+    public boolean removeSaleTransaction(Integer saleNumber) throws DAOException;
 
 }
