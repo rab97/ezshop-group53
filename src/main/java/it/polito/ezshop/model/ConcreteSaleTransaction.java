@@ -11,12 +11,14 @@ public class ConcreteSaleTransaction implements SaleTransaction {
     List<TicketEntry> entries;
     double discountRate;
     double price;
+    boolean payed;
 
     public ConcreteSaleTransaction(Integer ticketNumber, List<TicketEntry> entries, double discountRate, double price) {
         this.ticketNumber = ticketNumber;
         this.entries = entries;
         this.discountRate = discountRate;
         this.price = price;
+        this.payed = false;
     }
 
     @Override
@@ -57,6 +59,16 @@ public class ConcreteSaleTransaction implements SaleTransaction {
     @Override
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    @Override
+    public boolean getPayed() {
+        return payed;
+    }
+
+    @Override
+    public void setPayed(boolean payed) {
+        this.payed = payed;
     }
 
 }

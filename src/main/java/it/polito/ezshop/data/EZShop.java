@@ -353,24 +353,23 @@ public class EZShop implements EZShopInterface {
         return false;
     }
 
-    
     @Override
     public Integer issueOrder(String productCode, int quantity, double pricePerUnit) throws InvalidProductCodeException,
             InvalidQuantityException, InvalidPricePerUnitException, UnauthorizedException {
 
         if (runningUser == null | !runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
-                throw new UnauthorizedException();
-            }
-            if(productCode== null| productCode.isEmpty() | !o.isValidCode(productCode)){
-                throw new InvalidProductCodeException();
-            }
-            if(quantity<=0){
-                throw new InvalidQuantityException();
-            }
-            if(pricePerUnit<=0){
-                throw new InvalidPricePerUnitException();
-            }
+            throw new UnauthorizedException();
+        }
+        if (productCode == null | productCode.isEmpty() | !o.isValidCode(productCode)) {
+            throw new InvalidProductCodeException();
+        }
+        if (quantity <= 0) {
+            throw new InvalidQuantityException();
+        }
+        if (pricePerUnit <= 0) {
+            throw new InvalidPricePerUnitException();
+        }
 
         Integer newOrderId = 0;
         try {
@@ -385,62 +384,60 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer payOrderFor(String productCode, int quantity, double pricePerUnit)
-            throws InvalidProductCodeException, InvalidQuantityException, InvalidPricePerUnitException, UnauthorizedException {
+            throws InvalidProductCodeException, InvalidQuantityException, InvalidPricePerUnitException,
+            UnauthorizedException {
 
-        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
-             && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null | !runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
             throw new UnauthorizedException();
         }
-        if(productCode== null| productCode.isEmpty() | !o.isValidCode(productCode)){
+        if (productCode == null | productCode.isEmpty() | !o.isValidCode(productCode)) {
             throw new InvalidProductCodeException();
         }
-        if(quantity<=0){
+        if (quantity <= 0) {
             throw new InvalidQuantityException();
         }
-        if(pricePerUnit<=0){
+        if (pricePerUnit <= 0) {
             throw new InvalidPricePerUnitException();
         }
-        //return -1 if the balance is not enough to satisfy the order
-        if(computeBalance()< (quantity*pricePerUnit)){
+        // return -1 if the balance is not enough to satisfy the order
+        if (computeBalance() < (quantity * pricePerUnit)) {
             return -1;
         }
 
-        Integer newOrderId= -1;
+        Integer newOrderId = -1;
         try {
-            newOrderId= dao.payOrderDirectly(productCode, quantity, pricePerUnit);
+            newOrderId = dao.payOrderDirectly(productCode, quantity, pricePerUnit);
 
-       } catch (DAOException e) {
-           System.out.println("db excepiton");
-       }
+        } catch (DAOException e) {
+            System.out.println("db excepiton");
+        }
 
         return newOrderId;
     }
 
-
     @Override
     public boolean payOrder(Integer orderId) throws InvalidOrderIdException, UnauthorizedException {
 
-        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+        if (runningUser == null | !runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
-                throw new UnauthorizedException();
+            throw new UnauthorizedException();
         }
-        if(orderId== null | orderId<=0){
+        if (orderId == null | orderId <= 0) {
             throw new InvalidOrderIdException();
         }
 
-        boolean payment= false;
+        boolean payment = false;
         try {
-            payment= dao.payOrder(orderId);
+            payment = dao.payOrder(orderId);
 
-       } catch (DAOException e) {
-           System.out.println("db excepiton");
-       }
+        } catch (DAOException e) {
+            System.out.println("db excepiton");
+        }
 
         return payment;
     }
 
-
-    
     @Override
     public boolean recordOrderArrival(Integer orderId)
             throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {
@@ -943,15 +940,25 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
 
-        // boolean state = false;
-        // try {
-        //     state = dao.removeSaleTransaction(saleNumber);
-            
-        // } catch (DAOException e) {
-        //     System.out.println(e);
-        // }
+        boolean state = false;
+        SaleTransaction st = null;
+        try {
+            st = dao.searchSaleTransaction(saleNumber);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
 
-        return false;
+        if (st == null || st.getPayed())
+            return false;
+
+        try {
+            state = dao.removeSaleTransaction(saleNumber);
+
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+
+        return state;
     }
 
     @Override
@@ -968,8 +975,14 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
 
+        SaleTransaction st = null;
+        try {
+            st = dao.searchSaleTransaction(transactionId);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
 
-        return saleTransaction;
+        return st;
     }
 
     @Override
