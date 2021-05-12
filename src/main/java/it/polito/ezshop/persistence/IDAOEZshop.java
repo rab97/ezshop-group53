@@ -42,6 +42,7 @@ public interface IDAOEZshop {
     public boolean updateRights(Integer id, String role) throws DAOException;
 
     public Integer insertNewOrder(String productCode, int quantity, double pricePerUnit) throws DAOException;
+    public boolean payOrder(Integer orderId) throws DAOException;
     public ArrayList<Order> getAllOrders() throws DAOException;
 
     public Integer insertCustomer(String customerName) throws DAOException;
