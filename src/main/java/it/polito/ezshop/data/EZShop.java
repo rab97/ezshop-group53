@@ -341,11 +341,43 @@ public class EZShop implements EZShopInterface {
         return true;
     }
 
+    /**
+         * This method issues an order of <quantity> units of product with given
+         * <productCode>, each unit will be payed <pricePerUnit> to the supplier.
+         *  
+         * @return the id of the order (> 0) -1  if there
+         *         are problems with the db
+        
+         */
     @Override
     public Integer issueOrder(String productCode, int quantity, double pricePerUnit) throws InvalidProductCodeException,
             InvalidQuantityException, InvalidPricePerUnitException, UnauthorizedException {
-        return null;
+
+            if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+                throw new UnauthorizedException();
+            }
+            if(productCode== null| productCode.isEmpty() | productCode.length()!=12){
+                throw new InvalidProductCodeException();
+            }
+            if(quantity<=0){
+                throw new InvalidQuantityException();
+            }
+            if(pricePerUnit<=0){
+                throw new InvalidPricePerUnitException();
+            }
+
+            Integer newOrderId= 0;
+            try {
+                 newOrderId= dao.insertNewOrder(productCode, quantity, pricePerUnit);
+    
+            } catch (DAOException e) {
+                System.out.println("db excepiton");
+            }
+
+        return newOrderId;
     }
+
 
     @Override
     public Integer payOrderFor(String productCode, int quantity, double pricePerUnit)
@@ -360,19 +392,34 @@ public class EZShop implements EZShopInterface {
     }
 
     @Override
-    public boolean recordOrderArrival(Integer orderId)
-            throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {
+    public boolean recordOrderArrival(Integer orderId) throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {
         return false;
     }
 
+    
+
     @Override
     public List<Order> getAllOrders() throws UnauthorizedException {
-        return null;
+
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+            throw new UnauthorizedException();
+        }
+
+        List<Order> ordersList = new ArrayList<>();
+        try {
+            ordersList = dao.getAllOrders();
+
+        } catch (DAOException e) {
+            System.out.println("db excepiton");
+        }
+
+        return ordersList;
     }
 
     @Override
     public Integer defineCustomer(String customerName) throws InvalidCustomerNameException, UnauthorizedException {
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
             && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
             && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
@@ -398,19 +445,21 @@ public class EZShop implements EZShopInterface {
         return newCustomerId;
     }
 
+
     @Override
     public boolean modifyCustomer(Integer id, String newCustomerName, String newCustomerCard)
             throws InvalidCustomerNameException, InvalidCustomerCardException, InvalidCustomerIdException,
             UnauthorizedException {
 
-        if (this.runningUser == null) {
-            throw new UnauthorizedException();
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)){
+                throw new UnauthorizedException();
         }
         if (newCustomerName == null | newCustomerName.isEmpty()) {
             throw new InvalidCustomerNameException();
         }
-        if (newCustomerCard.length() > 10) { // Perché lanciare l'eccezione anche su empty o null quando queste hanno
-                                             // dei significati ben precisi?
+        if (newCustomerCard== null | newCustomerCard.isEmpty() | newCustomerCard.length() != 10) { 
             throw new InvalidCustomerCardException();
         }
 
@@ -427,10 +476,13 @@ public class EZShop implements EZShopInterface {
         return modification;
     }
 
+
     @Override
     public boolean deleteCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
 
-        if (this.runningUser == null) {
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
         if (id == null | id <= 0) {
@@ -449,7 +501,9 @@ public class EZShop implements EZShopInterface {
     @Override
     public Customer getCustomer(Integer id) throws InvalidCustomerIdException, UnauthorizedException {
 
-        if (this.runningUser == null) {
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
         if (id == null | id <= 0) {
@@ -469,7 +523,9 @@ public class EZShop implements EZShopInterface {
     @Override
     public List<Customer> getAllCustomers() throws UnauthorizedException {
 
-        if (this.runningUser == null) {
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+            && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
+            && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
 
@@ -488,15 +544,15 @@ public class EZShop implements EZShopInterface {
     @Override
     public String createCard() throws UnauthorizedException {
 
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
             && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
             && !runningUser.getRole().equals(Constants.CASHIER)){
             throw new UnauthorizedException();
         }
 
         //Card String generation
-        int leftLimit = 97; // letter 'a'
-        int rightLimit = 122; // letter 'z'
+        int leftLimit = 48;
+        int rightLimit = 57; 
         int targetStringLength = 10;
         Random random = new Random();
         StringBuilder buffer = new StringBuilder(targetStringLength);
@@ -528,20 +584,10 @@ public class EZShop implements EZShopInterface {
 
     }
 
-
-    /**
-         * This method assigns a card with given card code to a customer with given
-         * identifier. A card with given card code can be assigned to one customer only.
-         *
-         *
-         * @return true if the operation was successful false if the card is already
-         *         assigned to another user, if there is no customer with given id, if
-         *         the db is unreachable
-         */
     @Override
     public boolean attachCardToCustomer(String customerCard, Integer customerId) throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
         
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
             && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
             && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
@@ -549,7 +595,7 @@ public class EZShop implements EZShopInterface {
         if(customerId== null | customerId<= 0){
             throw new InvalidCustomerIdException();
         }
-        if(customerCard== null| customerCard.isEmpty() | customerCard.length()>10){
+        if(customerCard== null| customerCard.isEmpty() | customerCard.length()!=10){
             throw new InvalidCustomerCardException();
         }
 
@@ -564,31 +610,17 @@ public class EZShop implements EZShopInterface {
         return result;
     }
 
-      /**
-         * This method updates the points on a card adding to the number of points
-         * available on the card the value assumed by <pointsToBeAdded>. The points on a
-         * card should always be greater than or equal to 0. 
-         *
-         * @param customerCard    the card the points should be added to
-         * @param pointsToBeAdded the points to be added or subtracted ( this could
-         *                        assume a negative value)
-         *
-         * @return true if the operation is successful 
-         *         false if there is no card with
-         *         given code, if pointsToBeAdded is negative and there were not enough
-         *         points on that card before this operation, if we cannot reach the db.
-        
-         */
+      
 
     @Override
     public boolean modifyPointsOnCard(String customerCard, int pointsToBeAdded) throws InvalidCustomerCardException, UnauthorizedException {
 
-        if(!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
             && !runningUser.getRole().equals(Constants.SHOP_MANAGER) 
             && !runningUser.getRole().equals(Constants.CASHIER)) {
             throw new UnauthorizedException();
         }
-        if(customerCard==null| customerCard.isEmpty()|customerCard.length()>10){
+        if(customerCard==null| customerCard.isEmpty()|customerCard.length()!=10){
             throw new InvalidCustomerCardException();
         }
 
@@ -605,7 +637,7 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer startSaleTransaction() throws UnauthorizedException {
-        if (runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+        if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
                 || !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();

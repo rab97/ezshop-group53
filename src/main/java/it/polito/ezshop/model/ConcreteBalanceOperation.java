@@ -11,16 +11,18 @@ public class ConcreteBalanceOperation implements BalanceOperation {
     double money;
     String type;
 
-    public ConcreteBalanceOperation(Integer id, int balanceId, LocalDate date, double money, String type) {
+    //Default constructor
+    public ConcreteBalanceOperation(){} 
+
+    public ConcreteBalanceOperation(Integer id, LocalDate date, double money, String type) {
         this.id = id;
-        this.balanceId = balanceId;
         this.date = date;
         this.money = money;
         this.type = type;
     }
 
     @Override
-    public int getBalanceId() {
+    public Integer getBalanceId() {
         return id;
     }
 

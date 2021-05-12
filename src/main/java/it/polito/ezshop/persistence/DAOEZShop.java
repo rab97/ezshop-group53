@@ -258,6 +258,88 @@ public class DAOEZShop implements IDAOEZshop {
         return true;
     }
 
+
+    public Integer insertNewOrder(String productCode, int quantity, double pricePerUnit) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        Integer id= -1;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            //Check if the product exist
+            String query= "SELECT * FROM product_type WHERE bar_code= '"+ productCode+ "';";
+            resultSet= statement.executeQuery(query);
+
+            if(!resultSet.next()){
+                System.out.println("The selected product type doesn't exist");
+                return -1;
+            }
+
+            // Insert
+            PreparedStatement pstm;
+
+            pstm = connection.prepareStatement("INSERT INTO order(product_code, price_per_unit, quantity, status) values (?,?,?,?)");
+            pstm.setString(1, productCode);
+            pstm.setDouble(2, pricePerUnit);
+            pstm.setInt(3, quantity);
+            pstm.setString(4, "ISSUED");
+            pstm.execute();
+
+            // Recover the id
+            ResultSet rs=pstm.getGeneratedKeys();
+            if(rs.next()){
+				id=rs.getInt(1);
+			}
+
+            System.out.println("last inserted id: " + id);
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+        return id;
+    }
+
+
+
+    public ArrayList<Order> getAllOrders() throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        ArrayList<Order> orders = new ArrayList<>();
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            String query = "SELECT * FROM order";
+            ResultSet resultSet = statement.executeQuery(query);
+
+            while (resultSet.next()) {
+                if(resultSet.getString("Status")== "ISSUED"| resultSet.getString("Status")=="ORDERED"| resultSet.getString("Status")=="COMPLETED"){
+                    Order o = new ConcreteOrder(resultSet.getInt("balanceId"), resultSet.getString("product_code"), resultSet.getDouble("price_per_unit"), 
+                                resultSet.getInt("quantity"), resultSet.getString("status"), resultSet.getInt("orderId"));
+                    orders.add(o);
+                }
+            }
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+        return orders;
+    }
+
+
+
     public Integer insertCustomer(String customerName) throws DAOException {
 
         Connection connection = null;
