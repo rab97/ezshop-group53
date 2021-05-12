@@ -12,6 +12,8 @@ import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.data.BalanceOperation;
 import it.polito.ezshop.data.Customer;
 import it.polito.ezshop.data.Order;
+import it.polito.ezshop.data.TicketEntry;
+
 
 public interface IDAOEZshop {
 
@@ -56,6 +58,10 @@ public interface IDAOEZshop {
     public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException;
 
     public Integer insertSaleTransaction() throws DAOException;
+    
+    public Integer insertReturnTransaction() throws DAOException;
+    public ArrayList<TicketEntry> getSoldProducts(Integer transactionId) throws DAOException;
+    public boolean getReturnTransactionById(Integer returnId) throws DAOException;
     
     public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
     public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;
