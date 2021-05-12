@@ -167,14 +167,14 @@ public class EZShop implements EZShopInterface {
         }
         if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) {
             System.out.println("throw");
-        	throw new InvalidProductCodeException();
+            throw new InvalidProductCodeException();
         }
         try {
-        	Long.parseLong(productCode);
-            
+            Long.parseLong(productCode);
+
         } catch (Exception e) {
-        	System.out.println("throw");
-        	System.out.println(productCode);
+            System.out.println("throw");
+            System.out.println(productCode);
             throw new InvalidProductCodeException();
         }
         if (pricePerUnit <= 0) {
@@ -668,12 +668,22 @@ public class EZShop implements EZShopInterface {
         }
 
         // add to list
-        productsToSale.add(te);
+        boolean toAdd = true;
+        for (TicketEntry t : productsToSale) {
+            if (t.getBarCode().equals(productCode)) {
+                t.setAmount(t.getAmount() + amount);
+                toAdd = false;
+                break;
+            }
+        }
+        if (toAdd)
+            productsToSale.add(te);
 
         // print log
         System.out.println("Added product to sale:");
         for (TicketEntry td : productsToSale) {
-            System.out.println(td.getProductDescription());
+            pt = getProductTypeByBarCode(td.getBarCode());
+            System.out.println(td.getProductDescription() + " " + td.getBarCode() + " " + td.getAmount() + "Product available: " + pt.getQuantity());
         }
 
         return true;
@@ -699,33 +709,46 @@ public class EZShop implements EZShopInterface {
             throw new InvalidProductCodeException();
         }
 
-        // check on product
-        ProductType pt = getProductTypeByBarCode(productCode);
-        if (pt == null || pt.getQuantity() < amount)
-            return false;
-            
         // check sale transaction state
         if (saleTransaction_state != Constants.OPENED)
             return false;
-        TicketEntry te = new ConcreteTicketEntry(productCode, pt.getProductDescription(), amount, pt.getPricePerUnit(),
-                0);
 
-        // decrement product availability
+        // print log
+        System.out.println("Available products from sale:");
+        for (TicketEntry td : productsToSale) {
+            System.out.println(td.getProductDescription() + td.getAmount());
+        }
+
+        //search-check on product 
+        TicketEntry t = null;
+        for(TicketEntry te : productsToSale) {
+            if(te.getBarCode().equals(productCode)) {
+                te.setAmount(te.getAmount() - amount);
+                System.out.println(te.getProductDescription() + " " + te.getAmount());
+                if(te.getAmount() <= 0)
+                    productsToSale.remove(te);
+                t = te;
+            }
+        }
+
+        System.out.println("Product found= " + t.getProductDescription());
+        if(t == null)
+            return false;
+
+        // increment product availability
+        ProductType pt = getProductTypeByBarCode(productCode);
         try {
-            dao.updateQuantity(pt.getId(), (-2) * amount);
+            dao.updateQuantity(pt.getId(), amount);
         } catch (DAOException e) {
             System.out.println(e);
             return false;
         }
 
-        // add to list
-        productsToSale.add(te);
-
-        // print log
-        System.out.println("Added product to sale:");
-        for (TicketEntry td : productsToSale) {
-            System.out.println(td.getProductDescription());
-        }
+        // // print log
+        // System.out.println("Removed product from sale:");
+        // for (TicketEntry td : productsToSale) {
+        //     System.out.println(td.getProductDescription() + td.getAmount());
+        // }
 
         return false;
     }
@@ -838,5 +861,5 @@ public class EZShop implements EZShopInterface {
     public double computeBalance() throws UnauthorizedException {
         return 0;
     }
-    
+
 }
