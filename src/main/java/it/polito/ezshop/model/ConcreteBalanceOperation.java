@@ -5,17 +5,13 @@ import java.time.LocalDate;
 import it.polito.ezshop.data.BalanceOperation;
 
 public class ConcreteBalanceOperation implements BalanceOperation {
-    Integer id;
-    int balanceId;
+    Integer balanceId;
     LocalDate date;
     double money;
     String type;
 
-    //Default constructor
-    public ConcreteBalanceOperation(){} 
-
-    public ConcreteBalanceOperation(Integer id, LocalDate date, double money, String type) {
-        this.id = id;
+    public ConcreteBalanceOperation(int balanceId, LocalDate date, double money, String type) {
+        this.balanceId = balanceId;
         this.date = date;
         this.money = money;
         this.type = type;
@@ -23,7 +19,7 @@ public class ConcreteBalanceOperation implements BalanceOperation {
 
     @Override
     public Integer getBalanceId() {
-        return id;
+        return balanceId;
     }
 
     @Override

@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import it.polito.ezshop.data.*;
@@ -766,26 +767,62 @@ public class DAOEZShop implements IDAOEZshop {
 
         return true;
     }
-
+	
 	@Override
-	public double computeBalance() throws DAOException {
+	public boolean insertBalanceOperation(double amount, String type) throws DAOException {
 		Connection connection = null;
-		ResultSet resultSet = null;
-		Statement statement = null;
-		try {
-			connection = dataSource.getConnection();
-			statement = connection.createStatement();
-			
-			String query = "select SUM(money) from balance_operation as sum_balance";
-			resultSet = statement.executeQuery(query);
-			return (resultSet.next() ? resultSet.getDouble("sum_balance") : 0);
-			
-		} catch (SQLException e) {
-			System.out.println(e);
-		}finally {
-			dataSource.close(connection);
-		}
-		return 0;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        Integer id = -1;
+        String now = LocalDate.now().toString();
+        try {
+            connection = dataSource.getConnection();
+            String query = "INSERT INTO balance_operation(id,date,money,type) VALUES(null, ?, ?, ?)";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setString(1, now);
+            preparedStatement.setDouble(2, amount);
+            preparedStatement.setString(3, type);
+            preparedStatement.executeUpdate();
+            resultSet = preparedStatement.getGeneratedKeys();         
+            if (resultSet.next()) {
+                id = resultSet.getInt(1);
+            }
+            System.out.println("id: " + id);
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return true;
 	}
+	
+	@Override
+	public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException {
+		Connection connection = null;
+        Statement statement = null;
+        ArrayList<BalanceOperation> balanceOperations = new ArrayList<>();
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            String query = "SELECT * FROM balance_operation WHERE date>='" + from + "' AND date<= '" + to + "';";  
+            ResultSet resultSet = statement.executeQuery(query);
+
+            while (resultSet.next()) {
+                BalanceOperation bo = new ConcreteBalanceOperation(resultSet.getInt("id"), LocalDate.parse(resultSet.getString("date")),
+                        resultSet.getDouble("money"), resultSet.getString("type"));
+                balanceOperations.add(bo);
+            }
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return balanceOperations;
+	}
+
+	
 
 }
