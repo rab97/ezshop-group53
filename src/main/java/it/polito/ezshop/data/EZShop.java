@@ -781,16 +781,69 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public boolean recordBalanceUpdate(double toBeAdded) throws UnauthorizedException {
-        return false;
+    	String type;
+    	double future_balance;
+    	 if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                 && !runningUser.equals(Constants.SHOP_MANAGER))) {
+             throw new UnauthorizedException();
+         }
+    	future_balance=this.computeBalance();
+    	future_balance+=toBeAdded;
+    	if(future_balance<=0)
+    		return false;
+    	if(toBeAdded>=0)
+    		type="CREDIT";
+    	else
+    		type="DEBIT";
+    	boolean state = false;
+        try {
+            state = dao.insertBalanceOperation(Math.abs(toBeAdded), type);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return state;
     }
 
     @Override
     public List<BalanceOperation> getCreditsAndDebits(LocalDate from, LocalDate to) throws UnauthorizedException {
-        return null;
+    	 List<BalanceOperation> balanceOperationList = new ArrayList<>();
+    	 if(from==null)
+    		 from=LocalDate.of(1900, 1, 1);
+    	 if(to==null)
+    		 to=LocalDate.of(2100, 1, 1);
+    	 if(from.isAfter(to)) {
+    		 LocalDate temp = from;
+    		 from=to;
+    		 to=temp;
+    	 } 
+         try {
+        	 balanceOperationList = dao.getBalanceOperations(from,to);
+         } catch (DAOException e) {
+             System.out.println("getBalanceOperations exception");
+         }
+         if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                 && !runningUser.equals(Constants.SHOP_MANAGER))) {
+             throw new UnauthorizedException();
+         }
+         return balanceOperationList;
     }
 
     @Override
     public double computeBalance() throws UnauthorizedException {
-        return 0;
+    	List<BalanceOperation> balanceOperationList = new ArrayList<>();
+    	double balance=0;
+    	
+    	if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+            throw new UnauthorizedException();
+        }
+    	balanceOperationList=this.getCreditsAndDebits(null,null);
+    	for (BalanceOperation op : balanceOperationList) {
+    		if(op.getType()=="DEBIT" || op.getType()=="ORDER" || op.getType()=="RETURN")
+    			balance-=op.getMoney();
+    		else
+    			balance+=op.getMoney();
+    	}
+        return balance;
     }
 }
