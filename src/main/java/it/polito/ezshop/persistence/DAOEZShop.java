@@ -65,9 +65,8 @@ public class DAOEZShop implements IDAOEZshop {
                 String description = resultSet.getString("description");
                 String barCode = resultSet.getString("bar_code");
                 Double pricePerUnit = resultSet.getDouble("price_per_unit");
-                Double discountRate = resultSet.getDouble("discount_rate");
                 ProductType product = new ConcreteProductType(id, description, barCode, notes, quantity, pricePerUnit,
-                        discountRate, location);
+                        location);
                 productTypeList.add(product);
             }
             return productTypeList;
@@ -199,9 +198,8 @@ public class DAOEZShop implements IDAOEZshop {
                 String description = resultSet.getString("description");
                 String bar_code = resultSet.getString("bar_code");
                 Double pricePerUnit = resultSet.getDouble("price_per_unit");
-                Double discountRate = resultSet.getDouble("discount_rate");
                 productType = new ConcreteProductType(id, description, bar_code, notes, quantity, pricePerUnit,
-                        discountRate, location);
+                        location);
             }
             return productType;
         } catch (SQLException e) {
@@ -304,11 +302,11 @@ public class DAOEZShop implements IDAOEZshop {
             // update query creation
             String query = "UPDATE customer SET name= '" + newCustomerName + "'";
 
-            if(newCustomerCard.isEmpty()){ //remove previous card and its points
-                query= query + ", card= '" + null + "', points= '"+ 0 + "'";
-            
-            }else if(newCustomerCard!= null){ //numeric value: create new card with 0 points
-                query= query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
+            if (newCustomerCard.isEmpty()) { // remove previous card and its points
+                query = query + ", card= '" + null + "', points= '" + 0 + "'";
+
+            } else if (newCustomerCard != null) { // numeric value: create new card with 0 points
+                query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
             query = query + "WHERE customer.id= '" + id + "';";
@@ -437,9 +435,8 @@ public class DAOEZShop implements IDAOEZshop {
                 String desc = resultSet.getString("description");
                 String bar_code = resultSet.getString("bar_code");
                 Double pricePerUnit = resultSet.getDouble("price_per_unit");
-                Double discountRate = resultSet.getDouble("discount_rate");
                 ProductType productType = new ConcreteProductType(id, desc, bar_code, notes, quantity, pricePerUnit,
-                        discountRate, location);
+                        location);
                 productTypeList.add(productType);
             }
             return productTypeList;
@@ -493,7 +490,7 @@ public class DAOEZShop implements IDAOEZshop {
         Integer id = -1;
         try {
             connection = dataSource.getConnection();
-            String query = "INSERT INTO sale_transaction(entries, discountRate, price) VALUES(null, null, null)";
+            String query = "INSERT INTO sale_transaction(discountRate, price) VALUES(null, null)";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.executeUpdate();
             resultSet = preparedStatement.getGeneratedKeys();
@@ -561,75 +558,71 @@ public class DAOEZShop implements IDAOEZshop {
 
         return true;
     }
-           
 
-	
-	
-	@Override
-	public void updatePosition(Integer productId, String position) throws DAOException {
-		// TODO Auto-generated method stub
-		Connection connection = null;
-		Statement statement = null;
-		try {
-			connection = dataSource.getConnection();
-			statement = connection.createStatement();
-			String query = "update product_type set location = '" + position + "' where id = '" + productId + "'";
-			statement.executeUpdate(query);
-		}catch (Exception e) {
-			System.out.println(e);
-		} finally {
-			dataSource.close(connection);
-		}
-	}
+    @Override
+    public void updatePosition(Integer productId, String position) throws DAOException {
+        // TODO Auto-generated method stub
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "update product_type set location = '" + position + "' where id = '" + productId + "'";
+            statement.executeUpdate(query);
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            dataSource.close(connection);
+        }
+    }
 
+    @Override
+    public boolean searchPosition(String position) throws DAOException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "select * from product_type where location = '" + position + "'";
+            resultSet = statement.executeQuery(query);
+            return (resultSet.next() ? true : false);
+        } catch (Exception e) {
+            System.out.println(e);
+        } finally {
+            dataSource.close(connection);
+        }
+        return false;
+    }
 
-	@Override
-	public boolean searchPosition(String position) throws DAOException {
-		Connection connection = null;
-		Statement statement = null;
-		ResultSet resultSet = null;
-		try {
-			connection = dataSource.getConnection();
-			statement = connection.createStatement();
-			String query = "select * from product_type where location = '" + position + "'";
-			resultSet = statement.executeQuery(query);
-			return (resultSet.next() ? true : false);
-		}catch (Exception e) {
-			System.out.println(e);
-		} finally {
-			dataSource.close(connection);
-		}
-		return false;
-	}
+    @Override
+    public boolean updateProduct(ProductType productType) throws DAOException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            StringBuilder query = new StringBuilder();
+            query.append("update product_type set ");
+            query.append("description ='" + productType.getProductDescription() + "',");
+            query.append("note = '" + productType.getNote() + "', ");
+            query.append("bar_code = '" + productType.getBarCode() + "', ");
+            query.append("price_per_unit = '" + productType.getPricePerUnit() + "' ");
+            query.append("where id = '").append(productType.getId() + "'");
+            System.out.println(query.toString());
+            int i = statement.executeUpdate(query.toString());
+            return (i == 0 ? false : true);
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+    }
 
-	@Override
-	public boolean updateProduct(ProductType productType) throws DAOException {
-		 	Connection connection = null;
-	        Statement statement = null;
-	        ResultSet resultSet = null;
-	        try {
-	            connection = dataSource.getConnection();
-	            statement = connection.createStatement();
-	            StringBuilder query = new StringBuilder();
-	            query.append("update product_type set ");
-	            query.append("description ='" + productType.getProductDescription() + "',");
-	            query.append("note = '" + productType.getNote() + "', ");
-	            query.append("bar_code = '" + productType.getBarCode() + "', ");
-	            query.append("price_per_unit = '" + productType.getPricePerUnit() + "' ");
-	            query.append("where id = '").append(productType.getId() + "'");
-	            System.out.println(query.toString());
-	            int i = statement.executeUpdate(query.toString());
-	            return (i == 0 ? false : true);
-	        } catch (SQLException ex) {
-	            throw new DAOException("Impossibile to execute query: " + ex.getMessage());	            
-	        } finally {
-	            dataSource.close(connection);
-	        }
-	}
-
-	@Override
-	public boolean deleteProductType(Integer id) throws DAOException {
-		Connection connection = null;
+    @Override
+    public boolean deleteProductType(Integer id) throws DAOException {
+        Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
         try {
@@ -639,54 +632,54 @@ public class DAOEZShop implements IDAOEZshop {
             int i = statement.executeUpdate(query.toString());
             return (i == 0 ? false : true);
         } catch (SQLException e) {
-        	System.out.println(e);
-            throw new DAOException("Impossibile to execute query: " + e.getMessage());	            
+            System.out.println(e);
+            throw new DAOException("Impossibile to execute query: " + e.getMessage());
         } finally {
             dataSource.close(connection);
         }
-	}
-	
-	public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException{
+    }
+
+    public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException {
 
         Connection connection = null;
         Statement statement = null;
         ResultSet rs;
 
-        try{
-            connection= dataSource.getConnection();
-            statement= connection.createStatement();
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
 
-            String query= "SELECT * FROM customer WHERE card= '" + customerCard + "';";
-            rs= statement.executeQuery(query);
+            String query = "SELECT * FROM customer WHERE card= '" + customerCard + "';";
+            rs = statement.executeQuery(query);
 
-            if(!rs.next()){ //if doesn't exist a customer with this card
+            if (!rs.next()) { // if doesn't exist a customer with this card
                 System.out.println("A customer with the inserted card doesn't exist");
                 return false;
             }
 
-            if(pointsToBeAdded<0){ //Check if the previous points are enough
-                if(rs.getInt("points")< (0-pointsToBeAdded)){
+            if (pointsToBeAdded < 0) { // Check if the previous points are enough
+                if (rs.getInt("points") < (0 - pointsToBeAdded)) {
                     System.out.println("There are not enough points on the card to be subtracted");
                     return false;
                 }
             }
 
-            //UPDATE POINTS ON CARD
-            //String updateQuery= "UPDATE customer SET points= '"+ (rs.getInt("points")+ pointsToBeAdded)+ "' WHERE id = '" + rs.getInt("id")+ "';";
-            PreparedStatement prstm= connection.prepareStatement( "UPDATE customer SET points= ? WHERE id = ?;");
-            prstm.setInt(1, (rs.getInt("points")+ pointsToBeAdded));
+            // UPDATE POINTS ON CARD
+            // String updateQuery= "UPDATE customer SET points= '"+ (rs.getInt("points")+
+            // pointsToBeAdded)+ "' WHERE id = '" + rs.getInt("id")+ "';";
+            PreparedStatement prstm = connection.prepareStatement("UPDATE customer SET points= ? WHERE id = ?;");
+            prstm.setInt(1, (rs.getInt("points") + pointsToBeAdded));
             prstm.setInt(2, rs.getInt("id"));
 
             int result = prstm.executeUpdate();
-            if(result!=1){ //Something goes wrong
+            if (result != 1) { // Something goes wrong
                 return false;
             }
 
-
-        }catch(SQLException ex){
+        } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
-        }finally{
-        	dataSource.close(connection);
+        } finally {
+            dataSource.close(connection);
         }
 
         return true;

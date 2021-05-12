@@ -16,12 +16,14 @@ import java.util.List;
 import java.util.Random;
 import javax.swing.text.StyleConstants.CharacterConstants;
 //import javax.transaction.InvalidTransactionException;
+import javax.xml.stream.events.StartElement;
 
 public class EZShop implements EZShopInterface {
 
     private IDAOEZshop dao = new DAOEZShop();
     private User runningUser = null;
-    List<TicketEntry> productsToSale; // è giusto metterlo qui???
+    List<TicketEntry> productsToSale;
+    boolean saleTransaction_state;
 
     @Override
     public void reset() {
@@ -177,7 +179,7 @@ public class EZShop implements EZShopInterface {
         }
 
         ProductType productType = new ConcreteProductType(null, description, productCode, note, null, pricePerUnit,
-                null, null);
+                null);
         try {
             dao.createProductType(productType);
         } catch (DAOException e) {
@@ -210,7 +212,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         try {
-            ProductType p = new ConcreteProductType(id, newDescription, newCode, newNote, null, newPrice, null, null);
+            ProductType p = new ConcreteProductType(id, newDescription, newCode, newNote, null, newPrice, null);
             return dao.updateProduct(p);
         } catch (Exception e) {
             System.out.println(e);
@@ -614,6 +616,7 @@ public class EZShop implements EZShopInterface {
             System.out.println(e);
         }
         productsToSale = new ArrayList<TicketEntry>();
+        saleTransaction_state = Constants.OPENED;
         System.out.println(sale_transaction_id);
         return sale_transaction_id;
     }
@@ -642,9 +645,11 @@ public class EZShop implements EZShopInterface {
         ProductType pt = getProductTypeByBarCode(productCode);
         if (pt == null || pt.getQuantity() < amount)
             return false;
-        // la ricerca sulla sale transaction aperta come la
-        // implemento? devo necessariamente avere uno stato salvato
-        // nel database?
+
+        // check sale transaction state
+        if (saleTransaction_state != Constants.OPENED)
+            return false;
+
         TicketEntry te = new ConcreteTicketEntry(productCode, pt.getProductDescription(), amount, pt.getPricePerUnit(),
                 0);
 
@@ -686,6 +691,34 @@ public class EZShop implements EZShopInterface {
         }
         if (productCode.isEmpty() || productCode == null) { // manca invalid
             throw new InvalidProductCodeException();
+        }
+
+        // check on product
+        ProductType pt = getProductTypeByBarCode(productCode);
+        if (pt == null || pt.getQuantity() < amount)
+            return false;
+            
+        // check sale transaction state
+        if (saleTransaction_state != Constants.OPENED)
+            return false;
+        TicketEntry te = new ConcreteTicketEntry(productCode, pt.getProductDescription(), amount, pt.getPricePerUnit(),
+                0);
+
+        // decrement product availability
+        try {
+            dao.updateQuantity(pt.getId(), (-2) * amount);
+        } catch (DAOException e) {
+            System.out.println(e);
+            return false;
+        }
+
+        // add to list
+        productsToSale.add(te);
+
+        // print log
+        System.out.println("Added product to sale:");
+        for (TicketEntry td : productsToSale) {
+            System.out.println(td.getProductDescription());
         }
 
         return false;
