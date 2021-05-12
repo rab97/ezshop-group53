@@ -777,11 +777,11 @@ public class EZShop implements EZShopInterface {
             return false;
         }
 
-        // // print log
-        // System.out.println("Removed product from sale:");
-        // for (TicketEntry td : productsToSale) {
-        //     System.out.println(td.getProductDescription() + td.getAmount());
-        // }
+        // print log
+        System.out.println("Removed product from sale:");
+        for (TicketEntry td : productsToSale) {
+            System.out.println(td.getProductDescription() + td.getAmount());
+        }
 
         return false;
     }
