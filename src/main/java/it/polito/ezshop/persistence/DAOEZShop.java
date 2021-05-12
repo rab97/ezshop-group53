@@ -763,26 +763,44 @@ public class DAOEZShop implements IDAOEZshop {
     
     public boolean deleteReturnTransaction(Integer returnId) throws DAOException {
     	
+    	//retrieve transaction by id
+    	//retrieve product list associated to that return transaction --> problem --> another table needed!
+    	//update availability and sale transaction
+    	//delete return transaction and entry of the corresponding products
+    	
+    	return false;
     }
     
     
-    /*
-    public boolean getReturnTransactionById(Integer returnId) throws DAOException {
+    public ReturnTransaction searchReturnTransaction(Integer returnId) throws DAOException {
     	Connection connection = null;
         Statement statment = null;
         ResultSet resultSet = null;
+        ReturnTransaction returnTransaction;
         try {
             connection = dataSource.getConnection();
             statment = connection.createStatement();
             String query = "select * from return_transaction where id = '" + returnId + "';";
             resultSet = statment.executeQuery(query);
-            return resultSet.first();
+            
+            if (!resultSet.next())
+                return null;
+
+            //List<TicketEntry> entries = getEntries(transactionId);         --> aggiungere tabella + metodo
+
+            returnTransaction = new ConcreteReturnTransaction(returnId, -1, entries, resultSet.getDouble("amount"));
+            
+            if(resultSet.getInt("payed")==1)
+            	returnTransaction.setPayed(true);
+
+            
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-    }*/
+        return returnTransaction;
+    }
 
     // TODO: capire se questo metodo serve davvero nel db: dovrei creare una tabella
     // Card
@@ -1027,7 +1045,7 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
 
             // Update sale_transaction entry
-            String query = "INSERT INTO sale_transaction(discountRate, price) VALUES(?, ?)";
+            String query = "INSERT INTO sale_transaction(discountRate, price, payed) VALUES(?, ?, 0)";
             PreparedStatement pstm = connection.prepareStatement(query);
             pstm.setDouble(1, saleTransaction.getDiscountRate());
             pstm.setDouble(2, saleTransaction.getPrice());
@@ -1102,6 +1120,9 @@ public class DAOEZShop implements IDAOEZshop {
 
             saleTransaction = new ConcreteSaleTransaction(transactionId, entries, resultSet.getDouble("discountRate"),
                     resultSet.getDouble("price"));
+            
+            if(resultSet.getInt("payed")==1)
+            	saleTransaction.setPayed(true);
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -1132,6 +1153,56 @@ public class DAOEZShop implements IDAOEZshop {
             dataSource.close(connection);
         }
 
+        return true;
+    }
+    
+    @Override
+    public boolean setSaleTransactionPaid(Integer transactionId) throws DAOException {
+    	Connection connection = null;
+        Statement statement = null;
+        int update;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "UPDATE sale_transaction SET payed=1 WHERE id= '" + transactionId + "';";
+            update = statement.executeUpdate(query);
+            System.out.println("Update query executed succesfully?--> update= " + update);
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+        if (update != 1) {
+            return false;
+        }
+        return true;
+    }
+    
+    @Override
+    public boolean setReturnTransactionPaid(Integer returnId) throws DAOException {
+    	Connection connection = null;
+        Statement statement = null;
+        int update;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "UPDATE return_transaction SET payed=1 WHERE id= '" + returnId + "';";
+            update = statement.executeUpdate(query);
+            System.out.println("Update query executed succesfully?--> update= " + update);
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+        if (update != 1) {
+            return false;
+        }
         return true;
     }
 }

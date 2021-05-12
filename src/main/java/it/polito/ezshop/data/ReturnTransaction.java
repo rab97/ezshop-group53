@@ -20,4 +20,7 @@ public interface ReturnTransaction {
 
     void setPrice(double price);
     
+    boolean getPayed();
+    
+    void setPayed(boolean payed);
 }

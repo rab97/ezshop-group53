@@ -10,12 +10,14 @@ public class ConcreteReturnTransaction implements ReturnTransaction {
 	private Integer transactionId;
 	private List<TicketEntry> entries;
 	private double price;
+	private boolean payed;
 	
 	public ConcreteReturnTransaction(Integer returnId, Integer transactionId, List<TicketEntry> entries, double price) {
 		this.returnId=returnId;
 		this.transactionId=transactionId;
 		this.entries=entries;
 		this.price=price;
+		this.payed=false;
 	}
 
 	@Override
@@ -56,6 +58,14 @@ public class ConcreteReturnTransaction implements ReturnTransaction {
 	@Override
 	public void setPrice(double price) {
 		this.price=price;
+	}
+	
+	public boolean getPayed() {
+		return payed;
+	}
+	
+	public void setPayed(boolean payed) {
+		this.payed=payed;
 	}
 
 }

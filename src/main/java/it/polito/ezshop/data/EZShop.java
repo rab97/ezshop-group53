@@ -1121,20 +1121,92 @@ public class EZShop implements EZShopInterface {
     }
 
     @Override
-    public double receiveCashPayment(Integer ticketNumber, double cash)
+    public double receiveCashPayment(Integer transactionId, double cash)
             throws InvalidTransactionIdException, InvalidPaymentException, UnauthorizedException {
-        return 0;
+    	
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if(transactionId<=0 || transactionId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	if(cash<=0) {
+    		throw new InvalidPaymentException();
+    	}
+    	
+    	SaleTransaction s=null;
+    	try {
+            s = dao.searchSaleTransaction(transactionId);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	if(s==null || s.getPrice()>cash)
+    		return -1;
+    	
+    	//update the db: the sale transaction is payed
+    	try {
+    		dao.setSaleTransactionPaid(transactionId);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	//add balanceOperation
+    	try {
+    		dao.insertBalanceOperation(s.getPrice(), Constants.SALE);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+        return cash-s.getPrice();
     }
 
     @Override
-    public boolean receiveCreditCardPayment(Integer ticketNumber, String creditCard)
+    public boolean receiveCreditCardPayment(Integer transactionId, String creditCard)
             throws InvalidTransactionIdException, InvalidCreditCardException, UnauthorizedException {
         return false;
     }
 
     @Override
     public double returnCashPayment(Integer returnId) throws InvalidTransactionIdException, UnauthorizedException {
-        return 0;
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if(returnId<=0 || returnId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	
+    	ReturnTransaction r=null;
+    	try {
+            r = dao.searchReturnTransaction(returnId);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	if(r==null)
+    		return -1;
+    	
+    	//update the db: the return transaction is payed
+    	try {
+    		dao.setReturnTransactionPaid(returnId);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	//add balanceOperation
+    	try {
+    		dao.insertBalanceOperation(r.getPrice(), Constants.RETURN);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+        return r.getPrice();
     }
 
     @Override

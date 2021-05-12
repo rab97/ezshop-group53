@@ -19,4 +19,9 @@ public interface SaleTransaction {
     double getPrice();
 
     void setPrice(double price);
+    
+    public boolean getPayed();
+    
+    public void setPayed(boolean payed);
+
 }
