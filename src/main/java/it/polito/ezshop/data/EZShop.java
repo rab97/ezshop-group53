@@ -167,14 +167,14 @@ public class EZShop implements EZShopInterface {
         }
         if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) {
             System.out.println("throw");
-        	throw new InvalidProductCodeException();
+            throw new InvalidProductCodeException();
         }
         try {
-        	Long.parseLong(productCode);
-            
+            Long.parseLong(productCode);
+
         } catch (Exception e) {
-        	System.out.println("throw");
-        	System.out.println(productCode);
+            System.out.println("throw");
+            System.out.println(productCode);
             throw new InvalidProductCodeException();
         }
         if (pricePerUnit <= 0) {
@@ -340,14 +340,15 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         try {
-            if (dao.searchPosition(newPos)) {
-                return false;
+            if (!dao.searchPosition(newPos)) {
+            	dao.updatePosition(productId, newPos);
+                return true;
             }
         } catch (DAOException e) {
             System.out.println(e);
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 
     
@@ -712,12 +713,22 @@ public class EZShop implements EZShopInterface {
         }
 
         // add to list
-        productsToSale.add(te);
+        boolean toAdd = true;
+        for (TicketEntry t : productsToSale) {
+            if (t.getBarCode().equals(productCode)) {
+                t.setAmount(t.getAmount() + amount);
+                toAdd = false;
+                break;
+            }
+        }
+        if (toAdd)
+            productsToSale.add(te);
 
         // print log
         System.out.println("Added product to sale:");
         for (TicketEntry td : productsToSale) {
-            System.out.println(td.getProductDescription());
+            pt = getProductTypeByBarCode(td.getBarCode());
+            System.out.println(td.getProductDescription() + " " + td.getBarCode() + " " + td.getAmount() + "Product available: " + pt.getQuantity());
         }
 
         return true;
@@ -743,32 +754,45 @@ public class EZShop implements EZShopInterface {
             throw new InvalidProductCodeException();
         }
 
-        // check on product
-        ProductType pt = getProductTypeByBarCode(productCode);
-        if (pt == null || pt.getQuantity() < amount)
-            return false;
-            
         // check sale transaction state
         if (saleTransaction_state != Constants.OPENED)
             return false;
-        TicketEntry te = new ConcreteTicketEntry(productCode, pt.getProductDescription(), amount, pt.getPricePerUnit(),
-                0);
 
-        // decrement product availability
+        // print log
+        System.out.println("Available products from sale:");
+        for (TicketEntry td : productsToSale) {
+            System.out.println(td.getProductDescription() + td.getAmount());
+        }
+
+        //search-check on product 
+        TicketEntry t = null;
+        for(TicketEntry te : productsToSale) {
+            if(te.getBarCode().equals(productCode)) {
+                te.setAmount(te.getAmount() - amount);
+                System.out.println(te.getProductDescription() + " " + te.getAmount());
+                if(te.getAmount() <= 0)
+                    productsToSale.remove(te);
+                t = te;
+            }
+        }
+
+        System.out.println("Product found= " + t.getProductDescription());
+        if(t == null)
+            return false;
+
+        // increment product availability
+        ProductType pt = getProductTypeByBarCode(productCode);
         try {
-            dao.updateQuantity(pt.getId(), (-2) * amount);
+            dao.updateQuantity(pt.getId(), amount);
         } catch (DAOException e) {
             System.out.println(e);
             return false;
         }
 
-        // add to list
-        productsToSale.add(te);
-
         // print log
-        System.out.println("Added product to sale:");
+        System.out.println("Removed product from sale:");
         for (TicketEntry td : productsToSale) {
-            System.out.println(td.getProductDescription());
+            System.out.println(td.getProductDescription() + td.getAmount());
         }
 
         return false;
@@ -870,17 +894,69 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public boolean recordBalanceUpdate(double toBeAdded) throws UnauthorizedException {
-        return false;
+    	String type;
+    	double future_balance;
+    	 if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                 && !runningUser.equals(Constants.SHOP_MANAGER))) {
+             throw new UnauthorizedException();
+         }
+    	future_balance=this.computeBalance();
+    	future_balance+=toBeAdded;
+    	if(future_balance<=0)
+    		return false;
+    	if(toBeAdded>=0)
+    		type="CREDIT";
+    	else
+    		type="DEBIT";
+    	boolean state = false;
+        try {
+            state = dao.insertBalanceOperation(Math.abs(toBeAdded), type);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+        return state;
     }
 
     @Override
     public List<BalanceOperation> getCreditsAndDebits(LocalDate from, LocalDate to) throws UnauthorizedException {
-        return null;
+    	 List<BalanceOperation> balanceOperationList = new ArrayList<>();
+    	 if(from==null)
+    		 from=LocalDate.of(1900, 1, 1);
+    	 if(to==null)
+    		 to=LocalDate.of(2100, 1, 1);
+    	 if(from.isAfter(to)) {
+    		 LocalDate temp = from;
+    		 from=to;
+    		 to=temp;
+    	 } 
+         try {
+        	 balanceOperationList = dao.getBalanceOperations(from,to);
+         } catch (DAOException e) {
+             System.out.println("getBalanceOperations exception");
+         }
+         if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                 && !runningUser.equals(Constants.SHOP_MANAGER))) {
+             throw new UnauthorizedException();
+         }
+         return balanceOperationList;
     }
 
     @Override
     public double computeBalance() throws UnauthorizedException {
-        return 0;
-    }
-    
+    	List<BalanceOperation> balanceOperationList = new ArrayList<>();
+    	double balance=0;
+    	
+    	if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+            throw new UnauthorizedException();
+        }
+    	balanceOperationList=this.getCreditsAndDebits(null,null);
+    	for (BalanceOperation op : balanceOperationList) {
+    		if(op.getType()=="DEBIT" || op.getType()=="ORDER" || op.getType()=="RETURN")
+    			balance-=op.getMoney();
+    		else
+    			balance+=op.getMoney();
+    	}
+    	return balance;
+    }   
 }

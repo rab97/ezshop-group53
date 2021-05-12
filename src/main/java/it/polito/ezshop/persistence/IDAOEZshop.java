@@ -2,12 +2,14 @@ package it.polito.ezshop.persistence;
 
 import java.util.List;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import it.polito.ezshop.data.ProductType;
 import it.polito.ezshop.data.SaleTransaction;
 import it.polito.ezshop.data.User;
 import it.polito.ezshop.model.ConcreteProductType;
+import it.polito.ezshop.data.BalanceOperation;
 import it.polito.ezshop.data.Customer;
 import it.polito.ezshop.data.Order;
 
@@ -55,5 +57,8 @@ public interface IDAOEZshop {
     public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException;
 
     public Integer insertSaleTransaction() throws DAOException;
+    
+    public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
+    public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;
 
 }
