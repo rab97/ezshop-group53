@@ -7,4 +7,6 @@ public class Constants {
 	public static final String CASHIER = "Cashier";
     public static final boolean OPENED = false;
 	public static final boolean CLOSED = true;
+	public static final boolean NOT_COMMITTED = false;
+	public static final boolean COMMITTED = true;
 }

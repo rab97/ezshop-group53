@@ -1,7 +1,6 @@
 package it.polito.ezshop.model;
 
 import it.polito.ezshop.data.Order;
-
 import java.time.LocalDate;
 import java.util.Date;
 

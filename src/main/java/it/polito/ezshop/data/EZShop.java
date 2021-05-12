@@ -25,8 +25,12 @@ public class EZShop implements EZShopInterface {
 
     private IDAOEZshop dao = new DAOEZShop();
     private User runningUser = null;
+    List<TicketEntry> productsToSale;
+    List<TicketEntry> soldProducts;
+    List<TicketEntry> productsToReturn;
     SaleTransaction saleTransaction;
     boolean saleTransaction_state;
+    boolean returnTransaction_state;
     private Operator o = new Operator();
 
     @Override
@@ -986,15 +990,75 @@ public class EZShop implements EZShopInterface {
     }
 
     @Override
-    public Integer startReturnTransaction(Integer saleNumber)
-            throws /* InvalidTicketNumberException, */InvalidTransactionIdException, UnauthorizedException {
-        return null;
+    public Integer startReturnTransaction(Integer transactionId)
+            throws InvalidTransactionIdException, UnauthorizedException {
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	if(transactionId<=0 || transactionId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	
+        Integer return_transaction_id = -1;
+        
+        SaleTransaction s = this.getSaleTransaction(transactionId);
+        if(s!=null) {
+	        try {
+	            return_transaction_id = dao.insertReturnTransaction();
+	        } catch (DAOException e) {
+	            System.out.println(e);
+	        }
+	        soldProducts = new ArrayList<TicketEntry>();
+	        try {
+	        	soldProducts = dao.getSoldProducts(transactionId);
+	        } catch (DAOException e) {
+	            System.out.println(e);
+	        }
+	        returnTransaction_state = Constants.NOT_COMMITTED;
+	        System.out.println(return_transaction_id);
+        }
+        return return_transaction_id;
+
     }
 
     @Override
     public boolean returnProduct(Integer returnId, String productCode, int amount) throws InvalidTransactionIdException,
             InvalidProductCodeException, InvalidQuantityException, UnauthorizedException {
-        return false;
+    	
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	if(returnId<=0 || returnId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	if(amount<=0) {
+    		throw new InvalidQuantityException();
+    	}
+    	if (productCode.isEmpty() || productCode == null) { // manca invalid
+             throw new InvalidProductCodeException();
+        }
+    	
+    	boolean res=false;
+    	try {
+    		res=dao.getReturnTransactionById(returnId);
+    	} catch (DAOException e) {
+    		System.out.println(e);
+    	}
+    	
+    	TicketEntry prodToReturn=null;
+    	for (TicketEntry prod : soldProducts) {
+    		if(prod.getBarCode().equals(productCode))
+    			prodToReturn=prod;
+    	}
+    	if(prodToReturn==null|| res==false || prodToReturn.getAmount()<amount)
+    		return false;
+    	productsToReturn.add(prodToReturn);
+    	
+    	return true;
     }
 
     @Override
@@ -1090,13 +1154,13 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
-        balanceOperationList = this.getCreditsAndDebits(null, null);
-        for (BalanceOperation op : balanceOperationList) {
-            if (op.getType() == "DEBIT" || op.getType() == "ORDER" || op.getType() == "RETURN")
-                balance -= op.getMoney();
-            else
-                balance += op.getMoney();
-        }
-        return balance;
-    }
+    	balanceOperationList=this.getCreditsAndDebits(null,null);
+    	for (BalanceOperation op : balanceOperationList) {
+    		if(op.getType().equals("DEBIT") || op.getType().equals("ORDER") || op.getType().equals("RETURN"))
+    			balance-=op.getMoney();
+    		else
+    			balance+=op.getMoney();
+    	}
+    	return balance;
+    }   
 }

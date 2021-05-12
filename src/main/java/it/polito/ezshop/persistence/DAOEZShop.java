@@ -714,6 +714,70 @@ public class DAOEZShop implements IDAOEZshop {
         }
         return id;
     }
+    
+    @Override
+    public Integer insertReturnTransaction() throws DAOException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        Integer id = -1;
+        try {
+            connection = dataSource.getConnection();
+            String query = "INSERT INTO return_transaction(amount) VALUES(null)";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.executeUpdate();
+            resultSet = preparedStatement.getGeneratedKeys();
+
+            if (resultSet.next()) {
+                id = resultSet.getInt(1);
+            }
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return id;
+    }
+    
+    public ArrayList<TicketEntry> getSoldProducts(Integer transactionId) throws DAOException {
+    	Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "SELECT * FROM ticket_entry WHERE transactionId= '" + transactionId + "';";
+            resultSet = statement.executeQuery(query);
+            ArrayList<TicketEntry> products = new ArrayList<>();
+            while (resultSet.next()) {
+                TicketEntry t = new ConcreteTicketEntry(resultSet.getString("bar_code"), null, resultSet.getInt("amount"),
+                        resultSet.getDouble("price_per_unit"), resultSet.getDouble("discount_rate"));
+                products.add(t);
+            }
+            return products;
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+    }
+    
+    public boolean getReturnTransactionById(Integer returnId) throws DAOException {
+    	Connection connection = null;
+        Statement statment = null;
+        ResultSet resultSet = null;
+        try {
+            connection = dataSource.getConnection();
+            statment = connection.createStatement();
+            String query = "select * from return_transaction where id = '" + returnId + "';";
+            resultSet = statment.executeQuery(query);
+            return resultSet.first();
+        } catch (SQLException ex) {
+            throw new DAOException("Impossible to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+    }
 
     // TODO: capire se questo metodo serve davvero nel db: dovrei creare una tabella
     // Card

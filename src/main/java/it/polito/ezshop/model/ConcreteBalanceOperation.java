@@ -9,6 +9,8 @@ public class ConcreteBalanceOperation implements BalanceOperation {
     LocalDate date;
     double money;
     String type;
+    
+    public ConcreteBalanceOperation() {}
 
     public ConcreteBalanceOperation(int balanceId, LocalDate date, double money, String type) {
         this.balanceId = balanceId;
@@ -17,8 +19,6 @@ public class ConcreteBalanceOperation implements BalanceOperation {
         this.type = type;
     }
 
-    public ConcreteBalanceOperation() {
-    }
 
     @Override
     public Integer getBalanceId() {
