@@ -360,7 +360,7 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
                 throw new UnauthorizedException();
             }
-            if(productCode== null| productCode.isEmpty() /* | !o.isValidCode(productCode)*/){
+            if(productCode== null| productCode.isEmpty() | !o.isValidCode(productCode)){
                 throw new InvalidProductCodeException();
             }
             if(quantity<=0){
@@ -381,13 +381,37 @@ public class EZShop implements EZShopInterface {
         return newOrderId;
     }
 
-    
-
     @Override
     public Integer payOrderFor(String productCode, int quantity, double pricePerUnit)
-            throws InvalidProductCodeException, InvalidQuantityException, InvalidPricePerUnitException,
-            UnauthorizedException {
-        return null;
+            throws InvalidProductCodeException, InvalidQuantityException, InvalidPricePerUnitException, UnauthorizedException {
+
+        if(runningUser==null |!runningUser.getRole().equals(Constants.ADMINISTRATOR) 
+             && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+            throw new UnauthorizedException();
+        }
+        if(productCode== null| productCode.isEmpty() | !o.isValidCode(productCode)){
+            throw new InvalidProductCodeException();
+        }
+        if(quantity<=0){
+            throw new InvalidQuantityException();
+        }
+        if(pricePerUnit<=0){
+            throw new InvalidPricePerUnitException();
+        }
+        //return -1 if the balance is not enough to satisfy the order
+        if(computeBalance()< (quantity*pricePerUnit)){
+            return -1;
+        }
+
+        Integer newOrderId= -1;
+        try {
+            newOrderId= dao.payOrderDirectly(productCode, quantity, pricePerUnit);
+
+       } catch (DAOException e) {
+           System.out.println("db excepiton");
+       }
+
+        return newOrderId;
     }
 
 
@@ -413,6 +437,8 @@ public class EZShop implements EZShopInterface {
         return payment;
     }
 
+
+    
     @Override
     public boolean recordOrderArrival(Integer orderId) throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {
         return false;

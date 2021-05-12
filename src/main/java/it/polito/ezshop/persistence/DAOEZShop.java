@@ -1,6 +1,9 @@
 package it.polito.ezshop.persistence;
 
 import java.util.List;
+
+import javax.management.Query;
+
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
@@ -8,10 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
-<<<<<<< HEAD
-import java.time.ZoneId;
-=======
->>>>>>> 54e48e8c3b90103f373c5a303cf61599dbbeda75
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -275,7 +274,7 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
 
-            //Check if the product exist
+            //Check if the product exists
             String query= "SELECT * FROM product_type WHERE bar_code= '"+ productCode+ "';";
             resultSet= statement.executeQuery(query);
 
@@ -309,6 +308,66 @@ public class DAOEZShop implements IDAOEZshop {
         }
 
         return id;
+    }
+
+    @Override
+    public Integer payOrderDirectly(String productCode, int quantity, double pricePerUnit) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        Integer newOrderId= -1;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            
+            //Check if the product exists
+            String query= "SELECT * FROM product_type WHERE bar_code= '"+ productCode+ "';";
+            ResultSet rs= statement.executeQuery(query);
+
+            if(!rs.next()){
+                System.out.println("The selected product type doesn't exist");
+                return -1;
+            }
+
+            //Insert of a BalanceOperation
+            PreparedStatement prstm= connection.prepareStatement("INSERT INTO balance_operation VALUES (date, money, type)= (?,?,?);");
+
+            java.util.Date today = new java.util.Date();
+            prstm.setDate(1, (java.sql.Date)today);
+            prstm.setDouble(2, pricePerUnit*quantity);
+            prstm.setString(3, "DEBIT");
+
+            prstm.execute();
+            rs= prstm.getGeneratedKeys();
+
+            if(!rs.next()){
+                return -1;
+            }
+
+            // Insert of an Order
+            prstm = connection.prepareStatement("INSERT INTO order(balanceId, product_code, price_per_unit, quantity, status) values (?,?,?,?,?)");
+            prstm.setInt(1, rs.getInt(1));
+            prstm.setString(2, productCode);
+            prstm.setDouble(3, pricePerUnit);
+            prstm.setInt(4, quantity);
+            prstm.setString(5, "PAYED");
+            prstm.execute();
+
+            //return the generated id
+            rs=prstm.getGeneratedKeys();
+            if(rs.next()){ 
+                return rs.getInt(1);            
+            }else{
+                return -1;
+            }
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
     }
 
     @Override
@@ -386,7 +445,7 @@ public class DAOEZShop implements IDAOEZshop {
             ResultSet resultSet = statement.executeQuery(query);
 
             while (resultSet.next()) {
-                if(resultSet.getString("Status")== "ISSUED"| resultSet.getString("Status")=="ORDERED"| resultSet.getString("Status")=="COMPLETED"){
+                if(resultSet.getString("status")== "ISSUED"| resultSet.getString("status")=="ORDERED"| resultSet.getString("status")=="COMPLETED"){
                     Order o = new ConcreteOrder(resultSet.getInt("balanceId"), resultSet.getString("product_code"), resultSet.getDouble("price_per_unit"), 
                                 resultSet.getInt("quantity"), resultSet.getString("status"), resultSet.getInt("orderId"));
                     orders.add(o);
