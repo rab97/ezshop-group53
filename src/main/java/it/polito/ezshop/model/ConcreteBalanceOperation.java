@@ -19,8 +19,6 @@ public class ConcreteBalanceOperation implements BalanceOperation {
         this.type = type;
     }
 
-    public ConcreteBalanceOperation() {
-    }
 
     @Override
     public Integer getBalanceId() {

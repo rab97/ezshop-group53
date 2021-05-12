@@ -940,7 +940,7 @@ public class EZShop implements EZShopInterface {
         }
     	balanceOperationList=this.getCreditsAndDebits(null,null);
     	for (BalanceOperation op : balanceOperationList) {
-    		if(op.getType()=="DEBIT" || op.getType()=="ORDER" || op.getType()=="RETURN")
+    		if(op.getType().equals("DEBIT") || op.getType().equals("ORDER") || op.getType().equals("RETURN"))
     			balance-=op.getMoney();
     		else
     			balance+=op.getMoney();

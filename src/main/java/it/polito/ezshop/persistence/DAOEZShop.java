@@ -21,6 +21,7 @@ public class DAOEZShop implements IDAOEZshop {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
+        try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "SELECT * FROM user where username= '" + username + "' AND password='" + password + "'";
