@@ -1,6 +1,7 @@
 package it.polito.ezshop.data;
 
 import it.polito.ezshop.Constants;
+import it.polito.ezshop.Operator;
 import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteTicketEntry;
@@ -24,6 +25,7 @@ public class EZShop implements EZShopInterface {
     private User runningUser = null;
     List<TicketEntry> productsToSale;
     boolean saleTransaction_state;
+    private Operator o = new Operator();
 
     @Override
     public void reset() {
@@ -163,12 +165,16 @@ public class EZShop implements EZShopInterface {
         if (description.isEmpty()) {
             throw new InvalidProductDescriptionException();
         }
-        if (productCode == null || productCode.isEmpty()) {
-            throw new InvalidProductCodeException();
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) {
+            System.out.println("throw");
+        	throw new InvalidProductCodeException();
         }
         try {
-            int tmp = Integer.parseInt(productCode);
+        	Long.parseLong(productCode);
+            
         } catch (Exception e) {
+        	System.out.println("throw");
+        	System.out.println(productCode);
             throw new InvalidProductCodeException();
         }
         if (pricePerUnit <= 0) {
@@ -196,7 +202,7 @@ public class EZShop implements EZShopInterface {
         if (newDescription == null || newDescription.isEmpty()) {
             throw new InvalidProductDescriptionException();
         }
-        if (newCode == null || newCode.isEmpty()) {
+        if (newCode == null || newCode.isEmpty() || !o.isValidCode(newCode)) {
             throw new InvalidProductCodeException();
         }
         // valid bar code
@@ -832,4 +838,5 @@ public class EZShop implements EZShopInterface {
     public double computeBalance() throws UnauthorizedException {
         return 0;
     }
+    
 }
