@@ -995,7 +995,7 @@ public class EZShop implements EZShopInterface {
 	        } catch (DAOException e) {
 	            System.out.println(e);
 	        }
-	        returnTransaction = new ConcreteReturnTransaction(return_transaction_id+1, transactionId, new ArrayList<TicketEntry>(), 0.0);
+	        returnTransaction = new ConcreteReturnTransaction(return_transaction_id+1, transactionId, new ArrayList<TicketEntry>(), 0.0, s.getDiscountRate());
         }
         return return_transaction_id;
 
@@ -1023,9 +1023,9 @@ public class EZShop implements EZShopInterface {
     	if (returnTransaction==null || returnTransaction.getReturnId()!=returnId) 
     		return false;
     	
-    	ArrayList<TicketEntry> soldProducts = new ArrayList<TicketEntry>();
+    	List<TicketEntry> soldProducts = new ArrayList<TicketEntry>();
         try {
-        	soldProducts = dao.getSoldProducts(returnTransaction.getTransactionId());
+        	soldProducts = dao.getEntries(returnTransaction.getTransactionId());
         } catch (DAOException e) {
             System.out.println(e);
         }
@@ -1078,7 +1078,22 @@ public class EZShop implements EZShopInterface {
     		
     		//update sale transaction
     		
-    		//insert return transaction in db
+    		//insert return transaction in db + returned products to return_ticket_entry
+    		// calculate price for return transaction
+            double price = 0;
+            for (TicketEntry te : returnTransaction.getEntries())
+                price += ((1 - te.getDiscountRate()) * te.getPricePerUnit()) * te.getAmount();
+
+            price = (1 - returnTransaction.getDiscountRate()) * price;
+            returnTransaction.setPrice(price);
+
+            boolean state = false;
+            try {
+                state = dao.storeReturnTransaction(returnTransaction);
+            } catch (DAOException e) {
+                System.out.println(e);
+            }
+            returnTransaction=null;
     	}
     	
     	return true;
@@ -1103,6 +1118,9 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
+        
+        //MUST DELETE ALSO THE RELATED PRODUCTS IN RETURN_TICKET_ENTRY
+        
         return state;
     }
 
@@ -1153,7 +1171,51 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean receiveCreditCardPayment(Integer transactionId, String creditCard)
             throws InvalidTransactionIdException, InvalidCreditCardException, UnauthorizedException {
-        return false;
+    	
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if(transactionId<=0 || transactionId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	
+    	if(creditCard.isEmpty() || creditCard==null || !o.luhnCheck(creditCard)) {			
+    		throw new InvalidCreditCardException();
+    	}
+    	
+    	SaleTransaction s=null;
+    	try {
+            s = dao.searchSaleTransaction(transactionId);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	if(s==null)
+    		return false;
+    	
+    	//check existence of credit card and if it has enough money
+    	
+    	//update amount of money on credit card
+    	
+    	
+    	//update the db: the sale transaction is payed
+    	try {
+    		dao.setSaleTransactionPaid(transactionId);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	//add balanceOperation
+    	try {
+    		dao.insertBalanceOperation(s.getPrice(), Constants.SALE);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+        return true;
     }
 
     @Override
@@ -1198,7 +1260,49 @@ public class EZShop implements EZShopInterface {
     @Override
     public double returnCreditCardPayment(Integer returnId, String creditCard)
             throws InvalidTransactionIdException, InvalidCreditCardException, UnauthorizedException {
-        return 0;
+    	if (runningUser==null |runningUser == null && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                || !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if(returnId<=0 || returnId==null) {
+    		throw new InvalidTransactionIdException();
+    	}
+    	
+    	if(creditCard.isEmpty() || creditCard==null || !o.luhnCheck(creditCard)) {			
+    		throw new InvalidCreditCardException();
+    	}
+    	
+    	ReturnTransaction r=null;
+    	try {
+            r = dao.searchReturnTransaction(returnId);
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	if(r==null)
+    		return -1;
+    	
+    	//check existence of credit card
+    	
+    	//update balance of credit card
+    	
+    	//update the db: the return transaction is payed
+    	try {
+    		dao.setReturnTransactionPaid(returnId);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	//add balanceOperation
+    	try {
+    		dao.insertBalanceOperation(r.getPrice(), Constants.RETURN);
+    	} catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+        return r.getPrice();
     }
 
     @Override

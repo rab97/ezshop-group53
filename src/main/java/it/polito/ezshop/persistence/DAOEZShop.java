@@ -736,29 +736,6 @@ public class DAOEZShop implements IDAOEZshop {
         return id;
     }
     
-    public ArrayList<TicketEntry> getSoldProducts(Integer transactionId) throws DAOException {
-    	Connection connection = null;
-        Statement statement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = dataSource.getConnection();
-            statement = connection.createStatement();
-            String query = "SELECT * FROM ticket_entry WHERE transactionId= '" + transactionId + "';";
-            resultSet = statement.executeQuery(query);
-            ArrayList<TicketEntry> products = new ArrayList<>();
-            while (resultSet.next()) {
-                TicketEntry t = new ConcreteTicketEntry(resultSet.getString("bar_code"), null, resultSet.getInt("amount"),
-                        resultSet.getDouble("price_per_unit"), resultSet.getDouble("discount_rate"));
-                products.add(t);
-            }
-            return products;
-        } catch (SQLException ex) {
-            throw new DAOException("Impossible to execute query: " + ex.getMessage());
-        } finally {
-            dataSource.close(connection);
-        }
-    }
-    
     
     public boolean deleteReturnTransaction(Integer returnId) throws DAOException {
     	
@@ -785,9 +762,9 @@ public class DAOEZShop implements IDAOEZshop {
             if (!resultSet.next())
                 return null;
 
-            //List<TicketEntry> entries = getEntries(transactionId);         --> aggiungere tabella + metodo
+            List<TicketEntry> entries = getReturnEntries(returnId);         
 
-            returnTransaction = new ConcreteReturnTransaction(returnId, -1, entries, resultSet.getDouble("amount"));
+            returnTransaction = new ConcreteReturnTransaction(returnId, -1, entries, resultSet.getDouble("amount"), resultSet.getDouble("discountRate"));
             
             if(resultSet.getInt("payed")==1)
             	returnTransaction.setPayed(true);
@@ -1074,6 +1051,33 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "SELECT * FROM ticket_entry WHERE transactionId= '" + transactionId + "'";
+            resultSet = statement.executeQuery(query);
+            while (resultSet.next()) {
+                TicketEntry te = new ConcreteTicketEntry(resultSet.getString("bar_code"),
+                        resultSet.getString("product_description"), resultSet.getInt("amount"),
+                        resultSet.getDouble("price_per_unit"), resultSet.getDouble("discount_rate"));
+                entries.add(te);
+            }
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return entries;
+    }
+    
+    @Override
+    public List<TicketEntry> getReturnEntries(Integer returnId) throws DAOException {
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        List<TicketEntry> entries = new ArrayList<TicketEntry>();
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "SELECT * FROM return_ticket_entry WHERE returnId= '" + returnId + "'";
             resultSet = statement.executeQuery(query);
             while (resultSet.next()) {
                 TicketEntry te = new ConcreteTicketEntry(resultSet.getString("bar_code"),

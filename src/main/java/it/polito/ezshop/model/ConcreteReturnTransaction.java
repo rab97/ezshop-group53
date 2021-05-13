@@ -10,13 +10,16 @@ public class ConcreteReturnTransaction implements ReturnTransaction {
 	private Integer transactionId;
 	private List<TicketEntry> entries;
 	private double price;
+	private double discountRate;
 	private boolean payed;
 	
-	public ConcreteReturnTransaction(Integer returnId, Integer transactionId, List<TicketEntry> entries, double price) {
+	
+	public ConcreteReturnTransaction(Integer returnId, Integer transactionId, List<TicketEntry> entries, double discountRate, double price) {
 		this.returnId=returnId;
 		this.transactionId=transactionId;
 		this.entries=entries;
 		this.price=price;
+		this.discountRate=discountRate;
 		this.payed=false;
 	}
 
@@ -60,12 +63,24 @@ public class ConcreteReturnTransaction implements ReturnTransaction {
 		this.price=price;
 	}
 	
+	@Override
 	public boolean getPayed() {
 		return payed;
 	}
 	
+	@Override
 	public void setPayed(boolean payed) {
 		this.payed=payed;
+	}
+	
+	@Override
+	public double getDiscountRate() {
+		return discountRate;
+	}
+
+	@Override
+    public void setDiscountRate(double discountRate) {
+		this.discountRate=discountRate;
 	}
 
 }
