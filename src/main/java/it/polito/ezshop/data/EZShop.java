@@ -508,9 +508,6 @@ public class EZShop implements EZShopInterface {
         if (newCustomerName == null | newCustomerName.isEmpty()) {
             throw new InvalidCustomerNameException();
         }
-        if (newCustomerCard == null | newCustomerCard.isEmpty() | newCustomerCard.length() != 10) {
-            throw new InvalidCustomerCardException();
-        }
 
         boolean modification = false;
 
@@ -611,19 +608,7 @@ public class EZShop implements EZShopInterface {
         String generatedString = buffer.toString();
         System.out.println(generatedString);
 
-        // call the db
-        /*
-         * boolean cardInsertion= false; try{ cardInsertion =
-         * dao.createNewCard(generatedString);
-         * 
-         * }catch(DAOException e){ System.out.println("db excepiton");
-         * 
-         * }
-         * 
-         * if(cardInsertion ==false){ return ""; }else{ return generatedString; }
-         */
         return generatedString;
-
     }
 
     @Override

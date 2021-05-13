@@ -57,7 +57,6 @@ public interface IDAOEZshop {
     public boolean deleteCustomer(Integer id) throws DAOException;
     public Customer getCustomer(Integer id) throws DAOException;
     public ArrayList<Customer> getAllCustomers() throws DAOException;
-    public boolean createNewCard(String newCard) throws DAOException;
     public boolean bindCardToCustomer(String card, Integer customerId) throws DAOException;
     public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException;
 

@@ -483,11 +483,8 @@ public class DAOEZShop implements IDAOEZshop {
             pstm.execute();
 
             // Recover the id
-            String query = "SELECT id FROM customer WHERE name= '" + customerName + "';";
-
-            resultSet = statement.executeQuery(query);
-            System.out.println("id: " + resultSet.getString("id"));
-            Integer id = resultSet.getInt("id");
+            resultSet= pstm.getGeneratedKeys();
+            Integer id= resultSet.getInt(1);
 
             return id;
 
@@ -516,14 +513,17 @@ public class DAOEZShop implements IDAOEZshop {
                 query = query + ", card= '" + null + "', points= '" + 0 + "'";
 
             } else if (newCustomerCard != null) { // numeric value: create new card with 0 points
+
+                if(newCustomerCard.length()!=10){
+                    return false;
+                }
                 query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
             query = query + "WHERE customer.id= '" + id + "';";
 
-            // update execution
+            //update execution
             update = statement.executeUpdate(query);
-            System.out.println("Update query executed succesfully?--> update= " + update);
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -535,7 +535,7 @@ public class DAOEZShop implements IDAOEZshop {
             return false;
         }
 
-        // exactly one row was affected by our update
+        // exactly one row was affected by the update
         return true;
 
     }
@@ -801,18 +801,6 @@ public class DAOEZShop implements IDAOEZshop {
         return returnTransaction;
     }
 
-    // TODO: capire se questo metodo serve davvero nel db: dovrei creare una tabella
-    // Card
-    @Override
-    public boolean createNewCard(String newCard) throws DAOException {
-
-        /*
-         * Connection connection = null; Statement statement = null;
-         * 
-         * try{}
-         */
-        return true;
-    }
 
     @Override
     public boolean bindCardToCustomer(String card, Integer customerId) throws DAOException {
@@ -963,7 +951,9 @@ public class DAOEZShop implements IDAOEZshop {
             // String updateQuery= "UPDATE customer SET points= '"+ (rs.getInt("points")+
             // pointsToBeAdded)+ "' WHERE id = '" + rs.getInt("id")+ "';";
             PreparedStatement prstm = connection.prepareStatement("UPDATE customer SET points= ? WHERE id = ?;");
-            prstm.setInt(1, (rs.getInt("points") + pointsToBeAdded));
+            int totalPoints= rs.getInt("points") + pointsToBeAdded;
+            System.out.println("total points = " + totalPoints);
+            prstm.setInt(1, totalPoints);
             prstm.setInt(2, rs.getInt("id"));
 
             int result = prstm.executeUpdate();
