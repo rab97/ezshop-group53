@@ -316,7 +316,6 @@ public class DAOEZShop implements IDAOEZshop {
 
         Connection connection = null;
         Statement statement = null;
-        Integer newOrderId = -1;
 
         try {
             connection = dataSource.getConnection();

@@ -364,7 +364,7 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
             throw new UnauthorizedException();
         }
-        if (productCode == null | productCode.isEmpty() | !o.isValidCode(productCode)) {
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) {
             throw new InvalidProductCodeException();
         }
         if (quantity <= 0) {
@@ -376,6 +376,7 @@ public class EZShop implements EZShopInterface {
 
         Integer newOrderId = 0;
         try {
+            //Long.parseLong(productCode);
             newOrderId = dao.insertNewOrder(productCode, quantity, pricePerUnit);
 
         } catch (DAOException e) {
