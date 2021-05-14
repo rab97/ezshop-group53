@@ -1228,7 +1228,7 @@ public class EZShop implements EZShopInterface {
     	
     	//check existence of credit card and if it has enough money and update amount of money on credit card 
     	if(o.checkCreditCardAmount(creditCard, s.getPrice(), true)) {
-    		if(o.updateCreditCardAmount(creditCard, s.getPrice(), true))
+    		if(!o.updateCreditCardAmount(creditCard, s.getPrice(), true))
     			return false;
     	}
     	else

@@ -120,7 +120,6 @@ public class Operator {
 		String lineString;
 		String cardNumber;
 		double balance;
-		int index;
 		
 		try {
 			// Using file pointer creating the file.
@@ -133,11 +132,7 @@ public class Operator {
 					
 			// Opening file in reading and write mode.
 			RandomAccessFile raf = new RandomAccessFile(file, "rw");
-			boolean found = false;
-			
-			// Creating a temporary file
-			File tmpFile = new File("temp.txt");
-			RandomAccessFile tmpraf= new RandomAccessFile(tmpFile, "rw");
+			RandomAccessFile raf_prec = new RandomAccessFile(file, "rw");
 
 			// I assume that the credit card exist (because because I've checked the amount)
 			// getFilePointer() give the current offset value from start of the file.
@@ -146,8 +141,10 @@ public class Operator {
 				// reading line from the file.
                 lineString = raf.readLine();
                 
-                if (lineString.startsWith("#"))
+                if (lineString.startsWith("#")) {
+                	raf_prec.readLine();
                 	continue;
+                }
  
                 // splitting the string to get credit card number and balance
                 String[] lineSplit = lineString.split(";");
@@ -157,37 +154,20 @@ public class Operator {
                 balance = Double.parseDouble(lineSplit[1]);
                 
 				if (cardNumber.equals(creditCard)) {
-					found = true;
 					if(debit)
 						balance-=toPay;
 					else
 						balance+=toPay;
 					lineString=cardNumber + ";" + String.valueOf(balance);
-					tmpraf.writeBytes(lineString);
-					tmpraf.writeBytes(System.lineSeparator());
+					raf_prec.writeBytes(lineString);
 					break;
 				}
+				raf_prec.readLine();
 			}
-
-			// The contact has been updated now. So copy the updated content from the temporary file to original file.
-			// Set both files pointers to start
-			raf.seek(0);
-			tmpraf.seek(0);
-
-			// Copy the contents from the temporary file to original file.
-			while (tmpraf.getFilePointer() < tmpraf.length()) {
-				raf.writeBytes(tmpraf.readLine());
-				raf.writeBytes(System.lineSeparator());
-			}
-
-			// Set the length of the original file to that of temporary.
-			raf.setLength(tmpraf.length());
-
+			
 			// Closing the resources.
-			tmpraf.close();
 			raf.close();
-			// Deleting the temporary file
-			tmpFile.delete();
+			raf_prec.close();
 
 			System.out.println(" Credit card updated. ");
 			return true;
