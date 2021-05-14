@@ -914,6 +914,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
+        saleTransaction=null;
         return state;
     }
 
@@ -946,7 +947,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-
+        saleTransaction=null;
         return state;
     }
 
