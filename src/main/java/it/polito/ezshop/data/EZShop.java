@@ -1075,6 +1075,16 @@ public class EZShop implements EZShopInterface {
     	//commit
     	else {
     		//increase product availability
+    		for (TicketEntry te : returnTransaction.getEntries()) {
+    			try {
+    				ProductType pt = dao.getProductTypeByBarCode(te.getBarCode());
+                    dao.updateQuantity(pt.getId(), te.getAmount());
+                } catch (DAOException e) {
+                    System.out.println(e);
+                    return false;
+                }
+    		}
+            
     		
     		//update sale transaction
     		
@@ -1089,7 +1099,7 @@ public class EZShop implements EZShopInterface {
 
             boolean state = false;
             try {
-                state = dao.storeReturnTransaction(returnTransaction);
+                state = dao.storeReturnTransaction(returnTransaction);		
             } catch (DAOException e) {
                 System.out.println(e);
             }
@@ -1112,14 +1122,34 @@ public class EZShop implements EZShopInterface {
     		throw new InvalidTransactionIdException();
     	}
     	
+    	ReturnTransaction rt=null;
+    	try {
+    		rt=dao.searchReturnTransaction(returnId);
+    	} catch (DAOException e) {
+    		System.out.println(e);
+    	}
+    	if (rt==null || rt.getPayed())
+    		return false;
+    	
     	boolean state = false;
         try {
-            state = dao.deleteReturnTransaction(returnId);
+            state = dao.deleteReturnTransaction(returnId);						//deletes entry in return_transaction + all related entires in return_ticket_entry
         } catch (DAOException e) {
             System.out.println(e);
         }
         
-        //MUST DELETE ALSO THE RELATED PRODUCTS IN RETURN_TICKET_ENTRY
+        //update sale transaction
+        
+        //decrease product availability
+		for (TicketEntry te : returnTransaction.getEntries()) {
+			try {
+				ProductType pt = dao.getProductTypeByBarCode(te.getBarCode());
+                dao.updateQuantity(pt.getId(), (-2) * te.getAmount());
+            } catch (DAOException e) {
+                System.out.println(e);
+                return false;
+            }
+		}
         
         return state;
     }
@@ -1196,9 +1226,13 @@ public class EZShop implements EZShopInterface {
     	if(s==null)
     		return false;
     	
-    	//check existence of credit card and if it has enough money
-    	
-    	//update amount of money on credit card
+    	//check existence of credit card and if it has enough money and update amount of money on credit card 
+    	if(o.checkCreditCardAmount(creditCard, s.getPrice(), true)) {
+    		if(o.updateCreditCardAmount(creditCard, s.getPrice(), true))
+    			return false;
+    	}
+    	else
+    		return false;
     	
     	
     	//update the db: the sale transaction is payed
@@ -1284,9 +1318,13 @@ public class EZShop implements EZShopInterface {
     	if(r==null)
     		return -1;
     	
-    	//check existence of credit card
-    	
-    	//update balance of credit card
+    	//check existence of credit card and update balance of credit card
+    	if(o.checkCreditCardAmount(creditCard, r.getPrice(), false)) {
+    		if(o.updateCreditCardAmount(creditCard, r.getPrice(), false))
+    			return -1;
+    	}
+    	else
+    		return -1;
     	
     	//update the db: the return transaction is payed
     	try {
