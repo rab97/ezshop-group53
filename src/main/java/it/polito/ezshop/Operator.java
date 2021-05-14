@@ -65,7 +65,6 @@ public class Operator {
 		String lineString;
         String cardNumber;
         double balance;
-        int index;
         
         try {
             // Using file pointer creating the file.
@@ -162,7 +161,9 @@ public class Operator {
 					raf_prec.writeBytes(lineString);
 					break;
 				}
-				raf_prec.readLine();
+				
+				System.out.println(lineString);
+				System.out.println(raf_prec.readLine());
 			}
 			
 			// Closing the resources.

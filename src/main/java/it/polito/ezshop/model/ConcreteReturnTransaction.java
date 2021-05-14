@@ -14,7 +14,7 @@ public class ConcreteReturnTransaction implements ReturnTransaction {
 	private boolean payed;
 	
 	
-	public ConcreteReturnTransaction(Integer returnId, Integer transactionId, List<TicketEntry> entries, double discountRate, double price) {
+	public ConcreteReturnTransaction(Integer returnId, Integer transactionId, List<TicketEntry> entries, double price, double discountRate) {
 		this.returnId=returnId;
 		this.transactionId=transactionId;
 		this.entries=entries;
