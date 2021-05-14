@@ -1,4 +1,4 @@
-package it.polito.ezshop;
+package it.polito.ezshop.model;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,17 +1,16 @@
 package it.polito.ezshop.data;
 
 import it.polito.ezshop.Constants;
-import it.polito.ezshop.Operator;
 import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
 import it.polito.ezshop.model.ConcreteTicketEntry;
 import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
+import it.polito.ezshop.model.Operator;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
-
 import java.lang.Thread.State;
 import java.sql.SQLException;
 import java.time.LocalDate;
