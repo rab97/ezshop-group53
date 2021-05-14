@@ -433,6 +433,63 @@ public class DAOEZShop implements IDAOEZshop {
     }
 
     @Override
+    public boolean recordArrival(Integer orderId) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query= "UPDATE order SET status = 'COMPLETED' WHERE id = '" + orderId + "';";
+
+            int update = statement.executeUpdate(query);
+            if(update!=1){
+                return false;
+            
+            }else{
+                return true;
+            }
+            
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+    }
+
+
+    @Override
+    public Order getOrder(Integer orderId) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        Order order = null;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            String query = "SELECT * FROM order WHERE id = '" + orderId + "';";
+            ResultSet rs = statement.executeQuery(query);
+
+            if (rs.next()) {
+                order = new ConcreteOrder(rs.getInt("balanceId"), rs.getString("product_code"), rs.getDouble("price_per_unit"), 
+                    rs.getInt("quantity"), rs.getString("status"), rs.getInt("id"));
+            }
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+        return order;
+    }
+
+
+    @Override
     public ArrayList<Order> getAllOrders() throws DAOException {
 
         Connection connection = null;
@@ -469,11 +526,9 @@ public class DAOEZShop implements IDAOEZshop {
     public Integer insertCustomer(String customerName) throws DAOException {
 
         Connection connection = null;
-        Statement statement = null;
         ResultSet resultSet = null;
         try {
             connection = dataSource.getConnection();
-            statement = connection.createStatement();
 
             // Insert
             PreparedStatement pstm;
