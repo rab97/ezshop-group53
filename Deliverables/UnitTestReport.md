@@ -68,11 +68,49 @@ Version:
 
 | producCode length | producTCode format | Valid / Invalid | Description of the test case | JUnit test case|
 |-------|-------|-------|-------|-------|
-| 12 | digit | Valid | T1a(123456789104) -> true | --  |
-| 13 | digit | Valid | T1b(4563789345138) -> true | |
-| 14 | digit | Valid | T1c(45637485902647) -> true | |
-| 11 | not digit | Invalid | T2a(12345678910) -> false | |
-| 15 | not digit | Invalid | T2b(456374859026475) -> false | |
+| 12 | digit | Valid | T1a(123456789104) -> true | TestIsValid1() |
+| 13 | digit | Valid | T1b(4563789345138) -> true | TestIsValid2()  |
+| 14 | digit | Valid | T1c(45637485902647) -> true |TestIsValid3()  |
+| 11 | not digit | Invalid | T2a(12345678910) -> false |TestIsValid4()  |
+| 15 | not digit | Invalid | T2b(456374859026475) -> false |TestIsValid5()  |
+
+
+**Criteria for method *luhnCheck*:**
+	
+ - validity of the  String
+
+
+**Predicates for method *luhnCheck*:**
+
+| Criteria | Predicate |
+| -------- | --------- |
+! validity of the String | Valid |
+| | NULL| 
+| Length of the string  | 13,16|
+| | 0 or != 13,16
+
+
+**Boundaries**:
+
+| Criteria | Boundary values |
+| -------- | --------------- |
+|          |                 |
+
+
+
+**Combination of predicates**:
+
+
+| Validity of the String | Length of the String| Valid / Invalid | Description of the test case | JUnit test case|
+|-------|-------|-------|-------|-------|
+| Valid | 13 | Valid | T1a(4485370086510891) -> true  |TestLuhnCheck1()  |
+| Valid | 16  | Valid | T1b(4716258050958645) -> true |TestLuhnCheck2()   |
+| Invalid | 16 | Invalid | T1c(45637485902647) -> false |TestLuhnCheck3()   |
+| Invalid | 15 | Invalid | T2a(123456789102345) -> false |TestLuhnCheck4()   |
+| Invalid | 16 | Invalid | T2a(1234567812345678) -> false |TestLuhnCheck5()   |
+| Invalid | 0  | Invalid | T2b("") -> false | TestLuhnCheck5()  |
+| Invalid | NULL  | Invalid | T2b(null) -> false | TestLuhnCheck6() |
+| Invalid | NULL  | Invalid | T2b(ashudsallidò) -> false | TestLuhnCheck7() |
 
 
 ### **Class *BalanceOperator* - method *setBalancId***

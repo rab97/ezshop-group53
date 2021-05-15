@@ -8,7 +8,7 @@ import java.lang.NumberFormatException;
 public class Operator {
 
 	public boolean isValidCode(String productCode) {
-    	if(productCode.length() != 12 && productCode.length() != 13 && productCode.length() != 14) {
+    	if(productCode == null || (productCode.length() != 12 && productCode.length() != 13 && productCode.length() != 14)) {
 			return false;
 		}
 		int counter = 0;
@@ -40,6 +40,11 @@ public class Operator {
 	
 	public boolean luhnCheck(String ccNumber)
     {
+		try {
+			Long.parseLong(ccNumber);
+		} catch (Exception e) {
+			return false;
+		}
             int sum = 0;
             boolean alternate = false;
             for (int i = ccNumber.length() - 1; i >= 0; i--)
