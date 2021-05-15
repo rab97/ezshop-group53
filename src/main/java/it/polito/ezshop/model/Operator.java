@@ -15,13 +15,13 @@ public class Operator {
 		int values3[] = {3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
 		int values1[] = {1,3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
 		int result[] = new int[productCode.length()];
-		if(productCode.length() != 12) {			
+		if(productCode.length() == 13) {			
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values1[i];
 				counter += result[i];
 				System.out.print(result[i] + "-");
-			
-			} 
+			}
+			System.out.print("\n");
 		} else {
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values3[i];
