@@ -26,6 +26,8 @@ Version:
     to start tests
     >
 
+#### Note: the unit test for the getter and setter are not report in the document because they do not have any criteria
+
  ### **Class *Operator* - method *isValid***
 
 
@@ -49,8 +51,8 @@ Version:
 | productCode length |[0, 12)|
 | productCode length | [12, 13 or 14]|
 | productCode length | (14 , maxString)|
-| productCode format | last value is a check digit|
-| productCode format | last value is not a check digit|
+| productCode format | last value is a check  -> true|
+| productCode format | last value is not a check digit -> false|
 | character type of the productCode | all number |
 | character type of the productCode | alphabetic value |
 | character type of the productCode | alphanumeric value |
@@ -93,7 +95,10 @@ Version:
 | -------- | --------- |
 ! validity of the String | Valid |
 | | NULL| 
-| Length of the string  | 13,16|
+| Length of the string  | [0,13)|
+| Length of the string  | [13,14)|
+| Length of the string  | [14,16)|
+| Length of the string  | [16, maxString)|
 | | 0 or != 13,16
 
 
@@ -101,7 +106,7 @@ Version:
 
 | Criteria | Boundary values |
 | -------- | --------------- |
-|          |                 |
+| Length of the string| 0, 13, 14, 15|
 
 
 
@@ -110,84 +115,14 @@ Version:
 
 | Validity of the String | Length of the String| Valid / Invalid | Description of the test case | JUnit test case|
 |-------|-------|-------|-------|-------|
-| Valid | 13 | Valid | T1a(4485370086510891) -> true  |TestLuhnCheck1()  |
-| Valid | 16  | Valid | T1b(4716258050958645) -> true |TestLuhnCheck2()   |
-| Invalid | 16 | Invalid | T1c(45637485902647) -> false |TestLuhnCheck3()   |
-| Invalid | 15 | Invalid | T2a(123456789102345) -> false |TestLuhnCheck4()   |
-| Invalid | 16 | Invalid | T2a(1234567812345678) -> false |TestLuhnCheck5()   |
-| Invalid | 0  | Invalid | T2b("") -> false | TestLuhnCheck5()  |
-| Invalid | NULL  | Invalid | T2b(null) -> false | TestLuhnCheck6() |
-| Invalid | NULL  | Invalid | T2b(ashudsallidò) -> false | TestLuhnCheck7() |
-
-
-### **Class *BalanceOperator* - method *setBalancId***
-
-
-
-**Criteria for method *setBalanceId*:**
-
- - sign of id
-
-
-**Predicates for method *setBalancId*:**
-
-| Criteria | Predicate |
-| -------- | --------- |
-| sign of id | (0, maxint)|
-| | (minint, 0]|
-| | NULL |
-
-**Boundaries**:
-
-| Criteria | Boundary values |
-| -------- | --------------- |
-| sign of id | -inf, 0, +inf, NULL |
-
-
-
-**Combination of predicates**:
-
-
-| sing of id |  Valid / Invalid | Description of the test case | JUnit test case|
-|-------|-------|-------|-------|
-| (minint,0] | Valid | T1a(-1)  -> id = -1 |
-| (0,maxInt) | Valid | T1b(2)  -> id = 2 |
-| (minint,0] | Valid | T1c(0)  -> id = 0 |
-| NULL | Invalid | T1d(null)  -> id = NULL |
-
-
-**Criteria for method *getBalanceId*:**
-
- - value of the id
-
-
-**Predicates for method *getBalanceId*:**
-
-| Criteria | Predicate |
-| -------- | --------- |
-| value of id | (0, maxint)|
-| | (minint, 0]|
-| | NULL|
-
-**Boundaries**:
-
-| Criteria | Boundary values |
-| -------- | --------------- |
-| value of id | -inf, 0, +inf, NULL|
-
-
-
-**Combination of predicates**:
-
-
-| sing of id |  Valid / Invalid | Description of the test case | JUnit test case|
-|-------|-------|-------|-------|
-| (minint,0] | Valid | T1a(-1)  -> id = -1 |
-| (0,maxInt) | Valid | T1b(2)  -> id = 2 |
-| (minint,0] | Valid | T1c(0)  -> id = 0 |
-| NULL | Valid | T1d(NULL)  -> id = NULL |
-
-
+| Valid | 13 | Valid | T1(4485370086510891) -> true  |TestLuhnCheck1()  |
+| Valid | 16  | Valid | T2(4716258050958645) -> true |TestLuhnCheck2()   |
+| Invalid | 16 | Invalid | T3(45637485902647) -> false |TestLuhnCheck3()   |
+| Invalid | 15 | Invalid | T4(123456789102345) -> false |TestLuhnCheck4()   |
+| Invalid | 16 | Invalid | T5(1234567812345678) -> false |TestLuhnCheck5()   |
+| Invalid | 0  | Invalid | T6("") -> false | TestLuhnCheck5()  |
+| Invalid | NULL  | Invalid | T7(null) -> false | TestLuhnCheck6() |
+| Invalid | NULL  | Invalid | T8(ashudsallidò) -> false | TestLuhnCheck7() |
 
 
 # White Box Unit Tests
