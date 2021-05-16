@@ -32,10 +32,10 @@ Version:
 
 **Criteria for method *isValid*:**
 	
- - valid String 
+ - Valitidy of the string
  - productCode length
  - productCode format  
-
+ - character type of the productCode
 
 
 
@@ -43,12 +43,17 @@ Version:
 **Predicates for method *isValid*:**
 
 | Criteria | Predicate |
-| -------- | --------- |
-! valid String | 
-|  productCode length | = 12, 13 or 14 (Valid)|
-|  productCode length | != (12 and 13 and 14) |
-|productCode format | last value is a check digit|
-|productCode format | last value is not a check digit|
+| -------- | --------- | 
+| Valitidy of the string | valid|
+| Valitidy of the string | NULL |
+| productCode length |[0, 12)|
+| productCode length | [12, 13 or 14]|
+| productCode length | (14 , maxString)|
+| productCode format | last value is a check digit|
+| productCode format | last value is not a check digit|
+| character type of the productCode | all number |
+| character type of the productCode | alphabetic value |
+| character type of the productCode | alphanumeric value |
 
 
 
@@ -59,20 +64,22 @@ Version:
 
 | Criteria | Boundary values |
 | -------- | --------------- |
-|          |                 |
+| poductCode length | 0, 12, 14 |
 
 
 
 **Combination of predicates**:
 
 
-| producCode length | producTCode format | Valid / Invalid | Description of the test case | JUnit test case|
-|-------|-------|-------|-------|-------|
-| 12 | digit | Valid | T1a(123456789104) -> true | TestIsValid1() |
-| 13 | digit | Valid | T1b(4563789345138) -> true | TestIsValid2()  |
-| 14 | digit | Valid | T1c(45637485902647) -> true |TestIsValid3()  |
-| 11 | not digit | Invalid | T2a(12345678910) -> false |TestIsValid4()  |
-| 15 | not digit | Invalid | T2b(456374859026475) -> false |TestIsValid5()  |
+|Valitidy of the string | producCode length | producTCode format |Valid / Invalid | Description of the test case | JUnit test case|
+|-------|-------|-------|-------|-------|-------|
+| Valid | 12 | true | Valid | T1a(123456789104) -> true | TestIsValid1() |
+| Valid | 13 | true | Valid | T2(4563789345138) -> true | TestIsValid2()  |
+| Valid | 14 | true | Valid | T3(45637485902647) -> true |TestIsValid3()  |
+| Valid | 11 | false | Invalid | T4(12345678910) -> false |TestIsValid4()  |
+| Valid | 15 | false | Invalid | T5(456374859026475) -> false |TestIsValid5()  |
+| Valid | 0 | false | Invalid | T5("") -> false |TestIsValid6()  |
+| InValid | null | null | Invalid | T6(null) -> false |TestIsValid7()  |
 
 
 **Criteria for method *luhnCheck*:**
