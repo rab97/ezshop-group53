@@ -11,15 +11,10 @@ import it.polito.ezshop.model.Operator;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
-import java.lang.Thread.State;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import javax.swing.text.StyleConstants.CharacterConstants;
-//import javax.transaction.InvalidTransactionException;
-import javax.xml.stream.events.StartElement;
 
 public class EZShop implements EZShopInterface {
 
@@ -55,7 +50,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-        System.out.println(user_id);
+        
         return user_id;
     }
 

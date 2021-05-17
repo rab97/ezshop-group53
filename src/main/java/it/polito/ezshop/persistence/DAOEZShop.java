@@ -2,18 +2,13 @@ package it.polito.ezshop.persistence;
 
 import java.util.List;
 
-import javax.management.Query;
-
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Calendar;
-
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.model.*;
 
@@ -107,14 +102,15 @@ public class DAOEZShop implements IDAOEZshop {
             preparedStatement.executeUpdate();
             resultSet = preparedStatement.getGeneratedKeys();
 
-            if (resultSet.next()) {
+            if (resultSet.next())
                 id = resultSet.getInt(1);
-            }
+            
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
+        
         return id;
     }
 
@@ -122,17 +118,20 @@ public class DAOEZShop implements IDAOEZshop {
     public boolean removeUser(Integer id) throws DAOException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
+        boolean state = false;
         try {
             connection = dataSource.getConnection();
             String query = "DELETE FROM user WHERE id='" + id + "'";
             preparedStatement = connection.prepareStatement(query);
-            preparedStatement.executeUpdate();
-            return true;
+            if(preparedStatement.executeUpdate() > 0)
+            	state = true;
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
+        
+        return state;
     }
 
     @Override
