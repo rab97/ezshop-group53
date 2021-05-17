@@ -28,8 +28,9 @@ Version:
 
 #### Note: the unit test for the getter and setter are not report in the document because they do not have any criteria
 
- ### **Class *Operator* - method *isValid***
+ # *Class *Operator**
 
+### Method luhnCheck
 
 
 **Criteria for method *isValid*:**
@@ -83,6 +84,7 @@ Version:
 | Valid | 0 | false | Invalid | T5("") -> false |TestIsValid6()  |
 | InValid | null | null | Invalid | T6(null) -> false |TestIsValid7()  |
 
+### Method luhnCheck
 
 **Criteria for method *luhnCheck*:**
 	
@@ -120,10 +122,94 @@ Version:
 | Invalid | 16 | Invalid | T3(45637485902647) -> false |TestLuhnCheck3()   |
 | Invalid | 15 | Invalid | T4(123456789102345) -> false |TestLuhnCheck4()   |
 | Invalid | 16 | Invalid | T5(1234567812345678) -> false |TestLuhnCheck5()   |
-| Invalid | 0  | Invalid | T6("") -> false | TestLuhnCheck5()  |
-| Invalid | NULL  | Invalid | T7(null) -> false | TestLuhnCheck6() |
-| Invalid | NULL  | Invalid | T8(ashudsallidò) -> false | TestLuhnCheck7() |
+| Invalid | 0  | Invalid | T6("") -> false | TestLuhnCheck6()  |
+| Invalid | NULL  | Invalid | T7(null) -> false | TestLuhnCheck7() |
+| Invalid | NULL  | Invalid | T8(ashudsallidò) -> false | TestLuhnCheck8() |
 
+
+### Method checkCreditCardAmount
+
+
+**Criteria for method *checkCreditCardAmount*:**
+	
+ - Valitidy of the crediCard String
+ - sign of the toPay value
+ - truth of the debit value
+ - existence of the crediCard
+
+
+**Predicates for method *checkCreditCardAmount*:**
+
+| Criteria | Predicate |
+| -------- | --------- | 
+| Valitidy of the string | Valid|
+|  | NULL |
+|  | "" |
+|sign of the toPay value | (mindouble, 0] |
+| | (0, maxdouble) |
+|truth of the debit value | True |
+| | False |
+|Existance of the credit card | Yes |
+| | No|
+
+
+
+**Boundaries**:
+
+| Criteria | Boundary values |
+| -------- | --------------- |
+| sign of the toPay value| 0, 0.00001  |
+
+
+
+**Combination of predicates**:
+
+
+|Valitidy of the crediCard String | sing of the toPya value | truth of the debit value | Existence of the credit Card|Valid / Invalid | Description of the test case | JUnit test case|
+|-------|-------|-------|-------|-------|-------|-------|
+| Valid |(0, maxdouble) | * | true | Valid |t1a("4485370086510891", 10.5, true) -> true<br />t1b("4485370086510891", 10.5, false) -> true <br /> t1c("100293991053009", 9.5, true) -> true) <br /> t1d("100293991053009", 9.5, false) -> true) | testCheckCreditCardAmount_ValidAmount() |
+| Valid |(0, maxdouble) | * | False | Invalid |t1a("4485370086510892", 10.5, true) -> false<br />t1b("4485370086510892", 10.5, false) -> false <br /> | testCheckCreditCardAmount_InvalidCreditCard() |
+| Valid |(0, maxdouble) | true | true | Valid |t1a("100293991053009", 155.4, true)-> false | testCheckCreditCardAmount_NegativeAmount() |
+| Valid |(mindouble,0] | * | * | Valid |t1a("100293991053009", -10.4, true))-> false <br /> t1b("100293991053009", -10.4, false) -> false | testCheckCreditCardAmount_AmountTooBig() |
+
+
+
+
+### Method updateCreditCardAmount
+
+**Predicates for method *updateCreditCardAmount*:**
+
+| Criteria | Predicate |
+| -------- | --------- | 
+| Valitidy of the string | Valid|
+|  | NULL |
+|  | "" |
+|sign of the toPay value | (mindouble, 0] |
+| | (0, maxdouble) |
+|truth of the debit value | True |
+| | False |
+|Existance of the credit card | Yes |
+| | No|
+
+
+
+**Boundaries**:
+
+| Criteria | Boundary values |
+| -------- | --------------- |
+| sign of the toPay value| 0, 0.00001  |
+
+
+
+**Combination of predicates**:
+
+
+|Valitidy of the crediCard String | sing of the toPya value | truth of the debit value | Existence of the credit Card|Valid / Invalid | Description of the test case | JUnit test case|
+|-------|-------|-------|-------|-------|-------|-------|
+| Valid |(0, maxdouble) | * | true | Valid |t1a("4485370086510891", 10.5, true) -> true<br />t1b("4485370086510891", 10.5, false) -> true <br /> t1c("4716258050958645", 22.5, false) -> true) <br /> t1d("4716258050958645", 22.5, true) -> true) | testUpdateCreditCardAmountWithValidValue() |
+| Valid |(0, maxdouble) | * | False | Invalid |t2a(null, 10.5, true) -> false<br />t2b(null, 10.5, false) -> false <br /> t2c("", 10.5, false) -> false, <br /> t2d("", 10.5, true) -> false| testUpdateCreditCardAmountWithInvalidCode() |
+| Valid |(mindouble, 0 ] | * | false | Valid |t3a("4716258050958645", -10.5, true)-> false <br />  t3b("4716258050958645", -10.5, false)-> false, <br /> t3c("4716258050958645", 0, true)-> false, <br /> t3d("4716258050958645", 0, true)-> false| testUpdateCreditCardWithInvalidAmount() |
+| Valid |(0, maxdouble] | * | false | Valid |t4a("21231321312322", 210.5, true))-> false <br /> t4b("21231321312322", 13210.5, false) -> false, <br /> t4c("adsdsad212121sad", 2110.5, false) -> false| testUpdateCreditCardWithCodeNotFound() |
 
 # White Box Unit Tests
 
