@@ -77,11 +77,11 @@ public class ProductTypeTest {
 	@Test
 	public void testProductTypeSetId() {
 		pt.setId(0);
-		assertTrue(pt.getId() == 0);
+		assertEquals(Integer.valueOf(0), pt.getId() == 0);
 		pt.setId(-21331);
-		assertTrue(pt.getId() == -21331);
+		assertEquals(Integer.valueOf(0), pt.getId() == -21331);
 		pt.setId(21331);
-		assertTrue(pt.getId() == 21331);
+		assertEquals(Integer.valueOf(0), pt.getId() == 21331);
 	}
 	
 	
