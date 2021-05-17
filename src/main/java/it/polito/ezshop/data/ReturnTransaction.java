@@ -23,4 +23,8 @@ public interface ReturnTransaction {
     boolean getPayed();
     
     void setPayed(boolean payed);
+    
+    double getDiscountRate();
+
+    void setDiscountRate(double discountRate);
 }

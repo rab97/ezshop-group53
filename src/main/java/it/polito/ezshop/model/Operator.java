@@ -1,0 +1,204 @@
+package it.polito.ezshop.model;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.lang.NumberFormatException;
+
+public class Operator {
+
+	public boolean isValidCode(String productCode) {
+    	if(productCode.length() != 12 && productCode.length() != 13 && productCode.length() != 14) {
+			return false;
+		}
+		int counter = 0;
+		int values3[] = {3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
+		int values1[] = {1,3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
+		int result[] = new int[productCode.length()];
+		if(productCode.length() != 12) {			
+			for(int i = 0; i < productCode.length() - 1; i++) {
+				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values1[i];
+				counter += result[i];
+				System.out.print(result[i] + "-");
+			
+			} 
+		} else {
+			for(int i = 0; i < productCode.length() - 1; i++) {
+				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values3[i];
+				counter += result[i];
+				System.out.print(result[i] + "-");				
+			}
+		}
+		
+		int minMultiple  = (counter / 10) *10;
+		int digit = minMultiple + 10;
+		if(Integer.parseInt(productCode.charAt(productCode.length() - 1) + "") == (digit - counter)){
+			return true;
+		}
+    	return false;
+    }
+	
+	public boolean luhnCheck(String ccNumber)
+    {
+            int sum = 0;
+            boolean alternate = false;
+            for (int i = ccNumber.length() - 1; i >= 0; i--)
+            {
+                    int n = Integer.parseInt(ccNumber.substring(i, i + 1));
+                    if (alternate)
+                    {
+                            n *= 2;
+                            if (n > 9)
+                            {
+                                    n = (n % 10) + 1;
+                            }
+                    }
+                    sum += n;
+                    alternate = !alternate;
+            }
+            return (sum % 10 == 0);
+    }
+	
+	/*return false if the credit card doesn't exist or if it hasn't enough money, true otherwise*/
+	//debit==true if it is a sale, false if it is a return (no need to check amount but only existence)
+	public boolean checkCreditCardAmount(String creditCard, Double toPay, boolean debit) {
+		String lineString;
+        String cardNumber;
+        double balance;
+        int index;
+        
+        try {
+            // Using file pointer creating the file.
+            File file = new File("CreditCards.txt");
+ 
+            if (!file.exists()) {
+                System.out.println("ERROR, FILE DOESN'T EXIST!!");  	//it shouldn't happen...
+                return false;
+            }
+ 
+            // Opening file in reading mode
+            RandomAccessFile raf = new RandomAccessFile(file, "r");
+
+            // Traversing the file
+            // getFilePointer() give the current offset value from start of the file.
+            while (raf.getFilePointer() < raf.length()) {
+ 
+                // reading line from the file.
+                lineString = raf.readLine();
+                
+                if (lineString.startsWith("#"))
+                	continue;
+ 
+                // splitting the string to get credit card number and balance
+                String[] lineSplit = lineString.split(";");
+ 
+                // separating name and number.
+                cardNumber = lineSplit[0];
+                balance = Double.parseDouble(lineSplit[1]);
+ 
+                // Print the card data
+                System.out.println( "Credit card number: " + cardNumber + "\n" + "Balance: " + balance + "\n");
+                
+                if(cardNumber.equals(creditCard)) {
+                	if(balance>=toPay || debit==false)
+                		return true;
+                	else {
+                		return false;
+                	}
+                }
+            }
+        } catch (IOException ioe) {
+            System.out.println(ioe);
+        } catch (NumberFormatException nef) {
+            System.out.println(nef);
+        }
+        return false;
+	}
+	
+	public boolean updateCreditCardAmount(String creditCard, Double toPay, boolean debit) {			 
+		
+		String lineString;
+		String cardNumber;
+		double balance;
+		int index;
+		
+		try {
+			// Using file pointer creating the file.
+			File file = new File("CreditCards.txt");
+
+			if (!file.exists()) {
+                System.out.println("ERROR, FILE DOESN'T EXIST!!");  	//it shouldn't happen...
+                return false;
+            }
+					
+			// Opening file in reading and write mode.
+			RandomAccessFile raf = new RandomAccessFile(file, "rw");
+			boolean found = false;
+			
+			// Creating a temporary file
+			File tmpFile = new File("temp.txt");
+			RandomAccessFile tmpraf= new RandomAccessFile(tmpFile, "rw");
+
+			// I assume that the credit card exist (because because I've checked the amount)
+			// getFilePointer() give the current offset value from start of the file.
+			while (raf.getFilePointer() < raf.length()) {
+
+				// reading line from the file.
+                lineString = raf.readLine();
+                
+                if (lineString.startsWith("#"))
+                	continue;
+ 
+                // splitting the string to get credit card number and balance
+                String[] lineSplit = lineString.split(";");
+ 
+                // separating name and number.
+                cardNumber = lineSplit[0];
+                balance = Double.parseDouble(lineSplit[1]);
+                
+				if (cardNumber.equals(creditCard)) {
+					found = true;
+					if(debit)
+						balance-=toPay;
+					else
+						balance+=toPay;
+					lineString=cardNumber + ";" + String.valueOf(balance);
+					tmpraf.writeBytes(lineString);
+					tmpraf.writeBytes(System.lineSeparator());
+					break;
+				}
+			}
+
+			// The contact has been updated now. So copy the updated content from the temporary file to original file.
+			// Set both files pointers to start
+			raf.seek(0);
+			tmpraf.seek(0);
+
+			// Copy the contents from the temporary file to original file.
+			while (tmpraf.getFilePointer() < tmpraf.length()) {
+				raf.writeBytes(tmpraf.readLine());
+				raf.writeBytes(System.lineSeparator());
+			}
+
+			// Set the length of the original file to that of temporary.
+			raf.setLength(tmpraf.length());
+
+			// Closing the resources.
+			tmpraf.close();
+			raf.close();
+			// Deleting the temporary file
+			tmpFile.delete();
+
+			System.out.println(" Credit card updated. ");
+			return true;
+			
+		} catch (IOException ioe) {
+			System.out.println(ioe);
+		} catch (NumberFormatException nef) {
+			System.out.println(nef);
+		}
+		
+		return false;
+	}
+
+}

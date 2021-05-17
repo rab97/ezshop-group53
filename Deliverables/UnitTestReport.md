@@ -26,28 +26,30 @@ Version:
     to start tests
     >
 
- ### **Class *class_name* - method *name***
+ ### **Class *Operator* - method *isValid***
 
 
 
-**Criteria for method *name*:**
+**Criteria for method *isValid*:**
 	
-
- - 
- - 
-
-
+ - valid String 
+ - productCode length
+ - productCode format  
 
 
 
-**Predicates for method *name*:**
+
+
+**Predicates for method *isValid*:**
 
 | Criteria | Predicate |
 | -------- | --------- |
-|          |           |
-|          |           |
-|          |           |
-|          |           |
+! valid String | 
+|  productCode length | = 12, 13 or 14 (Valid)|
+|  productCode length | != (12 and 13 and 14) |
+|productCode format | last value is a check digit|
+|productCode format | last value is not a check digit|
+
 
 
 
@@ -58,20 +60,87 @@ Version:
 | Criteria | Boundary values |
 | -------- | --------------- |
 |          |                 |
-|          |                 |
 
 
 
 **Combination of predicates**:
 
 
-| Criteria 1 | Criteria 2 | ... | Valid / Invalid | Description of the test case | JUnit test case |
-|-------|-------|-------|-------|-------|-------|
-|||||||
-|||||||
-|||||||
-|||||||
-|||||||
+| producCode length | producTCode format | Valid / Invalid | Description of the test case | JUnit test case|
+|-------|-------|-------|-------|-------|
+| 12 | digit | Valid | T1a(123456789104) -> true | --  |
+| 13 | digit | Valid | T1b(4563789345138) -> true | |
+| 14 | digit | Valid | T1c(45637485902647) -> true | |
+| 11 | not digit | Invalid | T2a(12345678910) -> false | |
+| 15 | not digit | Invalid | T2b(456374859026475) -> false | |
+
+
+### **Class *BalanceOperator* - method *setBalancId***
+
+
+
+**Criteria for method *setBalanceId*:**
+
+ - sign of id
+
+
+**Predicates for method *setBalancId*:**
+
+| Criteria | Predicate |
+| -------- | --------- |
+| sign of id | (0, maxint)|
+| | (minint, 0]|
+| | NULL |
+
+**Boundaries**:
+
+| Criteria | Boundary values |
+| -------- | --------------- |
+| sign of id | -inf, 0, +inf, NULL |
+
+
+
+**Combination of predicates**:
+
+
+| sing of id |  Valid / Invalid | Description of the test case | JUnit test case|
+|-------|-------|-------|-------|
+| (minint,0] | Valid | T1a(-1)  -> id = -1 |
+| (0,maxInt) | Valid | T1b(2)  -> id = 2 |
+| (minint,0] | Valid | T1c(0)  -> id = 0 |
+| NULL | Invalid | T1d(null)  -> id = NULL |
+
+
+**Criteria for method *getBalanceId*:**
+
+ - value of the id
+
+
+**Predicates for method *getBalanceId*:**
+
+| Criteria | Predicate |
+| -------- | --------- |
+| value of id | (0, maxint)|
+| | (minint, 0]|
+| | NULL|
+
+**Boundaries**:
+
+| Criteria | Boundary values |
+| -------- | --------------- |
+| value of id | -inf, 0, +inf, NULL|
+
+
+
+**Combination of predicates**:
+
+
+| sing of id |  Valid / Invalid | Description of the test case | JUnit test case|
+|-------|-------|-------|-------|
+| (minint,0] | Valid | T1a(-1)  -> id = -1 |
+| (0,maxInt) | Valid | T1b(2)  -> id = 2 |
+| (minint,0] | Valid | T1c(0)  -> id = 0 |
+| NULL | Valid | T1d(NULL)  -> id = NULL |
 
 
 
