@@ -77,6 +77,7 @@ public class Operator {
         }
         
         try {
+        	Long.parseLong(creditCard);
             // Using file pointer creating the file.
             File file = new File("CreditCards.txt");
  

@@ -2,6 +2,7 @@ package it.polito.ezshop.test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -117,6 +118,7 @@ public class OperatorTest {
 		assertFalse(o.checkCreditCardAmount("4485370346510892", 10.5, false));
 		assertFalse(o.checkCreditCardAmount(null, 10.4, true));
 		assertFalse(o.checkCreditCardAmount("", 2.0, false));
+		assertFalse(o.checkCreditCardAmount("dasdsa21321sad", 2.0, false));
 	}
 	
 	@Test

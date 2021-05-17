@@ -8,7 +8,7 @@ import org.junit.Test;
 import it.polito.ezshop.model.ConcreteOrder;
 import it.polito.ezshop.data.Order;
 
-public class OderTest {
+public class OrderTest {
 	
 	Order o = new ConcreteOrder();
 	

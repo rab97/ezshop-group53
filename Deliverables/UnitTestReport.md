@@ -167,10 +167,10 @@ Version:
 
 |Valitidy of the crediCard String | sing of the toPya value | truth of the debit value | Existence of the credit Card|Valid / Invalid | Description of the test case | JUnit test case|
 |-------|-------|-------|-------|-------|-------|-------|
-| Valid |(0, maxdouble) | * | true | Valid |t1a("4485370086510891", 10.5, true) -> true<br />t1b("4485370086510891", 10.5, false) -> true <br /> t1c("100293991053009", 9.5, true) -> true) <br /> t1d("100293991053009", 9.5, false) -> true) | testCheckCreditCardAmount_ValidAmount() |
-| Valid |(0, maxdouble) | * | False | Invalid |t1a("4485370086510892", 10.5, true) -> false<br />t1b("4485370086510892", 10.5, false) -> false <br /> | testCheckCreditCardAmount_InvalidCreditCard() |
-| Valid |(0, maxdouble) | true | true | Valid |t1a("100293991053009", 155.4, true)-> false | testCheckCreditCardAmount_NegativeAmount() |
-| Valid |(mindouble,0] | * | * | Valid |t1a("100293991053009", -10.4, true))-> false <br /> t1b("100293991053009", -10.4, false) -> false | testCheckCreditCardAmount_AmountTooBig() |
+| Valid |(0, maxdouble) | * | true | Valid |t1a("4485370086510891", 10.5, true) -> true<br />t1b("4485370086510891", 10.5, false) -> true <br /> t1c("100293991053009", 9.5, true) -> true) <br /> t1d("100293991053009", 9.5, false) -> true) | testCheckCreditCardAmountWithValidAmount() |
+| Valid |(0, maxdouble) | * | False | Invalid |t1a("4485370086510892", 10.5, true) -> false<br />t1b("4485370086510892", 10.5, false) -> false <br /> t1c(null, 10.5, false) -> false, <br /> t1d(null, 10.5, true) -> false, <br /> t1e("dasdsa21321sad", 2.0, false) -> false | testCheckCreditCardAmountWithInvalidCreditCard() |
+| Valid |(0, maxdouble) | true | true | Valid |t1a("100293991053009", 155.4, true)-> false | testCheckCreditCardAmountWithNegativeAmount() |
+| Valid |(mindouble,0] | * | * | Valid |t1a("100293991053009", -10.4, true))-> false <br /> t1b("100293991053009", -10.4, false) -> false | testCheckCreditCardAmountWithAmountTooBig() |
 
 
 
