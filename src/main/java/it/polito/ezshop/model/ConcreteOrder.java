@@ -25,7 +25,11 @@ public class ConcreteOrder extends ConcreteBalanceOperation implements Order {
         this.orderId = orderId;
     }
 
-    @Override
+    public ConcreteOrder() {
+    	
+	}
+
+	@Override
     public Integer getBalanceId() {
         return this.balanceId;
     }
