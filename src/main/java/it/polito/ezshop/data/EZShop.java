@@ -427,11 +427,14 @@ public class EZShop implements EZShopInterface {
         boolean payment = false;
         try {
             payment = dao.payOrder(orderId);
+            System.out.println("payment dopo la dao= " + payment);
+
 
         } catch (DAOException e) {
-            System.out.println("db excepiton");
+            System.out.println("db excepiton" + e);
         }
 
+        System.out.println("payment ultimo= " + payment);
         return payment;
     }
 
@@ -457,10 +460,10 @@ public class EZShop implements EZShopInterface {
                 return false;
             }
 
-            if(myOrder.getStatus()== "COMPLETED"){ //don't modify anything
+            if(myOrder.getStatus().equals("COMPLETED")){ //don't modify anything
                 return true;
             
-            }else if(myOrder.getStatus()!= "PAYED" | myOrder.getStatus()!= "ORDERED"){ //not valid status
+            }else if(!myOrder.getStatus().equals("PAYED")  && !myOrder.getStatus().equals("ORDERED")){ //not valid status
                 return false;
             }
 
@@ -493,7 +496,7 @@ public class EZShop implements EZShopInterface {
             ordersList = dao.getAllOrders();
 
         } catch (DAOException e) {
-            System.out.println("db excepiton");
+            System.out.println("db excepiton" + e);
         }
 
         return ordersList;
