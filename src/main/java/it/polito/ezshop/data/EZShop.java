@@ -503,7 +503,7 @@ public class EZShop implements EZShopInterface {
             ordersList = dao.getAllOrders();
 
         } catch (DAOException e) {
-            System.out.println("db excepiton");
+            System.out.println("db excepiton" + e);
         }
 
         return ordersList;

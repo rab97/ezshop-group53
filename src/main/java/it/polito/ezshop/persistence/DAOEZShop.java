@@ -501,15 +501,15 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
 
-            String query = "SELECT * FROM order";
+            String query = "SELECT * FROM 'order'";
             ResultSet resultSet = statement.executeQuery(query);
 
             while (resultSet.next()) {
-                if (resultSet.getString("status") == "ISSUED" | resultSet.getString("status") == "ORDERED"
-                        | resultSet.getString("status") == "COMPLETED") {
-                    Order o = new ConcreteOrder(resultSet.getInt("balanceId"), resultSet.getString("product_code"),
+            	if (resultSet.getString("status").equals("ISSUED") || resultSet.getString("status").equals("ORDERED")
+                        || resultSet.getString("status").equals("COMPLETED")) {
+                	Order o = new ConcreteOrder(resultSet.getInt("balance_id"), resultSet.getString("product_code"),
                             resultSet.getDouble("price_per_unit"), resultSet.getInt("quantity"),
-                            resultSet.getString("status"), resultSet.getInt("orderId"));
+                            resultSet.getString("status"), resultSet.getInt("id"));
                     orders.add(o);
                 }
             }
@@ -519,7 +519,7 @@ public class DAOEZShop implements IDAOEZshop {
         } finally {
             dataSource.close(connection);
         }
-
+        System.out.println(orders.size());
         return orders;
     }
 
