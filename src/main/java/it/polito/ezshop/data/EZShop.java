@@ -759,7 +759,7 @@ public class EZShop implements EZShopInterface {
 
         // decrement product availability
         try {
-            dao.updateQuantity(pt.getId(), (-2) * amount);
+            dao.updateQuantity(pt.getId(), amount);
         } catch (DAOException e) {
             System.out.println(e);
             return false;
