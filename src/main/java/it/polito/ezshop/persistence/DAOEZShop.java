@@ -780,8 +780,12 @@ public class DAOEZShop implements IDAOEZshop {
             String query = "SELECT MAX(id) FROM return_transaction";
             statement = connection.createStatement();
             resultSet = statement.executeQuery(query);
+            
+            System.out.println("query ok and return_transaction created with id: " + id);
 
             id = resultSet.next() ? resultSet.getInt(1) : 1;
+            
+            System.out.println("query ok and return_transaction created with id: " + id);
             
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
@@ -1123,7 +1127,7 @@ public class DAOEZShop implements IDAOEZshop {
             pstm.executeUpdate();
 
             // Update ticket_entry entries
-            query = "INSERT INTO return_ticket_entry(transactionId, productId, bar_code, price_per_unit, amount, discount_rate, product_description) VALUES(?, ?, ?, ?, ?, ?, ?)";
+            query = "INSERT INTO return_ticket_entry(returnId, productId, bar_code, price_per_unit, amount, discount_rate, product_description) VALUES(?, ?, ?, ?, ?, ?, ?)";
             for (TicketEntry te : returnTransaction.getEntries()) {
                 pstm = connection.prepareStatement(query);
                 pstm.setInt(1, returnTransaction.getReturnId());

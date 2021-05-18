@@ -1,4 +1,4 @@
-package it.polito.ezshop.model;
+package it.polito.ezshop;
 
 import java.io.File;
 import java.io.IOException;
@@ -8,20 +8,20 @@ import java.lang.NumberFormatException;
 public class Operator {
 
 	public boolean isValidCode(String productCode) {
-    	if(productCode == null || (productCode.length() != 12 && productCode.length() != 13 && productCode.length() != 14)) {
+    	if(productCode.length() != 12 && productCode.length() != 13 && productCode.length() != 14) {
 			return false;
 		}
 		int counter = 0;
 		int values3[] = {3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
 		int values1[] = {1,3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
 		int result[] = new int[productCode.length()];
-		if(productCode.length() == 13) {			
+		if(productCode.length() != 12) {			
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values1[i];
 				counter += result[i];
 				System.out.print(result[i] + "-");
-			}
-			System.out.print("\n");
+			
+			} 
 		} else {
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values3[i];
@@ -40,11 +40,6 @@ public class Operator {
 	
 	public boolean luhnCheck(String ccNumber)
     {
-		try {
-			Long.parseLong(ccNumber);
-		} catch (Exception e) {
-			return false;
-		}
             int sum = 0;
             boolean alternate = false;
             for (int i = ccNumber.length() - 1; i >= 0; i--)
@@ -70,7 +65,6 @@ public class Operator {
 		String lineString;
         String cardNumber;
         double balance;
-        int index;
         
         try {
             // Using file pointer creating the file.
@@ -125,7 +119,6 @@ public class Operator {
 		String lineString;
 		String cardNumber;
 		double balance;
-		int index;
 		
 		try {
 			// Using file pointer creating the file.
@@ -138,11 +131,7 @@ public class Operator {
 					
 			// Opening file in reading and write mode.
 			RandomAccessFile raf = new RandomAccessFile(file, "rw");
-			boolean found = false;
-			
-			// Creating a temporary file
-			File tmpFile = new File("temp.txt");
-			RandomAccessFile tmpraf= new RandomAccessFile(tmpFile, "rw");
+			RandomAccessFile raf_prec = new RandomAccessFile(file, "rw");
 
 			// I assume that the credit card exist (because because I've checked the amount)
 			// getFilePointer() give the current offset value from start of the file.
@@ -151,8 +140,10 @@ public class Operator {
 				// reading line from the file.
                 lineString = raf.readLine();
                 
-                if (lineString.startsWith("#"))
+                if (lineString.startsWith("#")) {
+                	raf_prec.readLine();
                 	continue;
+                }
  
                 // splitting the string to get credit card number and balance
                 String[] lineSplit = lineString.split(";");
@@ -162,37 +153,22 @@ public class Operator {
                 balance = Double.parseDouble(lineSplit[1]);
                 
 				if (cardNumber.equals(creditCard)) {
-					found = true;
 					if(debit)
 						balance-=toPay;
 					else
 						balance+=toPay;
 					lineString=cardNumber + ";" + String.valueOf(balance);
-					tmpraf.writeBytes(lineString);
-					tmpraf.writeBytes(System.lineSeparator());
+					raf_prec.writeBytes(lineString);
 					break;
 				}
+				
+				System.out.println(lineString);
+				System.out.println(raf_prec.readLine());
 			}
-
-			// The contact has been updated now. So copy the updated content from the temporary file to original file.
-			// Set both files pointers to start
-			raf.seek(0);
-			tmpraf.seek(0);
-
-			// Copy the contents from the temporary file to original file.
-			while (tmpraf.getFilePointer() < tmpraf.length()) {
-				raf.writeBytes(tmpraf.readLine());
-				raf.writeBytes(System.lineSeparator());
-			}
-
-			// Set the length of the original file to that of temporary.
-			raf.setLength(tmpraf.length());
-
+			
 			// Closing the resources.
-			tmpraf.close();
 			raf.close();
-			// Deleting the temporary file
-			tmpFile.delete();
+			raf_prec.close();
 
 			System.out.println(" Credit card updated. ");
 			return true;

@@ -961,6 +961,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
+        saleTransaction=null;
         return state;
     }
 
@@ -993,7 +994,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-
+        saleTransaction=null;
         return state;
     }
 
@@ -1033,6 +1034,8 @@ public class EZShop implements EZShopInterface {
     		throw new InvalidTransactionIdException();
     	}
     	
+    	System.out.println("checks transaction id ok");
+    	
         Integer return_transaction_id = -1;
         
         SaleTransaction s = this.getSaleTransaction(transactionId);
@@ -1043,8 +1046,9 @@ public class EZShop implements EZShopInterface {
 	            System.out.println(e);
 	        }
 	        returnTransaction = new ConcreteReturnTransaction(return_transaction_id+1, transactionId, new ArrayList<TicketEntry>(), 0.0, s.getDiscountRate());
+	        System.out.println("returnTransaction created, number: " + return_transaction_id);
         }
-        return return_transaction_id;
+        return returnTransaction.getReturnId();
 
     }
 
@@ -1094,8 +1098,10 @@ public class EZShop implements EZShopInterface {
                 break;
             }
         }
-        if (toAdd)
+        if (toAdd) {
+        	prodToReturn.setAmount(amount);
             returnTransaction.getEntries().add(prodToReturn);
+        }
     	
     	return true;
     }
@@ -1275,7 +1281,7 @@ public class EZShop implements EZShopInterface {
     	
     	//check existence of credit card and if it has enough money and update amount of money on credit card 
     	if(o.checkCreditCardAmount(creditCard, s.getPrice(), true)) {
-    		if(o.updateCreditCardAmount(creditCard, s.getPrice(), true))
+    		if(!o.updateCreditCardAmount(creditCard, s.getPrice(), true))
     			return false;
     	}
     	else
@@ -1367,7 +1373,7 @@ public class EZShop implements EZShopInterface {
     	
     	//check existence of credit card and update balance of credit card
     	if(o.checkCreditCardAmount(creditCard, r.getPrice(), false)) {
-    		if(o.updateCreditCardAmount(creditCard, r.getPrice(), false))
+    		if(!o.updateCreditCardAmount(creditCard, r.getPrice(), false))
     			return -1;
     	}
     	else

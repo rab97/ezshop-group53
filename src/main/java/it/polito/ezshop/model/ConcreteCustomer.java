@@ -9,6 +9,10 @@ public class ConcreteCustomer implements Customer {
     Integer points;
     // Card customerCard or String customerCard;
 
+    public ConcreteCustomer() {
+     
+    }
+    
     public ConcreteCustomer(Integer id, String customerName, String customerCard, Integer points) {
         this.id = id;
         this.customerName = customerName;
