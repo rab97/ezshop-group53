@@ -1245,8 +1245,15 @@ public class DAOEZShop implements IDAOEZshop {
             String query = "DELETE FROM sale_transaction WHERE id=?";
             PreparedStatement pstm = connection.prepareStatement(query);
             pstm.setDouble(1, saleNumber);
-            if (pstm.executeUpdate() == -1)
+            if (pstm.executeUpdate() <= 0)
                 return false;
+            
+            // Delete product entry from ticket_entry
+            query = "DELETE FROM ticket_entry WHERE transactionId=?";
+            pstm = connection.prepareStatement(query);
+            pstm.setInt(1, saleNumber);
+            if(pstm.executeUpdate() <= 0) 
+            	return false;
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
