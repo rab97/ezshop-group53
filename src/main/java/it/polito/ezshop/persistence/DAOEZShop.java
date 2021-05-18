@@ -1308,4 +1308,108 @@ public class DAOEZShop implements IDAOEZshop {
         }
         return true;
     }
+    
+    @Override
+    public boolean updateSaleTransactionPrice(Integer transactionId, double price, boolean committed) throws DAOException {
+    	Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        int update;
+        double finalPrice;
+        
+        SaleTransaction s = this.searchSaleTransaction(transactionId);
+        if(committed)
+        	finalPrice= s.getPrice()-price;
+        else
+        	finalPrice = s.getPrice()+price;
+
+        try {
+            connection = dataSource.getConnection();
+            String query = "UPDATE sale_transaction SET payed=? WHERE id= '" + transactionId + "';";
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setDouble(1, finalPrice);
+            update = preparedStatement.executeUpdate();
+            System.out.println("Update query executed succesfully?--> update= " + update);
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+        if (update != 1) {
+            return false;
+        }
+        return true;
+    }
+    
+    
+    /* Questo metodo agisce solo modificando la quantita', quando sta decrementando (committed=true) se la qty raggiunge 0 l'elemento NON viene 
+     * eliminato, perche' se facessi cosi' poi se devo re-incrementare la qty (in deleteReturnTransaction) dovrei verificare se l'elemento e' presente e se
+     * no inserirlo... --> CASINO
+     */
+    
+    @Override
+    public boolean updateSaleTransactionEntries (Integer transactionId, List<TicketEntry> returnEntries, boolean committed) throws DAOException {
+    	Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        int update;
+        int final_qty;
+        
+        TicketEntry saleTe;
+        for (TicketEntry te : returnEntries) {
+        	saleTe = this.searchTicketEntry(transactionId, this.getProductTypeByBarCode(te.getBarCode()).getId());
+        	if(committed) //confirm return transaction -> decrease products sold
+        		final_qty = saleTe.getAmount() - te.getAmount();
+        	else 
+        		final_qty = saleTe.getAmount() + te.getAmount();
+	        try {
+	            connection = dataSource.getConnection();
+	            String query = "UPDATE ticket_entry SET amount=? WHERE transactionId=? AND productId=?";
+	            preparedStatement = connection.prepareStatement(query);
+	            preparedStatement.setInt(1, final_qty);
+	            preparedStatement.setInt(2, transactionId);
+	            preparedStatement.setInt(3, this.getProductTypeByBarCode(te.getBarCode()).getId());
+	            update = preparedStatement.executeUpdate();
+	            System.out.println("Update query executed succesfully?--> update= " + update);
+	            
+	            if (update != 1) {
+	                return false;
+	            }
+	            
+	        } catch (SQLException ex) {
+	            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+	        } finally {
+	            dataSource.close(connection);
+	        }
+        }
+
+        return true;
+    }
+    
+    @Override
+    public TicketEntry searchTicketEntry(Integer transactionId, Integer productId) throws DAOException {
+    	Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        TicketEntry ticketEntry;
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            String query = "SELECT * FROM ticket_entry WHERE transactionId= '" + transactionId + " AND productId= '" + productId + "'" ;
+            resultSet = statement.executeQuery(query);
+
+            if (!resultSet.next())
+                return null;
+
+            ticketEntry = new ConcreteTicketEntry(resultSet.getString("bar_code"), resultSet.getString("product_description"), resultSet.getInt("amount"),
+                    resultSet.getDouble("price_per_unit"), resultSet.getDouble("discount_rate"));
+
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+
+        return ticketEntry;
+    }
 }

@@ -22,29 +22,19 @@ public interface IDAOEZshop {
     public User searchUser(String username, String password) throws DAOException;
 
     public ArrayList<ProductType> getAllProducTypet() throws DAOException;
-
     public void createProductType(ProductType productType) throws DAOException;
-
     public ConcreteProductType getProductTypeByBarCode(String barCode) throws DAOException;
-
     public List<ProductType> getProductTypeByDescription(String description) throws DAOException;
-
     public boolean updateQuantity(Integer productId, int toBeAdded) throws DAOException;
-
     public void updatePosition(Integer productId, String position) throws DAOException;
-
     public boolean searchPosition(String position) throws DAOException;
     public boolean updateProduct(ProductType productType) throws DAOException;
     public boolean deleteProductType(Integer id) throws DAOException;
 
     public Integer insertUser(String username, String password, String role) throws DAOException;
-
     public boolean removeUser(Integer id) throws DAOException;
-
     public java.util.List<User> getAllUsers() throws DAOException;
-
     public User searchUserById(Integer id) throws DAOException;
-
     public boolean updateRights(Integer id, String role) throws DAOException;
 
     public Integer insertNewOrder(String productCode, int quantity, double pricePerUnit) throws DAOException;
@@ -61,8 +51,7 @@ public interface IDAOEZshop {
     public ArrayList<Customer> getAllCustomers() throws DAOException;
     public boolean bindCardToCustomer(String card, Integer customerId) throws DAOException;
     public boolean updatePoints(String customerCard, int pointsToBeAdded) throws DAOException;
-
-    public Integer insertSaleTransaction() throws DAOException;
+    
     
     public Integer insertReturnTransaction() throws DAOException;
     public ReturnTransaction searchReturnTransaction(Integer returnId) throws DAOException;
@@ -74,11 +63,14 @@ public interface IDAOEZshop {
     public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
     public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;
 
+    public Integer insertSaleTransaction() throws DAOException;
     public boolean storeSaleTransaction(SaleTransaction saleTransaction) throws DAOException;
     public SaleTransaction searchSaleTransaction(Integer transactionId) throws DAOException;
     public List<TicketEntry> getEntries(Integer transactionId) throws DAOException;
     public boolean setSaleTransactionPaid(Integer transactionId) throws DAOException;
-
     public boolean removeSaleTransaction(Integer saleNumber) throws DAOException;
+    public boolean updateSaleTransactionPrice(Integer transactionId, double price, boolean committed) throws DAOException;
+    public boolean updateSaleTransactionEntries (Integer transactionId, List<TicketEntry> returnEntries, boolean committed) throws DAOException;
+    public TicketEntry searchTicketEntry (Integer transactionId, Integer productId) throws DAOException;
 
 }
