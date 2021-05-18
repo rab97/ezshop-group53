@@ -13,6 +13,15 @@ public class CustomerTest {
 	
 	
 	@Test
+	public void testCostructor() {
+		Customer c = new ConcreteCustomer(33, "name", "1231212312321", 22);
+		assertEquals(Integer.valueOf(33), c.getId());
+		assertEquals("name", c.getCustomerName());
+		assertEquals("1231212312321", c.getCustomerCard());
+		assertEquals(Integer.valueOf(22), c.getPoints());
+	}
+	
+	@Test
 	public void testSetAndGetCostumerName() {
 		c.setCustomerName(null);
 		assertEquals(null, c.getCustomerName());

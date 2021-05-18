@@ -13,6 +13,15 @@ public class BalanceOperationTest{
 	BalanceOperation balanceOperation = new ConcreteBalanceOperation();;
 
 	@Test
+	public void testCostructor() {
+		BalanceOperation bo = new ConcreteBalanceOperation(1, LocalDate.of(2021, 1, 8), 44.6, "type");
+		assertEquals(Integer.valueOf(1), bo.getBalanceId());
+		assertEquals(LocalDate.of(2021, 1, 8), bo.getDate());
+		assertTrue(44.6 == bo.getMoney());
+		assertEquals("type", bo.getType());
+	}
+	
+	@Test
 	public void testSetAndGetBalanceId() {
 		balanceOperation.setBalanceId(2);
 		assertEquals(Integer.valueOf(2), balanceOperation.getBalanceId());

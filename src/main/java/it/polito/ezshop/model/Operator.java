@@ -19,14 +19,14 @@ public class Operator {
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values1[i];
 				counter += result[i];
-				System.out.print(result[i] + "-");
+				//System.out.print(result[i] + "-");
 			}
-			System.out.print("\n");
+			//System.out.print("\n");
 		} else {
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values3[i];
 				counter += result[i];
-				System.out.print(result[i] + "-");				
+				//System.out.print(result[i] + "-");				
 			}
 		}
 		
@@ -72,7 +72,12 @@ public class Operator {
         double balance;
         int index;
         
+        if(toPay <= 0 || creditCard == null || creditCard.isEmpty()) {
+        	return false;
+        }
+        
         try {
+        	Long.parseLong(creditCard);
             // Using file pointer creating the file.
             File file = new File("CreditCards.txt");
  
@@ -102,10 +107,10 @@ public class Operator {
                 balance = Double.parseDouble(lineSplit[1]);
  
                 // Print the card data
-                System.out.println( "Credit card number: " + cardNumber + "\n" + "Balance: " + balance + "\n");
+                //System.out.println( "Credit card number: " + cardNumber + "\n" + "Balance: " + balance + "\n");
                 
                 if(cardNumber.equals(creditCard)) {
-                	if(balance>=toPay || debit==false)
+                	if(balance>=toPay || debit == false)
                 		return true;
                 	else {
                 		return false;
@@ -126,6 +131,9 @@ public class Operator {
 		String cardNumber;
 		double balance;
 		int index;
+		if(creditCard == null || creditCard.isEmpty() || toPay <= 0) {
+			return false;
+		}
 		
 		try {
 			// Using file pointer creating the file.
@@ -147,31 +155,36 @@ public class Operator {
 			// I assume that the credit card exist (because because I've checked the amount)
 			// getFilePointer() give the current offset value from start of the file.
 			while (raf.getFilePointer() < raf.length()) {
-
 				// reading line from the file.
                 lineString = raf.readLine();
                 
-                if (lineString.startsWith("#"))
+                if (lineString.startsWith("#")) {                	
+                	tmpraf.writeBytes(lineString);
+					tmpraf.writeBytes(System.lineSeparator());
                 	continue;
- 
-                // splitting the string to get credit card number and balance
-                String[] lineSplit = lineString.split(";");
- 
-                // separating name and number.
-                cardNumber = lineSplit[0];
-                balance = Double.parseDouble(lineSplit[1]);
-                
-				if (cardNumber.equals(creditCard)) {
-					found = true;
-					if(debit)
-						balance-=toPay;
-					else
-						balance+=toPay;
+                } else {
+	                // splitting the string to get credit card number and balance
+	                String[] lineSplit = lineString.split(";");
+	 
+	                // separating name and number.
+	                cardNumber = lineSplit[0];
+	                balance = Double.parseDouble(lineSplit[1]);
+	                
+					if (cardNumber.equals(creditCard)) {
+						found = true;
+						if(debit) {
+							if(balance < toPay) {
+								return false;
+							}
+							balance-=toPay;
+						}
+						else
+							balance+=toPay;
+					}
 					lineString=cardNumber + ";" + String.valueOf(balance);
 					tmpraf.writeBytes(lineString);
 					tmpraf.writeBytes(System.lineSeparator());
-					break;
-				}
+                }
 			}
 
 			// The contact has been updated now. So copy the updated content from the temporary file to original file.
@@ -194,13 +207,15 @@ public class Operator {
 			// Deleting the temporary file
 			tmpFile.delete();
 
-			System.out.println(" Credit card updated. ");
-			return true;
+			//System.out.println(" Credit card updated. ");
+			return found;
 			
 		} catch (IOException ioe) {
 			System.out.println(ioe);
 		} catch (NumberFormatException nef) {
 			System.out.println(nef);
+		} finally {
+			
 		}
 		
 		return false;

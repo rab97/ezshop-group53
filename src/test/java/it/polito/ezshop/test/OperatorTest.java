@@ -1,8 +1,8 @@
 package it.polito.ezshop.test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -103,6 +103,66 @@ public class OperatorTest {
 		assertFalse(o.luhnCheck(s));
 	}
 	
+	@Test
+	public void testCheckCreditCardAmountWithValidAmount() {
+		assertTrue(o.checkCreditCardAmount("4485370086510891", 10.5, true));
+		assertTrue(o.checkCreditCardAmount("4485370086510891", 10.5, false));
+		assertTrue(o.checkCreditCardAmount("100293991053009", 9.5, true));
+		assertTrue(o.checkCreditCardAmount("100293991053009", 9.5, false));
+ 
+	}
 	
+	@Test
+	public void testCheckCreditCardAmountWithInvalidCreditCard() {
+		assertFalse(o.checkCreditCardAmount("4485370346510892", 10.5, true));
+		assertFalse(o.checkCreditCardAmount("4485370346510892", 10.5, false));
+		assertFalse(o.checkCreditCardAmount(null, 10.4, true));
+		assertFalse(o.checkCreditCardAmount("", 2.0, false));
+		assertFalse(o.checkCreditCardAmount("dasdsa21321sad", 2.0, false));
+	}
+	
+	@Test
+	public void testCheckCreditCardAmountWithAmountTooBig() {
+		assertFalse(o.checkCreditCardAmount("100293991053009", 155.4, true));
+		//assertTrue(o.checkCreditCardAmount("100293991053009", 155.4, false));
+	}
+	
+	@Test
+	public void testCheckCreditCardAmountWithNegativeAmount() {
+		assertFalse(o.checkCreditCardAmount("100293991053009", -10.4, true));
+		assertFalse(o.checkCreditCardAmount("100293991053009", -10.4, false));
+	}
+	
+	@Test
+	public void testUpdateCreditCardAmountWithValidValue() {
+		assertTrue(o.updateCreditCardAmount("4485370086510891", 10.5, true));
+		assertTrue(o.updateCreditCardAmount("4485370086510891", 10.5, false));
+		assertTrue(o.updateCreditCardAmount("4716258050958645", 22.5, false));
+		assertTrue(o.updateCreditCardAmount("4716258050958645", 22.5, true));
+	}
+
+	
+	@Test
+	public void testUpdateCreditCardAmountWithInvalidCode() {
+		assertFalse(o.updateCreditCardAmount(null, 10.5, true));
+		assertFalse(o.updateCreditCardAmount(null, 10.5, false));
+		assertFalse(o.updateCreditCardAmount("", 10.5, false));
+		assertFalse(o.updateCreditCardAmount("", 10.5, true));
+	}
+	
+	@Test
+	public void testUpdateCreditCardWithInvalidAmount() {
+		assertFalse(o.updateCreditCardAmount("4716258050958645", -10.5, true));
+		assertFalse(o.updateCreditCardAmount("4716258050958645", -10.5, false));
+		assertFalse(o.updateCreditCardAmount("4716258050958645", 0.0, false));
+		assertFalse(o.updateCreditCardAmount("4716258050958645", 0.0, true));
+	}
+	
+	@Test
+	public void testUpdateCreditCardWithCodeNotFound() {
+		assertFalse(o.updateCreditCardAmount("21231321312322", 210.5, true));
+		assertFalse(o.updateCreditCardAmount("21431431314311", 13210.5, false));
+		assertFalse(o.updateCreditCardAmount("adsdsad212121sad", 2110.5, false));
+	}
 	
 }
