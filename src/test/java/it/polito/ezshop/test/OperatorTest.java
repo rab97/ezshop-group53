@@ -16,12 +16,14 @@ public class OperatorTest {
 	public void testIsValid1() {
 		String s = "123456789104";
 		assertTrue(o.isValidCode(s));
+		//assertTrue(o.isValidCode("456378934517"));
 	}
 	
 	@Test
 	public void testIsValid2() {
-		String s = "4563789345138";
+		String s = "6291041500213";
 		assertTrue(o.isValidCode(s));
+		assertTrue(o.isValidCode("1234567891040"));
 	}
 	
 	@Test
