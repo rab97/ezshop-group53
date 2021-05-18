@@ -13,9 +13,10 @@ public class Operator {
 		}
 		int counter = 0;
 		int values3[] = {3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
-		int values1[] = {1,3, 1,3,1,3,1,3,1,3,1,3,1,3,1,3};
+		int values1[] = {1,3,1,3,1,3,1,3,1,3,1,3};
 		int result[] = new int[productCode.length()];
-		if(productCode.length() == 13) {			
+		if(productCode.length() == 13) {
+			System.out.println("eseguo product COde " + productCode);
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values1[i];
 				counter += result[i];
@@ -31,8 +32,14 @@ public class Operator {
 		}
 		
 		int minMultiple  = (counter / 10) *10;
-		int digit = minMultiple + 10;
-		if(Integer.parseInt(productCode.charAt(productCode.length() - 1) + "") == (digit - counter)){
+		int digit = 0;
+		
+		if(counter == minMultiple){
+			digit = minMultiple;
+		} else {
+			digit = minMultiple + 10;
+		}
+		if(Long.parseLong(productCode.charAt(productCode.length() - 1) + "") == (digit - counter)){
 			return true;
 		}
     	return false;
