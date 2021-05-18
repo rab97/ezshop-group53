@@ -41,8 +41,8 @@ public class EZShop implements EZShopInterface {
         if (password == null || password.isEmpty()) {
             throw new InvalidPasswordException();
         }
-        if (role == null || role.isEmpty() && (!role.equals(Constants.ADMINISTRATOR) || !role.equals(Constants.CASHIER)
-                || !role.equals(Constants.SHOP_MANAGER))) {
+        if (role == null || role.isEmpty() || (!role.equals(Constants.ADMINISTRATOR) && !role.equals(Constants.CASHIER)
+                && !role.equals(Constants.SHOP_MANAGER))) {
             throw new InvalidRoleException();
         }
         try {
@@ -106,7 +106,7 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean updateUserRights(Integer id, String role)
             throws InvalidUserIdException, InvalidRoleException, UnauthorizedException {
-        boolean state = true;
+        boolean state = false;
 
         if (runningUser == null || !runningUser.getRole().equals(Constants.ADMINISTRATOR)) {
             throw new UnauthorizedException();
@@ -114,8 +114,8 @@ public class EZShop implements EZShopInterface {
         if (id <= 0 || id == null) {
             throw new InvalidUserIdException();
         }
-        if (role == null || role.isEmpty() && (!role.equals(Constants.ADMINISTRATOR) || !role.equals(Constants.CASHIER)
-                || !role.equals(Constants.SHOP_MANAGER))) {
+        if (role == null || role.isEmpty() || (!role.equals(Constants.ADMINISTRATOR) && !role.equals(Constants.CASHIER)
+                && !role.equals(Constants.SHOP_MANAGER))) {
             throw new InvalidRoleException();
         }
         try {
@@ -141,11 +141,10 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-        if (user != null && (user.getPassword().equals(password))) {
+        if (user != null)
             runningUser = new ConcreteUser(user);
-            return user;
-        }
-        return null;
+        
+        return user;
     }
 
     @Override
@@ -155,7 +154,7 @@ public class EZShop implements EZShopInterface {
         runningUser = null;
         return true;
     }
-
+    
     @Override
     public Integer createProductType(String description, String productCode, double pricePerUnit, String note)
             throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException,
@@ -1433,8 +1432,8 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println("getBalanceOperations exception");
         }
-        if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+        if ((runningUser == null) && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         return balanceOperationList;
@@ -1445,8 +1444,8 @@ public class EZShop implements EZShopInterface {
         List<BalanceOperation> balanceOperationList = new ArrayList<>();
         double balance = 0;
 
-        if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+        if ((runningUser == null) && (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                || !runningUser.equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
     	balanceOperationList=this.getCreditsAndDebits(null,null);

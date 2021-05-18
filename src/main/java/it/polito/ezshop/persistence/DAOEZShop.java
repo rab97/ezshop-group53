@@ -21,13 +21,14 @@ public class DAOEZShop implements IDAOEZshop {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
+        User user = null;
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "SELECT * FROM user where username= '" + username + "' AND password='" + password + "'";
 
             resultSet = statement.executeQuery(query);
-            User user = null;
+            
             while (resultSet.next()) {
                 user = new ConcreteUser();
                 String name = resultSet.getString("username");
@@ -39,12 +40,14 @@ public class DAOEZShop implements IDAOEZshop {
                 user.setId(id);
                 user.setRole(role);
             }
-            return user;
+            
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
+        
+        return user;
     }
 
     @Override
@@ -139,23 +142,23 @@ public class DAOEZShop implements IDAOEZshop {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
+        List<User> users = new ArrayList<>();
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "SELECT * FROM user";
             resultSet = statement.executeQuery(query);
-            List<User> users = new ArrayList<>();
             while (resultSet.next()) {
                 User u = new ConcreteUser(resultSet.getString("username"), resultSet.getInt("id"),
                         resultSet.getString("password"), resultSet.getString("role"));
                 users.add(u);
             }
-            return users;
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
+        return users;
     }
 
     @Override
@@ -221,44 +224,43 @@ public class DAOEZShop implements IDAOEZshop {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
-
+        User u = null;
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "SELECT * FROM user WHERE id= '" + id + "'";
             resultSet = statement.executeQuery(query);
-            User u;
-            if (!resultSet.next())
-                u = null;
-            u = new ConcreteUser(resultSet.getString("username"), resultSet.getInt("id"),
-                    resultSet.getString("password"), resultSet.getString("role"));
-            return u;
+            if (resultSet.next())
+                u = new ConcreteUser(resultSet.getString("username"), resultSet.getInt("id"),
+                        resultSet.getString("password"), resultSet.getString("role"));
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
+        
+        return u;
     }
 
     @Override
     public boolean updateRights(Integer id, String role) throws DAOException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
+        boolean state = false;
         try {
             connection = dataSource.getConnection();
             String query = "UPDATE user SET role= ? WHERE id= ?";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, role);
             preparedStatement.setInt(2, id);
-            int ps = preparedStatement.executeUpdate();
-            if (ps <= 0)
-                return false;
+            if(preparedStatement.executeUpdate() > 0);
+            	state = true;
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-        return true;
+        return state;
     }
 
     @Override
