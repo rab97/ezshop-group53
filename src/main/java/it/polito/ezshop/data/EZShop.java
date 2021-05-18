@@ -370,7 +370,6 @@ public class EZShop implements EZShopInterface {
 
         Integer newOrderId = 0;
         try {
-            //Long.parseLong(productCode);
             newOrderId = dao.insertNewOrder(productCode, quantity, pricePerUnit);
 
         } catch (DAOException e) {
@@ -436,15 +435,6 @@ public class EZShop implements EZShopInterface {
         return payment;
     }
 
-    /**
-         * This method records the arrival of an order with given <orderId>. This method
-         * changes the quantity of available product. The product type affected must
-         * have a location registered. The order should be either in the PAYED state (in
-         * this case the state will change to the COMPLETED one and the quantity of
-         * product type will be updated) or in the COMPLETED one (in this case this
-         * method will have no effect at all).
-         *         *
-         */
 
     @Override
     public boolean recordOrderArrival(Integer orderId) throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {

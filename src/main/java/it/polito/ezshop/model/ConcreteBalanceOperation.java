@@ -21,7 +21,7 @@ public class ConcreteBalanceOperation implements BalanceOperation {
 
 
     @Override
-    public Integer getBalanceId() {
+    public int getBalanceId() {
         return balanceId;
     }
 
