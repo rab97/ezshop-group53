@@ -287,8 +287,7 @@ public class DAOEZShop implements IDAOEZshop {
             // Insert
             PreparedStatement pstm;
 
-            pstm = connection.prepareStatement(
-                    "INSERT INTO 'order' (product_code, price_per_unit, quantity, status) values (?,?,?,?)");
+            pstm = connection.prepareStatement("INSERT INTO 'order' (product_code, price_per_unit, quantity, status) values (?,?,?,?)");
             pstm.setString(1, productCode);
             pstm.setDouble(2, pricePerUnit);
             pstm.setInt(3, quantity);
@@ -332,8 +331,7 @@ public class DAOEZShop implements IDAOEZshop {
             }
 
             // Insert of a BalanceOperation
-            PreparedStatement prstm = connection
-                    .prepareStatement("INSERT INTO balance_operation VALUES (date, money, type)= (?,?,?);");
+            PreparedStatement prstm = connection.prepareStatement("INSERT INTO balance_operation VALUES (date, money, type)= (?,?,?);");
 
             java.util.Date today = new java.util.Date();
             prstm.setDate(1, (java.sql.Date) today);
@@ -392,10 +390,10 @@ public class DAOEZShop implements IDAOEZshop {
 
             String orderStatus = rs.getString("status");
             System.out.println("Status= " + orderStatus);
-            if (orderStatus == "PAYED") { // It doesn't need a modification
+            if (orderStatus.equals("PAYED")) { // It doesn't need a modification
                 return true;
             }
-            if (orderStatus != "ISSUED" | orderStatus != "ORDERED") { // Not valid status
+            if (orderStatus.equals("ISSUED") | orderStatus.equals("ORDERED")) { // Not valid status
                 return false;
             }
 
@@ -415,8 +413,7 @@ public class DAOEZShop implements IDAOEZshop {
             rs = prstm.getGeneratedKeys();
 
             // Update Order
-            query = "UPDATE order SET balanceId= '" + rs.getInt(1) + "' , status = 'PAYED' WHERE id= '" + orderId
-                    + "';";
+            query = "UPDATE order SET balanceId= '" + rs.getInt(1) + "' , status = 'PAYED' WHERE id= '" + orderId + "';";
 
             rs = statement.executeQuery(query);
             if (!rs.next()) {
@@ -501,17 +498,18 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
 
-            String query = "SELECT * FROM order";
+            String query = "SELECT * FROM order WHERE status = ('ISSUED' OR 'ORDERED' OR 'COMPLETED')";
             ResultSet resultSet = statement.executeQuery(query);
 
             while (resultSet.next()) {
-                if (resultSet.getString("status") == "ISSUED" | resultSet.getString("status") == "ORDERED"
-                        | resultSet.getString("status") == "COMPLETED") {
+                /*
+                if (resultSet.getString("status").equals("ISSUED") | resultSet.getString("status").equals("ORDERED")
+                        | resultSet.getString("status").equals("COMPLETED")) {*/
                     Order o = new ConcreteOrder(resultSet.getInt("balanceId"), resultSet.getString("product_code"),
                             resultSet.getDouble("price_per_unit"), resultSet.getInt("quantity"),
                             resultSet.getString("status"), resultSet.getInt("orderId"));
                     orders.add(o);
-                }
+               // }
             }
 
         } catch (SQLException ex) {

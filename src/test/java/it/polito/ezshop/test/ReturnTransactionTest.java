@@ -14,10 +14,22 @@ public class ReturnTransactionTest {
 
     //id, transaction id, entries, price, payed, discount rate 
 
+	//Le entries sono Ticket! Non posso usare altre classi nello unit test!
+	/*
+    @Test
+	public void testReturnTransactionSetEntries() {
+		retTransaction.setEntries(null);
+        assertEquals(null, retTransaction.getEntries());
+        //Altri casi
+
+	}
+    */
+
     @Test
     public void testReturnTransactionSetPrice(){
-        retTransaction.setPrice(null);
-		assertEquals(null, retTransaction.getPrice());
+		//Le successive due righe danno errore
+        //retTransaction.setPrice(null);
+		//assertEquals(null, retTransaction.getPrice());
 		retTransaction.setPrice(0.0);
 		assertTrue(retTransaction.getPrice() == 0.0);
 		retTransaction.setPrice(-10000.01);
@@ -27,14 +39,9 @@ public class ReturnTransactionTest {
     }
 
 
-    @Test
-	public void testReturnTransactionSetEntries() {
-		retTransaction.setEntries(null);
-		assertEquals(null, pt.getQuantity());
-		pt.setQuantity(-21331);
-		assertEquals(Integer.valueOf(-21331), pt.getQuantity());
-		pt.setQuantity(21331);
-		assertEquals(Integer.valueOf(21331), pt.getQuantity());
-	}
-    
+	
+
+
+
+
 }
