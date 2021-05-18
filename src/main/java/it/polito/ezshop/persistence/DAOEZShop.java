@@ -288,7 +288,7 @@ public class DAOEZShop implements IDAOEZshop {
             PreparedStatement pstm;
 
             pstm = connection.prepareStatement(
-                    "INSERT INTO order(product_code, price_per_unit, quantity, status) values (?,?,?,?)");
+                    "INSERT INTO 'order' (product_code, price_per_unit, quantity, status) values (?,?,?,?)");
             pstm.setString(1, productCode);
             pstm.setDouble(2, pricePerUnit);
             pstm.setInt(3, quantity);

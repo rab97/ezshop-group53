@@ -358,6 +358,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) {
+        	System.out.println("case problem with productCode");
             throw new InvalidProductCodeException();
         }
         if (quantity <= 0) {
@@ -373,7 +374,7 @@ public class EZShop implements EZShopInterface {
             newOrderId = dao.insertNewOrder(productCode, quantity, pricePerUnit);
 
         } catch (DAOException e) {
-            System.out.println("db excepiton");
+            System.out.println("db excepiton" + e);
         }
 
         return newOrderId;
