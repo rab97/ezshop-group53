@@ -13,6 +13,17 @@ public class OrderTest {
 	Order o = new ConcreteOrder();
 	
 	@Test
+	public void testCostructor() {
+		Order order = new ConcreteOrder(3, "1234", 90.9, 500, "ISSUED", 1);
+
+		assertEquals(Integer.valueOf(3), order.getBalanceId());
+		assertEquals("1234", order.getProductCode());
+		assertTrue(90.9 == order.getPricePerUnit());
+		assertEquals(500, order.getQuantity());
+		assertEquals(Integer.valueOf(1), order.getOrderId());
+	}
+	
+	@Test
 	public void testOrderSetBalanceId() {
 		o.setBalanceId(null);
 		assertEquals(null, o.getBalanceId());

@@ -525,14 +525,24 @@ public class DAOEZShop implements IDAOEZshop {
     public Integer insertCustomer(String customerName) throws DAOException {
 
         Connection connection = null;
+        Statement stm= null;
         ResultSet resultSet = null;
         try {
             connection = dataSource.getConnection();
+            stm= connection.createStatement();
+
+            //Check if the customer already exists
+            String query= "SELECT * FROM customer WHERE name= '" + customerName + "';";
+            resultSet= stm.executeQuery(query);
+
+            if(resultSet.next()){
+                return -1;
+            }
 
             // Insert
             PreparedStatement pstm;
 
-            pstm = connection.prepareStatement("insert into customer(name) values (?)");
+            pstm = connection.prepareStatement("INSERT INTO customer(name) VALUES (?)");
             pstm.setString(1, customerName);
             pstm.execute();
 
@@ -688,7 +698,7 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            String query = "select * from product_type where description = '" + description + "';";
+            String query = "select * from product_type where description LIKE '%" + description + "%';";
             resultSet = statement.executeQuery(query);
             List<ProductType> productTypeList = new ArrayList<>();
             while (resultSet.next()) {

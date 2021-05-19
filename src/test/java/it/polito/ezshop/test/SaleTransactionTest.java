@@ -1,17 +1,32 @@
 package it.polito.ezshop.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
 import it.polito.ezshop.data.SaleTransaction;
+import it.polito.ezshop.data.TicketEntry;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
 
 public class SaleTransactionTest {
 
     SaleTransaction st= new ConcreteSaleTransaction();
 
+    @Test
+    public void testConstructor(){
+    	SaleTransaction t = new ConcreteSaleTransaction(0, null, 0, 1.0);
+        assertEquals(Integer.valueOf(0), t.getTicketNumber());
+        assertEquals(null, t.getEntries());
+        assertTrue(0 == t.getDiscountRate());
+        assertTrue(1 == t.getPrice());
+    }
+    
     @Test
     public void testSaleTransacionSetTicketNumber(){
 
@@ -23,17 +38,14 @@ public class SaleTransactionTest {
 		assertEquals(Integer.valueOf(21331), st.getTicketNumber());
     }
 
-    //Le entries sono Ticket! Non posso usare altre cla)ssi nello unit test!
-	/*
     @Test
 	public void testSaleTransactionSetEntries() {
 		st.setEntries(null);
         assertEquals(null, st.getEntries());
-        //Altri casi
-
+        st.setEntries(new ArrayList<>());
+        assertTrue(st.getEntries().isEmpty());
 	}
-    */
-
+    
     @Test
     public void testSaleTransactionSetDiscountRate(){
 
