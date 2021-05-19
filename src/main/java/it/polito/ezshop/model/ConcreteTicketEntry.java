@@ -11,6 +11,8 @@ public class ConcreteTicketEntry implements TicketEntry {
     double pricePerUnit;
     double discountRate;
 
+    public ConcreteTicketEntry(){}
+
     public ConcreteTicketEntry(String barCode, String productDescription, int amount, double pricePerUnit,
             double discountRate) {
         this.barCode = barCode;

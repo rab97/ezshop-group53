@@ -13,6 +13,8 @@ public class ConcreteSaleTransaction implements SaleTransaction {
     double price;
     boolean payed;
 
+    public ConcreteSaleTransaction(){}
+
     public ConcreteSaleTransaction(Integer ticketNumber, List<TicketEntry> entries, double discountRate, double price) {
         this.ticketNumber = ticketNumber;
         this.entries = entries;
