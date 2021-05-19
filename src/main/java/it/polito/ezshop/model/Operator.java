@@ -225,8 +225,6 @@ public class Operator {
 			
 		} catch (IOException ioe) {
 			System.out.println(ioe);
-		} catch (NumberFormatException nef) {
-			System.out.println(nef);
 		}
 		
 		return false;

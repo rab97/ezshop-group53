@@ -110,6 +110,7 @@ public class OperatorTest {
 	@Test
 	public void testCheckCreditCardAmountWithInvalidCreditCard() {
 		assertFalse(o.checkCreditCardAmount("4485370346510892", 10.5, true));
+		assertFalse(o.checkCreditCardAmount("4485370346510892", 10.5, false));
 		assertFalse(o.checkCreditCardAmount("dasdsa21321sa21d", 2.0, false));
 		
 	}
@@ -120,7 +121,7 @@ public class OperatorTest {
 	
 	public void testCheckCreditCardAmountWithEmptyCreditCard() {
 		assertFalse(o.checkCreditCardAmount(" ", 10.5, false));
-		assertFalse(o.checkCreditCardAmount("", 2.0, false));
+		assertFalse(o.checkCreditCardAmount("", 2.0, true));
 	}
 	
 	@Test

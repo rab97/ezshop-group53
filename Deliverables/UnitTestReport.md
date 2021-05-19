@@ -260,7 +260,8 @@ Version:
 
     <Add here the screenshot report of the statement and branch coverage obtained using
     the Eclemma tool. >
-
+	
+![](diagramsImages/operatorCoverage2.png)
 
 ### Loop coverage analysis
 
