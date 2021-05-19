@@ -1430,4 +1430,27 @@ public class DAOEZShop implements IDAOEZshop {
 
         return ticketEntry;
     }
+
+	@Override
+	public void resetApplication() throws DAOException {
+		Connection connection = null;
+		PreparedStatement pstm = null;
+		
+		try {
+			String query = "DELETE FROM ";
+			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'"};
+			connection = dataSource.getConnection();
+			for(int i = 0; i < 7; i++) {
+				pstm = connection.prepareStatement(query + table[i]);
+				pstm.executeUpdate();
+			}
+			
+		} catch(SQLException ex) {
+			System.out.println("Impossible to execute query: " + ex.getMessage());
+			
+		} finally {
+			dataSource.close(connection);
+		}
+		
+	}
 }

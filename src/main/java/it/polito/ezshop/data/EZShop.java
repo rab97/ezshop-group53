@@ -28,7 +28,11 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public void reset() {
-
+    	try {
+    		dao.resetApplication();
+    	} catch (DAOException e){
+    		System.out.println(e);
+    	}
     }
 
     @Override

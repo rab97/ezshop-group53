@@ -73,4 +73,6 @@ public interface IDAOEZshop {
     public boolean updateSaleTransactionEntries (Integer transactionId, List<TicketEntry> returnEntries, boolean committed) throws DAOException;
     public TicketEntry searchTicketEntry (Integer transactionId, Integer productId) throws DAOException;
 
+	public void resetApplication() throws DAOException;
+
 }
