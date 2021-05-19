@@ -688,7 +688,7 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            String query = "select * from product_type where description = '" + description + "';";
+            String query = "select * from product_type where description LIKE '%" + description + "%';";
             resultSet = statement.executeQuery(query);
             List<ProductType> productTypeList = new ArrayList<>();
             while (resultSet.next()) {

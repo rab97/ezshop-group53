@@ -55,6 +55,7 @@ public class EZShop implements EZShopInterface {
             System.out.println(e);
         }
         
+        System.out.println("new id = " + user_id);
         return user_id;
     }
 
@@ -164,7 +165,7 @@ public class EZShop implements EZShopInterface {
             throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException,
             UnauthorizedException {
 
-        if (description.isEmpty()) {
+        if (description == null || description.isEmpty()) {
             throw new InvalidProductDescriptionException();
         }
         if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) {
@@ -180,6 +181,7 @@ public class EZShop implements EZShopInterface {
             throw new InvalidProductCodeException();
         }
         if (pricePerUnit <= 0) {
+        	System.out.println("throw invalid price");
             throw new InvalidPricePerUnitException();
         }
         if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
@@ -194,6 +196,7 @@ public class EZShop implements EZShopInterface {
             System.out.println(e);
             return -1;
         }
+        
         return productType.getId();
     }
 
@@ -263,7 +266,8 @@ public class EZShop implements EZShopInterface {
     @Override
     public ProductType getProductTypeByBarCode(String barCode)
             throws InvalidProductCodeException, UnauthorizedException {
-        if (barCode == null || barCode.isEmpty()) {
+        if (barCode == null || barCode.isEmpty() || !o.isValidCode(barCode)) {
+        	System.out.println("invalid barcode");
             throw new InvalidProductCodeException();
         }
         if (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
@@ -319,21 +323,31 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean updatePosition(Integer productId, String newPos)
             throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+        
+        if(newPos==null || newPos.isEmpty()) {
+        	try {
+        		dao.updatePosition(productId, "");
+                return true;
+            } catch (DAOException e) {
+                System.out.println(e);
+            }
+        }
+        
         String position[] = newPos.split("-");
-        System.out.println(newPos);
-        System.out.println("position lemgth: " + position.length);
-        if (position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
+        /*if (position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
             throw new InvalidLocationException(
                     "location wrong: assure that you use this pattern: number-string-number");
-        }
+        }*/
+        
+        if(!position[1].matches("[a-zA-Z]*"))
+        	throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
         try {
             Integer.parseInt(position[0]);
             Integer.parseInt(position[2]);
 
         } catch (Exception e) {
             System.out.println("eccezione : " + e);
-            throw new InvalidLocationException(
-                    "location wrong: assure that you use this pattern: number-string-number");
+            throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
         }
         if (productId == null || productId <= 0) {
             throw new InvalidProductIdException();
