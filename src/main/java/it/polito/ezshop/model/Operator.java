@@ -16,7 +16,6 @@ public class Operator {
 		int values1[] = {1,3,1,3,1,3,1,3,1,3,1,3};
 		int result[] = new int[productCode.length()];
 		if(productCode.length() == 13) {
-			System.out.println("eseguo product COde " + productCode);
 			for(int i = 0; i < productCode.length() - 1; i++) {
 				result[i] = Integer.parseInt(productCode.charAt(i) + "") * values1[i];
 				counter += result[i];
@@ -112,7 +111,6 @@ public class Operator {
                 // separating name and number.
                 cardNumber = lineSplit[0];
                 balance = Double.parseDouble(lineSplit[1]);
- 
                 // Print the card data
                 //System.out.println( "Credit card number: " + cardNumber + "\n" + "Balance: " + balance + "\n");
                 
@@ -136,7 +134,7 @@ public class Operator {
 		
 		String lineString;
 		String cardNumber;
-		double balance;
+		double balance = 0.0;
 		int index;
 		if(creditCard == null || creditCard.isEmpty() || toPay <= 0) {
 			return false;
@@ -169,18 +167,23 @@ public class Operator {
                 	tmpraf.writeBytes(lineString);
 					tmpraf.writeBytes(System.lineSeparator());
                 	continue;
-                } else {
+                } else {;
 	                // splitting the string to get credit card number and balance
 	                String[] lineSplit = lineString.split(";");
-	 
 	                // separating name and number.
 	                cardNumber = lineSplit[0];
-	                balance = Double.parseDouble(lineSplit[1]);
-	                
+	                try {	                	
+	                	balance = Double.parseDouble(lineSplit[1]);
+	                } catch (Exception e) {
+						System.out.println("exceptio " + e);
+					}
 					if (cardNumber.equals(creditCard)) {
 						found = true;
 						if(debit) {
 							if(balance < toPay) {
+								tmpraf.close();
+								tmpFile.delete();
+								raf.close();
 								return false;
 							}
 							balance-=toPay;
@@ -201,8 +204,11 @@ public class Operator {
 
 			// Copy the contents from the temporary file to original file.
 			while (tmpraf.getFilePointer() < tmpraf.length()) {
-				raf.writeBytes(tmpraf.readLine());
-				raf.writeBytes(System.lineSeparator());
+				String line = tmpraf.readLine();
+				raf.writeBytes(line);
+				if(!line.isEmpty()) {					
+					raf.writeBytes(System.lineSeparator());
+				}
 			}
 
 			// Set the length of the original file to that of temporary.
@@ -213,7 +219,7 @@ public class Operator {
 			raf.close();
 			// Deleting the temporary file
 			tmpFile.delete();
-
+        	
 			//System.out.println(" Credit card updated. ");
 			return found;
 			
@@ -221,8 +227,6 @@ public class Operator {
 			System.out.println(ioe);
 		} catch (NumberFormatException nef) {
 			System.out.println(nef);
-		} finally {
-			
 		}
 		
 		return false;

@@ -15,7 +15,7 @@ public class BalanceOperationTest{
 	@Test
 	public void testCostructor() {
 		BalanceOperation bo = new ConcreteBalanceOperation(1, LocalDate.of(2021, 1, 8), 44.6, "type");
-		assertEquals(Integer.valueOf(1), bo.getBalanceId());
+		assertEquals(1, bo.getBalanceId());
 		assertEquals(LocalDate.of(2021, 1, 8), bo.getDate());
 		assertTrue(44.6 == bo.getMoney());
 		assertEquals("type", bo.getType());
@@ -24,11 +24,11 @@ public class BalanceOperationTest{
 	@Test
 	public void testSetAndGetBalanceId() {
 		balanceOperation.setBalanceId(2);
-		assertEquals(Integer.valueOf(2), balanceOperation.getBalanceId());
+		assertEquals(2, balanceOperation.getBalanceId());
 		balanceOperation.setBalanceId(-30);
-		assertEquals(Integer.valueOf(-30), balanceOperation.getBalanceId());
+		assertEquals(-30, balanceOperation.getBalanceId());
 		balanceOperation.setBalanceId(0);
-		assertEquals(Integer.valueOf(0), balanceOperation.getBalanceId());
+		assertEquals(0, balanceOperation.getBalanceId());
 	}
 	
 	@Test

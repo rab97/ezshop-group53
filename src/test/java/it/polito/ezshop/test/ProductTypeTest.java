@@ -12,6 +12,19 @@ public class ProductTypeTest {
 	
 	ProductType pt = new ConcreteProductType();
 	
+	
+	@Test
+	public void testCostructor() {
+		ProductType p = new ConcreteProductType(4, "description", "1223213", "note",21,22.5, "44-B-07");
+		assertEquals(Integer.valueOf(4), p.getId());
+		assertEquals("description", p.getProductDescription());
+		assertEquals("1223213", p.getBarCode());
+		assertEquals("note", p.getNote());
+		assertEquals(Integer.valueOf(21), p.getQuantity());
+		assertEquals(Double.valueOf(22.5), p.getPricePerUnit());
+		assertEquals("44-B-07", p.getLocation());
+	}
+	
 	@Test
 	public void testProductTypeSetQuantity() {
 		pt.setQuantity(null);

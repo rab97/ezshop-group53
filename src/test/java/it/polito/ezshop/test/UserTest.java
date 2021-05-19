@@ -4,12 +4,32 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.User;
 import it.polito.ezshop.model.ConcreteUser;
 
 public class UserTest {
 	
 	User u = new ConcreteUser();
+	
+	
+	@Test
+	public void testCostructor1() {
+		User user = new ConcreteUser("username", 0, "name", Constants.ADMINISTRATOR);
+		assertEquals("username", user.getUsername());
+		assertEquals(Integer.valueOf(0), user.getId());
+		assertEquals("name", user.getPassword());
+		assertEquals(Constants.ADMINISTRATOR, user.getRole());
+	}
+	
+	@Test
+	public void testCostructor2 () {
+		User user = new ConcreteUser(new ConcreteUser("username", 0, "name", Constants.ADMINISTRATOR));
+		assertEquals("username", user.getUsername());
+		assertEquals(Integer.valueOf(0), user.getId());
+		assertEquals("name", user.getPassword());
+		assertEquals(Constants.ADMINISTRATOR, user.getRole());
+	}
 	
 	@Test
 	public void testUserSetId() {
