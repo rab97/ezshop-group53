@@ -12,6 +12,16 @@ public class TicketEntryTest {
 
     TicketEntry te= new ConcreteTicketEntry();
 
+    @Test
+	public void testCostructor() {
+    	TicketEntry t = new ConcreteTicketEntry("1234", "desc", 0, 100.09,10);
+		assertEquals("1234", t.getBarCode());
+		assertEquals("desc", t.getProductDescription());
+		assertEquals(0, t.getAmount());
+		assertTrue(100.09 == t.getPricePerUnit());
+		assertTrue(10 == t.getDiscountRate());
+		
+	}
    
     
     @Test
