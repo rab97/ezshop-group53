@@ -54,7 +54,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-        
+                
         return user_id;
     }
 
@@ -1434,12 +1434,12 @@ public class EZShop implements EZShopInterface {
         String type;
         double future_balance;
         if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         future_balance = this.computeBalance();
         future_balance += toBeAdded;
-        if (future_balance <= 0)
+        if (future_balance < 0)
             return false;
         if (toBeAdded >= 0)
             type = "CREDIT";
@@ -1457,15 +1457,6 @@ public class EZShop implements EZShopInterface {
     @Override
     public List<BalanceOperation> getCreditsAndDebits(LocalDate from, LocalDate to) throws UnauthorizedException {
         List<BalanceOperation> balanceOperationList = new ArrayList<>();
-        if (from == null)
-            from = LocalDate.of(1900, 1, 1);
-        if (to == null)
-            to = LocalDate.of(2100, 1, 1);
-        if (from.isAfter(to)) {
-            LocalDate temp = from;
-            from = to;
-            to = temp;
-        }
         try {
             balanceOperationList = dao.getBalanceOperations(from, to);
         } catch (DAOException e) {
@@ -1484,7 +1475,7 @@ public class EZShop implements EZShopInterface {
         double balance = 0;
 
         if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
     	balanceOperationList=this.getCreditsAndDebits(null,null);
