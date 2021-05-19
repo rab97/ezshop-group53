@@ -301,8 +301,7 @@ public class EZShop implements EZShopInterface {
     }
 
     @Override
-    public boolean updateQuantity(Integer productId, int toBeAdded)
-            throws InvalidProductIdException, UnauthorizedException {
+    public boolean updateQuantity(Integer productId, int toBeAdded) throws InvalidProductIdException, UnauthorizedException {
 
         if (productId == null || productId <= 0) {
             throw new InvalidProductIdException();
@@ -496,6 +495,12 @@ public class EZShop implements EZShopInterface {
 
             recordArrival= dao.recordArrival(orderId);
 
+            if(recordArrival){ //if true, updateProductQuantity
+                boolean updateProductQuantity= dao.updateQuantity(orderProduct.getId(), myOrder.getQuantity());
+                if(!updateProductQuantity){
+                    return false;
+                }
+            }
 
         } catch (DAOException e) {
             System.out.println("db excepiton");
@@ -503,6 +508,7 @@ public class EZShop implements EZShopInterface {
 
         return recordArrival;
     }
+
 
     @Override
     public List<Order> getAllOrders() throws UnauthorizedException {
@@ -525,12 +531,12 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public Integer defineCustomer(String customerName) throws InvalidCustomerNameException, UnauthorizedException {
+
         if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-
         if (customerName == null | customerName.isEmpty()) {
             throw new InvalidCustomerNameException();
         }
