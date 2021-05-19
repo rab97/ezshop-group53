@@ -28,7 +28,11 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public void reset() {
-
+    	try {
+    		dao.resetApplication();
+    	} catch (DAOException e){
+    		System.out.println(e);
+    	}
     }
 
     @Override
@@ -740,7 +744,7 @@ public class EZShop implements EZShopInterface {
         if (amount < 0) {
             throw new InvalidQuantityException();
         }
-        if (productCode.isEmpty() || productCode == null) { // manca invalid
+        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (saleTransaction.getTicketNumber() != transactionId)
@@ -1073,7 +1077,7 @@ public class EZShop implements EZShopInterface {
     	if(amount<=0) {
     		throw new InvalidQuantityException();
     	}
-    	if (productCode.isEmpty() || productCode == null) { // manca invalid
+    	if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
              throw new InvalidProductCodeException();
         }
     	
@@ -1098,17 +1102,23 @@ public class EZShop implements EZShopInterface {
     	// add to list
         boolean toAdd = true;
         for (TicketEntry t : returnTransaction.getEntries()) {
+        	System.out.println("barcode prod da aggiungere: " + productCode);
+        	System.out.println("t attuale: " + t.getBarCode());
             if (t.getBarCode().equals(productCode)) {
                 t.setAmount(t.getAmount() + amount);
                 toAdd = false;
                 break;
             }
         }
+        System.out.println("toAdd: " + toAdd);
         if (toAdd) {
         	prodToReturn.setAmount(amount);
             returnTransaction.getEntries().add(prodToReturn);
         }
-    	
+        
+        for (TicketEntry t : returnTransaction.getEntries())
+        	System.out.println("t finale: " + t.getBarCode());
+        	
     	return true;
     }
 
@@ -1145,9 +1155,6 @@ public class EZShop implements EZShopInterface {
     		}
             
     		
-    		//update sale transaction
-    		
-    		//insert return transaction in db + returned products to return_ticket_entry
     		// calculate price for return transaction
             double price = 0;
             for (TicketEntry te : returnTransaction.getEntries())
@@ -1155,10 +1162,24 @@ public class EZShop implements EZShopInterface {
 
             price = (1 - returnTransaction.getDiscountRate()) * price;
             returnTransaction.setPrice(price);
-
-            boolean state = false;
+            
+            //update sale transaction (product sold + final price)
+            // 1. update final price
             try {
-                state = dao.storeReturnTransaction(returnTransaction);		
+                dao.updateSaleTransactionPrice(returnTransaction.getTransactionId(), price,Constants.COMMITTED);		
+            } catch (DAOException e) {
+                System.out.println(e);
+            }
+            // 2. update ticket entries
+            try {
+                dao.updateSaleTransactionEntries(returnTransaction.getTransactionId(), returnTransaction.getEntries(), Constants.COMMITTED);		
+            } catch (DAOException e) {
+                System.out.println(e);
+            }
+            
+            //insert return transaction in db + returned products to return_ticket_entry
+            try {
+                dao.storeReturnTransaction(returnTransaction);		
             } catch (DAOException e) {
                 System.out.println(e);
             }
@@ -1192,12 +1213,24 @@ public class EZShop implements EZShopInterface {
     	
     	boolean state = false;
         try {
-            state = dao.deleteReturnTransaction(returnId);						//deletes entry in return_transaction + all related entires in return_ticket_entry
+            state = dao.deleteReturnTransaction(returnId);						//deletes entry in return_transaction + all related entries in return_ticket_entry
         } catch (DAOException e) {
             System.out.println(e);
         }
         
-        //update sale transaction
+        //update sale transaction (product sold + final price)
+        // 1. update final price
+        try {
+            dao.updateSaleTransactionPrice(returnTransaction.getTransactionId(), rt.getPrice(), Constants.NOT_COMMITTED);		
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+        // 2. update ticket entries
+        try {
+            dao.updateSaleTransactionEntries(rt.getTransactionId(), rt.getEntries(), Constants.NOT_COMMITTED);		
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
         
         //decrease product availability
 		for (TicketEntry te : returnTransaction.getEntries()) {
