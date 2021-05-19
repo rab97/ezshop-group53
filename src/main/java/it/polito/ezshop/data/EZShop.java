@@ -1497,7 +1497,7 @@ public class EZShop implements EZShopInterface {
             System.out.println("getBalanceOperations exception");
         }
         if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         return balanceOperationList;
