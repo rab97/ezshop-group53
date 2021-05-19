@@ -1316,15 +1316,18 @@ public class DAOEZShop implements IDAOEZshop {
         int update;
         double finalPrice;
         
+        System.out.println("prezzo return: " + price);
+        
         SaleTransaction s = this.searchSaleTransaction(transactionId);
+        System.out.println("prezzo iniziale: " + s.getPrice());
         if(committed)
         	finalPrice= s.getPrice()-price;
         else
         	finalPrice = s.getPrice()+price;
-
+        System.out.println("finale: " + finalPrice);
         try {
             connection = dataSource.getConnection();
-            String query = "UPDATE sale_transaction SET payed=? WHERE id= '" + transactionId + "';";
+            String query = "UPDATE sale_transaction SET price=? WHERE id= '" + transactionId + "';";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setDouble(1, finalPrice);
             update = preparedStatement.executeUpdate();
@@ -1357,11 +1360,14 @@ public class DAOEZShop implements IDAOEZshop {
         
         TicketEntry saleTe;
         for (TicketEntry te : returnEntries) {
+        	System.out.println("quantita' da ritornare:" + te.getAmount());
         	saleTe = this.searchTicketEntry(transactionId, this.getProductTypeByBarCode(te.getBarCode()).getId());
+        	System.out.println("quantita' originaria:" + saleTe.getAmount());
         	if(committed) //confirm return transaction -> decrease products sold
         		final_qty = saleTe.getAmount() - te.getAmount();
         	else 
         		final_qty = saleTe.getAmount() + te.getAmount();
+        	System.out.println("quantita' finale:" + final_qty);
 	        try {
 	            connection = dataSource.getConnection();
 	            String query = "UPDATE ticket_entry SET amount=? WHERE transactionId=? AND productId=?";
@@ -1395,7 +1401,7 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            String query = "SELECT * FROM ticket_entry WHERE transactionId= '" + transactionId + " AND productId= '" + productId + "'" ;
+            String query = "SELECT * FROM ticket_entry WHERE transactionId= '" + transactionId + "' AND productId= '" + productId + "';" ;
             resultSet = statement.executeQuery(query);
 
             if (!resultSet.next())

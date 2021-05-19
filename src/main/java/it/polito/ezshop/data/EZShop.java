@@ -1087,17 +1087,23 @@ public class EZShop implements EZShopInterface {
     	// add to list
         boolean toAdd = true;
         for (TicketEntry t : returnTransaction.getEntries()) {
+        	System.out.println("barcode prod da aggiungere: " + productCode);
+        	System.out.println("t attuale: " + t.getBarCode());
             if (t.getBarCode().equals(productCode)) {
                 t.setAmount(t.getAmount() + amount);
                 toAdd = false;
                 break;
             }
         }
+        System.out.println("toAdd: " + toAdd);
         if (toAdd) {
         	prodToReturn.setAmount(amount);
             returnTransaction.getEntries().add(prodToReturn);
         }
-    	
+        
+        for (TicketEntry t : returnTransaction.getEntries())
+        	System.out.println("t finale: " + t.getBarCode());
+        	
     	return true;
     }
 
