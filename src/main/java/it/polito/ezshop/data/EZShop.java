@@ -798,7 +798,7 @@ public class EZShop implements EZShopInterface {
         if (amount < 0) {
             throw new InvalidQuantityException();
         }
-        if (productCode.isEmpty() || productCode == null) { // manca invalid
+        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (saleTransaction.getTicketNumber() != transactionId)
@@ -858,7 +858,7 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-        if (productCode.isEmpty() || productCode == null) { // manca invalid
+        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (discountRate < 0 || discountRate >= 1.00) {
@@ -936,7 +936,6 @@ public class EZShop implements EZShopInterface {
             return false;
         // if(saleTransaction.getEntries().isEmpty())
         //	return false;
-
         // calculate price for sale transaction
         double price = 0;
         for (TicketEntry te : saleTransaction.getEntries())
@@ -951,6 +950,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
+
         return state;
     }
 
@@ -983,7 +983,18 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-        saleTransaction=null;
+        
+      //increase product availability
+      		for (TicketEntry te : saleTransaction.getEntries()) {
+      			try {
+      				ProductType pt = dao.getProductTypeByBarCode(te.getBarCode());
+                      dao.updateQuantity(pt.getId(), te.getAmount());
+                  } catch (DAOException e) {
+                      System.out.println(e);
+                      return false;
+                  }
+      		}
+        
         return state;
     }
 
@@ -1186,7 +1197,7 @@ public class EZShop implements EZShopInterface {
 		for (TicketEntry te : returnTransaction.getEntries()) {
 			try {
 				ProductType pt = dao.getProductTypeByBarCode(te.getBarCode());
-                dao.updateQuantity(pt.getId(), (-2) * te.getAmount());
+                dao.updateQuantity(pt.getId(), -te.getAmount());
             } catch (DAOException e) {
                 System.out.println(e);
                 return false;
