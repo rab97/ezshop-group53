@@ -1480,7 +1480,17 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<BalanceOperation> getCreditsAndDebits(LocalDate from, LocalDate to) throws UnauthorizedException {
-        List<BalanceOperation> balanceOperationList = new ArrayList<>();
+    	if(from == null)
+    		from = LocalDate.of(1900, 1, 1);
+    	if(to == null)
+    		to = LocalDate.of(2100, 1, 1);
+    	if(from.isAfter(to)) {
+            LocalDate tmp = from;
+            from = to;
+           	to = tmp;
+        }
+       
+    	List<BalanceOperation> balanceOperationList = new ArrayList<>();
         try {
             balanceOperationList = dao.getBalanceOperations(from, to);
         } catch (DAOException e) {

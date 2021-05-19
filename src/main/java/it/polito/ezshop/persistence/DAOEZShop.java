@@ -1072,17 +1072,7 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
-            String query = null;
-            if(from == null || to == null) {
-            	query = "SELECT * FROM balance_operation";
-            }
-            if(from == null && to != null) {
-            	query = "SELECT * FROM balance_operation WHERE date<= '" + to + "'";
-            } 
-            if(from != null && to == null) {
-            	query = "SELECT * FROM balance_operation WHERE date>= '" + from + "'";
-            }
-
+            String query = "SELECT * FROM balance_operation WHERE date>= '" + from + "' AND date<= '" + to + "'";
             ResultSet resultSet = statement.executeQuery(query);
 
             while (resultSet.next()) {
