@@ -4,7 +4,7 @@ import it.polito.ezshop.data.Order;
 import java.time.LocalDate;
 import java.util.Date;
 
-public class ConcreteOrder extends ConcreteBalanceOperation implements Order {
+public class ConcreteOrder implements Order {
 
     Integer balanceId;
     String productCode;
@@ -15,7 +15,6 @@ public class ConcreteOrder extends ConcreteBalanceOperation implements Order {
 
     public ConcreteOrder(Integer balanceId, String productCode, double pricePerUnit, int quantity, String status, Integer orderId) {
         
-        super();
         //Initializing ConcreteOrder attributes
         this.balanceId= balanceId;
         this.productCode = productCode;

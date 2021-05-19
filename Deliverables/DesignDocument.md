@@ -124,6 +124,7 @@ class Order {
  quantity: int
  pricePerUnit: double
  supplier: String
+ balanceId: Integer
  productType: ProductType
 }
 
@@ -138,16 +139,11 @@ class ProductType {
  location: String
 }
 
-class Card {
- cardId: String
- points: int
-}
-
 class Customer {
- customerId: Integer
- name: String
- surname: String
- card: Card
+ Id: Integer
+ customerName: String
+ customerCard: String
+ Integer points
 }
 
 class User{
@@ -157,22 +153,21 @@ class User{
  id: Integer
 }
 
-class ShopManager{}
-
-class Admin{}
+class TicketEntry {
+    barCode : String;
+    productDescription: String ;
+    amount: int;
+    pricePerUnit: double ;
+    discountRate double;
+}
 
 AccountBook --> "*" BalanceOperation
-SaleTransaction --|> BalanceOperation
-ReturnTransaction --|> BalanceOperation
-Order --|> BalanceOperation
 ReturnTransaction "0..*" --> SaleTransaction
 ReturnTransaction --> "*" ProductType
 SaleTransaction--> "*" ProductType
 Order "0...*" <--> ProductType
-SaleTransaction --> "0..1" Card
-Customer --> "0..1" Card
-ShopManager --|> User
-Admin --|> ShopManager
+ReturnTransaction -> "*" TicketEntry
+SaleTransaction -> "*" TicketEntry
 EZShop --> AccountBook
 EZShop --> "*" User
 EZShop --> "*" Customer
