@@ -802,12 +802,19 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
 
-            // Search for sale transaction
+            // Search for return transaction
             String query = "DELETE FROM return_transaction WHERE id=?";
             PreparedStatement pstm = connection.prepareStatement(query);
             pstm.setDouble(1, returnId);
             if (pstm.executeUpdate() == -1)
                 return false;
+            
+            // Delete product entry from return_ticket_entry
+            query = "DELETE FROM return_ticket_entry WHERE returnId=?";
+            pstm = connection.prepareStatement(query);
+            pstm.setInt(1, returnId);
+            if(pstm.executeUpdate() <= 0) 
+            	return false;
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());

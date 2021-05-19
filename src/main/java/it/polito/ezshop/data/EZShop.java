@@ -734,7 +734,7 @@ public class EZShop implements EZShopInterface {
         if (amount < 0) {
             throw new InvalidQuantityException();
         }
-        if (productCode.isEmpty() || productCode == null) { // manca invalid
+        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (saleTransaction.getTicketNumber() != transactionId)
@@ -1067,7 +1067,7 @@ public class EZShop implements EZShopInterface {
     	if(amount<=0) {
     		throw new InvalidQuantityException();
     	}
-    	if (productCode.isEmpty() || productCode == null) { // manca invalid
+    	if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
              throw new InvalidProductCodeException();
         }
     	
@@ -1203,7 +1203,7 @@ public class EZShop implements EZShopInterface {
     	
     	boolean state = false;
         try {
-            state = dao.deleteReturnTransaction(returnId);						//deletes entry in return_transaction + all related entires in return_ticket_entry
+            state = dao.deleteReturnTransaction(returnId);						//deletes entry in return_transaction + all related entries in return_ticket_entry
         } catch (DAOException e) {
             System.out.println(e);
         }
