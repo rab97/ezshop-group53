@@ -30,12 +30,10 @@ Version: 1.0.0
 @startuml
 class EZShop{
  runningUser: User
- userList: List<User>
- productTypeList: List<ProductType>
- ordersList: List<Order>
- customersList: List<Customer>
- accountBook: AccountBook
- saleTransactionsList: List<SaleTransaction>
+ returnTransaction: ReturnTransaction
+ saleTransaction: SaleTransaction
+ saleTransaction_state: boolean 
+ returnTransaction_state: boolean 
  reset(): void
  createUser(username:String, password:String,role:String): Integer
  deleteUser(id:Integer): boolean
@@ -88,34 +86,28 @@ class EZShop{
  computeBalance(): double
 }
 
-
-class AccountBook {
- finalBalance: double
- balanceOperationsList: List<BalanceOperation>
- getCreditsAndDebits(from:LocalDate, to:LocalDate): List<BalanceOperation>
-}
-
 class BalanceOperation{
- description: String
- amount: double
+ balanceId: Integer;
+ type: String
+ money: double
  date: Date
 }
 
 class ReturnTransaction{
- returnTransactionId: Integer
- returnedValue: double
- productToReturn: List<ProductType>
- saleTransaction: SaleTransaction
+ transactionId: Integer
+ returnId: Integer
+ price: double
+ entries: List<TicketEntry>
+ discountRate: double
+ payed: boolean
 }
 
 class SaleTransaction{
- saleTransactionId: Integer
- pointsOfSale: int
- cost: double
- paymentType: String
- discountRare: double
- loyalityCard: Card
- ProductToSale: List<ProductType>
+ ticketNumber: Integer
+ price: double
+ discountRate: double
+ entries: List<TicketEntry>
+ payed: boolean
 }
 
 class Order {
@@ -123,19 +115,17 @@ class Order {
  status: String
  quantity: int
  pricePerUnit: double
- supplier: String
  balanceId: Integer
- productType: ProductType
+ productCode: String
 }
 
 class ProductType {
- productTypeId: Integer
- description: String
+ id: Integer
+ productDescription: String
  barCode: String
- notes: String
- quantity: int
- sellPrice: double
- discountRate: double
+ note: String
+ quantity: Integer
+ pricePerUnit: Double
  location: String
 }
 
@@ -143,7 +133,7 @@ class Customer {
  Id: Integer
  customerName: String
  customerCard: String
- Integer points
+ points: Integer
 }
 
 class User{
@@ -154,26 +144,21 @@ class User{
 }
 
 class TicketEntry {
-    barCode : String;
-    productDescription: String ;
-    amount: int;
-    pricePerUnit: double ;
-    discountRate double;
+    barCode : String
+    productDescription: String 
+    amount: int
+    pricePerUnit: double 
+    discountRate double
 }
 
-AccountBook --> "*" BalanceOperation
-ReturnTransaction "0..*" --> SaleTransaction
-ReturnTransaction --> "*" ProductType
-SaleTransaction--> "*" ProductType
-Order "0...*" <--> ProductType
 ReturnTransaction -> "*" TicketEntry
 SaleTransaction -> "*" TicketEntry
-EZShop --> AccountBook
 EZShop --> "*" User
 EZShop --> "*" Customer
 EZShop --> "*" ProductType
 EZShop --> "*" Order
 EZShop --> "*" SaleTransaction
+EZShop --> "*" BalanceOperation
 @enduml
 ```
 
