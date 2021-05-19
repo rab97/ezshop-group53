@@ -324,6 +324,8 @@ public class EZShop implements EZShopInterface {
     public boolean updatePosition(Integer productId, String newPos)
             throws InvalidProductIdException, InvalidLocationException, UnauthorizedException {
         
+    	System.out.println("posizione: " + newPos);
+    	
         if(newPos==null || newPos.isEmpty()) {
         	try {
         		dao.updatePosition(productId, "");
@@ -334,10 +336,11 @@ public class EZShop implements EZShopInterface {
         }
         
         String position[] = newPos.split("-");
-        /*if (position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
+        System.out.println("posizione: " + position[0] + " - " + position[1] + " - " + position[2]);
+        if (position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
             throw new InvalidLocationException(
                     "location wrong: assure that you use this pattern: number-string-number");
-        }*/
+        }
         
         if(!position[1].matches("[a-zA-Z]*"))
         	throw new InvalidLocationException("location wrong: assure that you use this pattern: number-string-number");
