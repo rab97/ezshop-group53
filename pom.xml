@@ -119,6 +119,13 @@
             <scope>system</scope>
             <systemPath>${pom.basedir}/lib/ezshop-gui.jar</systemPath>
         </dependency>
+        <dependency>
+            <groupId>it.polito.ezshop</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.7.2</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/lib/sqlite-jdbc-3.7.2.jar</systemPath>
+        </dependency>
 
     </dependencies>
 </project>
