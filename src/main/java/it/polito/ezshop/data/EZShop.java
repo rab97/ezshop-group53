@@ -27,7 +27,8 @@ public class EZShop implements EZShopInterface {
     boolean saleTransaction_state;
     boolean returnTransaction_state;
     private Operator o = new Operator();
-
+    
+    
     @Override
     public void reset() {
     	try {
@@ -1076,7 +1077,7 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-    	if(transactionId<=0 || transactionId==null) {
+    	if(transactionId == null || transactionId <= 0) {
     		throw new InvalidTransactionIdException();
     	}
     	
@@ -1085,17 +1086,22 @@ public class EZShop implements EZShopInterface {
         Integer return_transaction_id = -1;
         
         SaleTransaction s = this.getSaleTransaction(transactionId);
-        if(s!=null) {
+        if(s != null) {
+        	if(!s.getPayed()) {
+        		return -1;
+        	}
 	        try {
 	            return_transaction_id = dao.insertReturnTransaction();
 	        } catch (DAOException e) {
 	            System.out.println(e);
 	        }
+	        
 	        returnTransaction = new ConcreteReturnTransaction(return_transaction_id+1, transactionId, new ArrayList<TicketEntry>(), 0.0, s.getDiscountRate());
-	        System.out.println("returnTransaction created, number: " + return_transaction_id);
+	        System.out.println("returnTransaction created, number: " + return_transaction_id + " " + returnTransaction.getReturnId());
+	        return returnTransaction.getReturnId();
         }
-        return returnTransaction.getReturnId();
-
+        return -1;
+       
     }
 
     @Override
@@ -1538,4 +1544,17 @@ public class EZShop implements EZShopInterface {
     	}
     	return balance;
     }   
+    
+    public User getRunningUser() {
+    	return this.runningUser;
+    }
+    
+    public void setRunningUser(User user) {
+    	this.runningUser = user;
+    }
+    
+    public ReturnTransaction getReturnTransaction() {
+    	return this.returnTransaction;
+    }
+    
 }

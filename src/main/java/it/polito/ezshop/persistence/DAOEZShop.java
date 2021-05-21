@@ -1238,8 +1238,11 @@ public class DAOEZShop implements IDAOEZshop {
             saleTransaction = new ConcreteSaleTransaction(transactionId, entries, resultSet.getDouble("discountRate"),
                     resultSet.getDouble("price"));
             
-            if(resultSet.getInt("payed")==1)
+            if(resultSet.getInt("payed")==1) {
             	saleTransaction.setPayed(true);
+            } else {
+            	saleTransaction.setPayed(false);
+            }
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
