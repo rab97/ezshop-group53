@@ -180,15 +180,14 @@ public class EZShop implements EZShopInterface {
             Long.parseLong(productCode);
 
         } catch (Exception e) {
-            System.out.println("throw");
-            System.out.println(productCode);
+            
             throw new InvalidProductCodeException();
         }
         if (pricePerUnit <= 0) {
         	System.out.println("throw invalid price");
             throw new InvalidPricePerUnitException();
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
 

@@ -14,7 +14,10 @@ import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.EZShop;
 import it.polito.ezshop.data.ReturnTransaction;
 import it.polito.ezshop.data.User;
+import it.polito.ezshop.exceptions.InvalidPricePerUnitException;
 import it.polito.ezshop.exceptions.InvalidProductCodeException;
+import it.polito.ezshop.exceptions.InvalidProductDescriptionException;
+import it.polito.ezshop.exceptions.InvalidProductIdException;
 import it.polito.ezshop.exceptions.InvalidQuantityException;
 import it.polito.ezshop.exceptions.InvalidTransactionIdException;
 import it.polito.ezshop.exceptions.UnauthorizedException;
@@ -28,6 +31,98 @@ public class EZShopTest {
 	@Before	
 	public void setUp () {
 		ezShop = new EZShop();
+	}
+	
+	@Test(expected = InvalidProductDescriptionException.class)
+	public void testCreateProductTypeInvalidDescription() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+	
+		//Test null description
+		ezShop.createProductType(null, "1234567891231", 5.0, "note");	
+		
+		//Test empty description
+		ezShop.createProductType("ciao", "1234567891231", 5.0, "note");
+	}
+
+	@Test(expected = InvalidProductCodeException.class)
+	public void testCreateProductTypeInvalidProductCode() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		
+		//Test product code null
+		ezShop.createProductType("description", null, 5.0, "note");
+
+		//Test product code empty
+		ezShop.createProductType("description", "", 5.0, "note");
+		
+		
+		//Test product code is valid code
+		ezShop.createProductType("description", "123456", 5.0, "note");
+
+		
+		//Test product code is a number
+		ezShop.createProductType("description", "productCode", 5.0, "note");	
+	}
+	
+	@Test(expected = InvalidPricePerUnitException.class)
+	public void testCreateProductTypeInvalidPricePerUnit() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		
+		//Test pricePerUnit negative
+		ezShop.createProductType("description", "1234567891231", -1, "note");
+		
+		//Test pricePerUnit negative
+		ezShop.createProductType("description", "1234567891231", -1, "note");
+	}
+	
+	@Test(expected = UnauthorizedException.class)
+	public void testCreateProductTypeUnauthorizedUser() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		
+		//Test no user
+		ezShop.setRunningUser(null);
+		
+		
+		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		
+		
+		//Test generic user role
+		User user = new ConcreteUser("name", 1, "123", "role");
+		ezShop.setRunningUser(user);
+		
+		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		
+		
+		//Test user role=CASHIER
+		user.setRole("role");
+		ezShop.setRunningUser(user);
+		
+		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		
+	}
+	
+	@Test
+	public void testCreateProductTypeExistingProduct() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		
+		assertEquals(Integer.valueOf(-1), ezShop.createProductType("description", "123456789104", 5.0, "note"));
+		
+	}
+	
+	@Test
+	public void testCreateProductTypeValidProduct() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		
+		assertEquals(Integer.valueOf(3), ezShop.createProductType("description", "125489796456", 5.0, "note"));
+		
+	}
+	
+	//che significa ritorna -1 se c'è un errore durante il salvataggio? Dovrebbe essere un errore di db, va testato nel db?
+	
+	@Test(expected = InvalidProductIdException.class)
+	public void testUpdateProductInvalidId() throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		//Test null id
+		ezShop.updateProduct(null, "description", "1234567891231", 5.0, "note");
+		
 	}
 	
 	@Test
@@ -383,6 +478,5 @@ public class EZShopTest {
 			fail();
 		}
 	}
-
 	
 }
