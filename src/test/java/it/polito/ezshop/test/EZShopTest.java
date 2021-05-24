@@ -81,9 +81,9 @@ public class EZShopTest {
 			ezShop.createProductType("description", "1234567891231", -1, "note");
 		});
 		
-		//Test pricePerUnit negative
+		//Test pricePerUnit=0
 		assertThrows(InvalidPricePerUnitException.class, () -> {
-			ezShop.createProductType("description", "1234567891231", -1, "note");
+			ezShop.createProductType("description", "1234567891231", 0, "note");
 		});
 	}
 	
@@ -132,16 +132,133 @@ public class EZShopTest {
 		ezShop.setRunningUser(user);
 		
 		
-		assertEquals(Integer.valueOf(3), ezShop.createProductType("description", "125489796456", 5.0, "note"));
+		assertEquals(Integer.valueOf(4), ezShop.createProductType("description", "125489796456", 5.0, "note"));
 		
 	}
 	
 	//che significa ritorna -1 se c'è un errore durante il salvataggio? Dovrebbe essere un errore di db, va testato nel db?
 	
-	@Test(expected = InvalidProductIdException.class)
+	@Test
 	public void testUpdateProductInvalidId() throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
 		//Test null id
+		assertThrows(InvalidProductIdException.class, () -> {
+			ezShop.updateProduct(null, "description", "1234567891231", 5.0, "note");
+		});
+		
+		//Test id negative
+		assertThrows(InvalidProductIdException.class, () -> {
+			ezShop.updateProduct(-1, "description", "1234567891231", 5.0, "note");
+		});
+		
+		//Test id=0
+		assertThrows(InvalidProductIdException.class, () -> {
+			ezShop.updateProduct(0, "description", "1234567891231", 5.0, "note");
+		});
 	}
+	
+	@Test
+	public void testUpdateProductInvalidDescription() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		
+		//Test null description
+		assertThrows(InvalidProductDescriptionException.class, () -> {
+			ezShop.updateProduct(1, null, "1234567891231", 5.0, "note");
+		});	
+		
+		//Test empty description
+		assertThrows(InvalidProductDescriptionException.class, () -> {
+			ezShop.updateProduct(1, "", "1234567891231", 5.0, "note");
+		});
+	}
+	
+	@Test
+	public void testUpdateProductInvalidProductCode() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		
+		//Test product code null
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.updateProduct(1, "description", null, 5.0, "note");
+		});
+
+		//Test product code empty
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.updateProduct(1, "description", "", 5.0, "note");
+		});
+		
+		//Test product code is valid code
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.updateProduct(1, "description", "123456", 5.0, "note");
+		});
+
+		
+		//Test product code is a number
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.updateProduct(1, "description", "productCode", 5.0, "note");
+		});
+	}
+	
+	@Test
+	public void testUpdateProductInvalidPricePerUnit() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		
+		//Test pricePerUnit negative
+		assertThrows(InvalidPricePerUnitException.class, () -> {
+			ezShop.updateProduct(1, "description", "1234567891231", -1, "note");
+		});
+		
+		//Test pricePerUnit negative
+		assertThrows(InvalidPricePerUnitException.class, () -> {
+			ezShop.updateProduct(1, "description", "1234567891231", 0, "note");
+		});
+	}
+	
+	@Test
+	public void testUpdateProductUnauthorizedException() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		
+		//Test no user
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note");
+		});
+		
+		
+		//Test generic user role
+		User user = new ConcreteUser("name", 1, "123", "role");
+		ezShop.setRunningUser(user);
+		
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note");
+		});
+		
+		
+		//Test user role=CASHIER
+		user.setRole("role");
+		ezShop.setRunningUser(user);
+		
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note");
+		});
+		
+	}
+	
+	@Test
+	public void testProductUpdateNotAvailableId() throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		//Test no product with given id
+		assertFalse(ezShop.updateProduct(150, "description", "1234567891231", 5.0, "note"));
+	}
+	
+	@Test
+	public void testProductUpdateExistingBarCode() throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		//Test existing bar_code
+		assertFalse(ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note"));
+	}
+	
 	
 	@Test
 	public void testStartReturnTransactionNotFoundSale() {

@@ -207,6 +207,12 @@ public class EZShop implements EZShopInterface {
     public boolean updateProduct(Integer id, String newDescription, String newCode, double newPrice, String newNote)
             throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException,
             InvalidPricePerUnitException, UnauthorizedException {
+    	
+    	boolean s = true;
+    	if(id == null || id <= 0) {
+    		throw new InvalidProductIdException();
+    	}
+    	
         if (newDescription == null || newDescription.isEmpty()) {
             throw new InvalidProductDescriptionException();
         }
@@ -223,12 +229,14 @@ public class EZShop implements EZShopInterface {
         if (newPrice <= 0) {
             throw new InvalidPricePerUnitException();
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         try {
             ProductType p = new ConcreteProductType(id, newDescription, newCode, newNote, null, newPrice, null);
-            return dao.updateProduct(p);
+            s = dao.updateProduct(p);
+            System.out.println(s);
+            return s;
         } catch (Exception e) {
             System.out.println(e);
         }
