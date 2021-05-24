@@ -141,8 +141,6 @@ public class EZShopTest {
 	@Test(expected = InvalidProductIdException.class)
 	public void testUpdateProductInvalidId() throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 		//Test null id
-		ezShop.updateProduct(null, "description", "1234567891231", 5.0, "note");
-		
 	}
 	
 	@Test
