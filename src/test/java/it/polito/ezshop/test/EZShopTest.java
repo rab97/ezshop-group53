@@ -2,6 +2,7 @@ package it.polito.ezshop.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -33,66 +34,85 @@ public class EZShopTest {
 		ezShop = new EZShop();
 	}
 	
-	@Test(expected = InvalidProductDescriptionException.class)
+	@Test
 	public void testCreateProductTypeInvalidDescription() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 	
 		//Test null description
-		ezShop.createProductType(null, "1234567891231", 5.0, "note");	
+		assertThrows(InvalidProductDescriptionException.class, () -> {
+			ezShop.createProductType(null, "1234567891231", 5.0, "note");
+		});	
 		
 		//Test empty description
-		ezShop.createProductType("ciao", "1234567891231", 5.0, "note");
+		assertThrows(InvalidProductDescriptionException.class, () -> {
+			ezShop.createProductType("", "1234567891231", 5.0, "note");
+		});
 	}
 
-	@Test(expected = InvalidProductCodeException.class)
+	@Test
 	public void testCreateProductTypeInvalidProductCode() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 		
 		//Test product code null
-		ezShop.createProductType("description", null, 5.0, "note");
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.createProductType("description", null, 5.0, "note");
+		});
 
 		//Test product code empty
-		ezShop.createProductType("description", "", 5.0, "note");
-		
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.createProductType("description", "", 5.0, "note");
+		});
 		
 		//Test product code is valid code
-		ezShop.createProductType("description", "123456", 5.0, "note");
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.createProductType("description", "123456", 5.0, "note");
+		});
 
 		
 		//Test product code is a number
-		ezShop.createProductType("description", "productCode", 5.0, "note");	
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.createProductType("description", "productCode", 5.0, "note");
+		});
 	}
 	
-	@Test(expected = InvalidPricePerUnitException.class)
+	@Test
 	public void testCreateProductTypeInvalidPricePerUnit() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 		
 		//Test pricePerUnit negative
-		ezShop.createProductType("description", "1234567891231", -1, "note");
+		assertThrows(InvalidPricePerUnitException.class, () -> {
+			ezShop.createProductType("description", "1234567891231", -1, "note");
+		});
 		
 		//Test pricePerUnit negative
-		ezShop.createProductType("description", "1234567891231", -1, "note");
+		assertThrows(InvalidPricePerUnitException.class, () -> {
+			ezShop.createProductType("description", "1234567891231", -1, "note");
+		});
 	}
 	
-	@Test(expected = UnauthorizedException.class)
+	@Test
 	public void testCreateProductTypeUnauthorizedUser() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 		
 		//Test no user
 		ezShop.setRunningUser(null);
-		
-		
-		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		});
 		
 		
 		//Test generic user role
 		User user = new ConcreteUser("name", 1, "123", "role");
 		ezShop.setRunningUser(user);
 		
-		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		});
 		
 		
 		//Test user role=CASHIER
 		user.setRole("role");
 		ezShop.setRunningUser(user);
 		
-		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		});
 		
 	}
 	
