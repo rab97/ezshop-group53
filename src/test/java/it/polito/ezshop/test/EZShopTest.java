@@ -1569,7 +1569,7 @@ public class EZShopTest {
 	
 	@Test
 	public void testEndReturnTransactionInactiveReturnTransaction(){
-		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
 		ezShop.setRunningUser(user);
 		ReturnTransaction r = new ConcreteReturnTransaction();
 		r.setPayed(false);
@@ -1868,6 +1868,11 @@ public class EZShopTest {
 		} catch (Exception e) {
 			fail();
 		}
+		try {
+			dao.resetApplication();
+		}catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test
@@ -1946,6 +1951,13 @@ public class EZShopTest {
 		s2.setPayed(true);
 		tickets.add(t3);
 		tickets.add(t4);
+		ReturnTransaction r1 = new ConcreteReturnTransaction();
+		r1.setDiscountRate(0);
+		r1.setEntries(tickets);
+		r1.setPayed(true);
+		r1.setPrice(13.2);
+		r1.setReturnId(2);
+		r1.setTransactionId(2);
 		try {
 			dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
 			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
@@ -1956,6 +1968,7 @@ public class EZShopTest {
 			dao.updateQuantity(3, 150);
 			dao.storeSaleTransaction(s1);
 			dao.storeSaleTransaction(s2);
+			dao.storeReturnTransaction(r1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}

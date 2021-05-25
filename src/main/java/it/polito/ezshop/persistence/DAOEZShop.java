@@ -852,7 +852,6 @@ public class DAOEZShop implements IDAOEZshop {
         ResultSet resultSet = null;
         ReturnTransaction returnTransaction;
         try {
-        	System.out.println("sto cercadno: " + returnId);
             connection = dataSource.getConnection();
             statment = connection.createStatement();
             String query = "select * from return_transaction where id = '" + returnId + "';";
