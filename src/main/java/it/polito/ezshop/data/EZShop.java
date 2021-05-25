@@ -348,7 +348,9 @@ public class EZShop implements EZShopInterface {
         }
         
         String position[] = newPos.split("-");
-        System.out.println("posizione: " + position[0] + " - " + position[1] + " - " + position[2]);
+        if(position == null || position.length == 0)
+        	throw new InvalidLocationException();
+        
         if (position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
             throw new InvalidLocationException(
                     "location wrong: assure that you use this pattern: number-string-number");
@@ -367,11 +369,11 @@ public class EZShop implements EZShopInterface {
         if (productId == null || productId <= 0) {
             throw new InvalidProductIdException();
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         try {
-            if (!dao.searchPosition(newPos)) {
+            if (!dao.searchPosition(newPos)  && dao.searchProductById(productId)) {
                 dao.updatePosition(productId, newPos);
                 return true;
             }
@@ -471,7 +473,6 @@ public class EZShop implements EZShopInterface {
         return payment;
     }
 
-
     @Override
     public boolean recordOrderArrival(Integer orderId) throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {
 
@@ -521,7 +522,6 @@ public class EZShop implements EZShopInterface {
 
         return recordArrival;
     }
-
 
     @Override
     public List<Order> getAllOrders() throws UnauthorizedException {
