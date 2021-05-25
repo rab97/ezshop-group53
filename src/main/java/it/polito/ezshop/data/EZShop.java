@@ -101,7 +101,7 @@ public class EZShop implements EZShopInterface {
         if (runningUser == null || !runningUser.getRole().equals(Constants.ADMINISTRATOR)) {
             throw new UnauthorizedException();
         }
-        if (id <= 0 || id == null) {
+        if (id == null||(id <= 0)) {
             throw new InvalidUserIdException();
         }
         try {
@@ -120,7 +120,7 @@ public class EZShop implements EZShopInterface {
         if (runningUser == null || !runningUser.getRole().equals(Constants.ADMINISTRATOR)) {
             throw new UnauthorizedException();
         }
-        if (id <= 0 || id == null) {
+        if (id == null||id <= 0) {
             throw new InvalidUserIdException();
         }
         if (role == null || role.isEmpty() || (!role.equals(Constants.ADMINISTRATOR) && !role.equals(Constants.CASHIER)

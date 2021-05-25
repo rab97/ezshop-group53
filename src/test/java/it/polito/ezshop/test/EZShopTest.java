@@ -41,7 +41,107 @@ public class EZShopTest {
 		ezShop.reset();
 	}
 	
+	@Test
+	public void testUserInvalidUsername(){
+
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.createUser("", "a_valid_password", Constants.CASHIER);});
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.createUser(null, "a_valid_password", Constants.CASHIER);});
+
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.login("", "a_valid_password");});
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.login(null, "a_valid_password");});
+	}
+
+	@Test
+	public void testUserInvalidPassword(){
+
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.createUser("validUsername", "", Constants.CASHIER);});
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.createUser("validUsername", null, Constants.CASHIER);});
+
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.login("validUsername", "");});
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.login("validUsername", null);});
+	}
 	
+	@Test
+	public void testCreateUserCheckRole(){
+
+		assertThrows(InvalidRoleException.class, ()->{ezShop.createUser("name", "password", "");});
+		assertThrows(InvalidRoleException.class, ()->{ezShop.createUser("name", "password", null);});
+		assertThrows(InvalidRoleException.class, ()->{ezShop.createUser("name", "password", "invalidRole");});
+
+		//Come faccio ad avere un valore di riferimento per l'id dell'user che verrà creato? Come posso
+		//testare i casi con Cashier,ShopManager e Admin?
+	}
+
+	@Test
+	public void testUserAlreadyExists(){
+
+		User u= new ConcreteUser("validUsername", null, "validPassword", Constants.SHOP_MANAGER);
+
+		try{
+			Integer uId= ezShop.getDAO().insertUser(u.getUsername(), u.getPassword(), u.getRole());
+			System.out.print("uId= "+ uId);
+			if(uId<=0){
+				fail();
+			}
+
+			assertEquals(Integer.valueOf(-1), ezShop.createUser(u.getUsername(), u.getPassword(), u.getRole()));
+			assertFalse(ezShop.deleteUser(uId));
+
+			dao.resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidUsernameException|InvalidPasswordException|InvalidRoleException e){
+			System.out.print(e);
+			fail();
+		}catch(InvalidUserIdException| UnauthorizedException e){
+			System.out.print(e);
+			fail();
+		}
+		
+	}
+
+	@Test
+	public void testUserInvalidId(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.deleteUser(null);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.deleteUser(-1);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.deleteUser(0);});
+
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.getUser(null);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.getUser(-1);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.getUser(0);});
+
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.updateUserRights(null, Constants.SHOP_MANAGER);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.updateUserRights(-1, Constants.CASHIER);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.updateUserRights(0, Constants.CASHIER);});
+
+	}
+
+	@Test
+	public void testUserUnauthorizedUser(){
+
+		User u= null;
+		ezShop.setRunningUser(u);
+
+		assertThrows(UnauthorizedException.class, ()->{ezShop.deleteUser(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllUsers();});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getUser(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.updateUserRights(5, Constants.SHOP_MANAGER);});
+		assertFalse(ezShop.logout());
+
+		u= new ConcreteUser("testUser", 2, "testPassword", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+
+		assertThrows(UnauthorizedException.class, ()->{ezShop.deleteUser(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllUsers();});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getUser(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.updateUserRights(1, Constants.SHOP_MANAGER);});
+	}
+
 	@Test
 	public void testCreateProductTypeInvalidDescription() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 	
@@ -1775,7 +1875,7 @@ public class EZShopTest {
 		r.setReturnId(1);
 		r.setTransactionId(1);
 		r.setEntries(tickets);
-		r.setTransactionId(1);
+		r.setTransactionId(1);  
 		r.setPrice(5.21);
 		ezShop.setReturnTransaction(r);
 		
