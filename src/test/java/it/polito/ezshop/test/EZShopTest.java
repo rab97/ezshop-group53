@@ -88,16 +88,12 @@ public class EZShopTest {
 
 		try{
 			Integer uId= ezShop.getDAO().insertUser(u.getUsername(), u.getPassword(), u.getRole());
-			System.out.print("uId= "+ uId);
 			if(uId<=0){
 				fail();
 			}
 
 			assertEquals(Integer.valueOf(-1), ezShop.createUser(u.getUsername(), u.getPassword(), u.getRole()));
 			assertTrue(ezShop.deleteUser(uId));
-			assertFalse(ezShop.deleteUser(uId)); //User already deleted
-
-			dao.resetApplication();
 
 		}catch(DAOException e){
 			fail();
@@ -108,6 +104,28 @@ public class EZShopTest {
 			System.out.print(e);
 			fail();
 		}
+	}
+
+	@Test
+	public void testUserNotExists(){
+
+		User running= new ConcreteUser("Admin", 20, "pw", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(running);
+
+		User wrongUser= new ConcreteUser("wrongName", 19, "wrongPw", Constants.CASHIER);
+
+		try{
+			assertFalse(ezShop.deleteUser(wrongUser.getId()));
+			assertEquals(null, ezShop.getUser(wrongUser.getId()));
+			assertFalse(ezShop.updateUserRights(wrongUser.getId(), Constants.SHOP_MANAGER));
+			assertEquals(null, ezShop.login(wrongUser.getUsername(), wrongUser.getPassword()));
+
+		}catch(InvalidUsernameException|InvalidPasswordException|InvalidUserIdException|
+				InvalidRoleException|UnauthorizedException e){
+			System.out.print(e);
+			fail();
+		}
+
 	}
 
 	@Test

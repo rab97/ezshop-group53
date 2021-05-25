@@ -107,7 +107,6 @@ public class DAOEZShop implements IDAOEZshop {
 
             if (resultSet.next())
                 id = resultSet.getInt(1);
-                System.out.print("user just inserted: " + id);
             
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
@@ -254,8 +253,11 @@ public class DAOEZShop implements IDAOEZshop {
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, role);
             preparedStatement.setInt(2, id);
-            if(preparedStatement.executeUpdate() > 0);
+            if(preparedStatement.executeUpdate() > 0){
             	state = true;
+            }else{
+                return false;
+            }
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
