@@ -6,12 +6,8 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-<<<<<<< HEAD
 import java.net.UnknownHostException;
-=======
-import java.sql.SQLException;
 import java.time.LocalDate;
->>>>>>> 16210eb409c3d9102592b011ecc8d65780cabbff
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,14 +20,11 @@ import org.junit.Test;
 import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
-<<<<<<< HEAD
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
+import it.polito.ezshop.model.ConcreteTicketEntry;
 import it.polito.ezshop.model.ConcreteUser;
-=======
-import it.polito.ezshop.model.*;
->>>>>>> 16210eb409c3d9102592b011ecc8d65780cabbff
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
@@ -381,7 +374,6 @@ public class EZShopTest {
 	}
 	
 	@Test
-<<<<<<< HEAD
 	public void testGetProductTypeByDescriptionValid() throws UnauthorizedException {
 		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(user);
@@ -406,9 +398,6 @@ public class EZShopTest {
 
 	@Test
 	public void testSaleTransactionProductNotExists(){
-=======
-	public void testAddProductToSaleProductNotExists(){
->>>>>>> 16210eb409c3d9102592b011ecc8d65780cabbff
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
