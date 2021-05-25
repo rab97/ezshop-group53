@@ -19,26 +19,9 @@ import org.junit.Test;
 
 import it.polito.ezshop.Constants;
 
-import it.polito.ezshop.data.BalanceOperation;
-import it.polito.ezshop.data.EZShop;
-import it.polito.ezshop.data.ProductType;
-import it.polito.ezshop.data.ReturnTransaction;
-import it.polito.ezshop.data.SaleTransaction;
-import it.polito.ezshop.data.TicketEntry;
-import it.polito.ezshop.data.User;
-import it.polito.ezshop.exceptions.InvalidCreditCardException;
-import it.polito.ezshop.exceptions.InvalidProductCodeException;
-import it.polito.ezshop.exceptions.InvalidQuantityException;
-import it.polito.ezshop.exceptions.InvalidTransactionIdException;
-import it.polito.ezshop.exceptions.UnauthorizedException;
-
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
-import it.polito.ezshop.model.ConcreteProductType;
-import it.polito.ezshop.model.ConcreteReturnTransaction;
-import it.polito.ezshop.model.ConcreteSaleTransaction;
-import it.polito.ezshop.model.ConcreteTicketEntry;
-import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.model.*;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
@@ -2976,6 +2959,181 @@ public class EZShopTest {
 		}
 		try {
 			dao.deleteCustomer(1);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testDefineCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {			
+			assertEquals(Integer.valueOf(1), ezShop.defineCustomer("name1"));			
+		} catch(UnauthorizedException|InvalidCustomerNameException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testModifyCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			assertTrue(ezShop.modifyCustomer(1,"name1","0123456789"));		
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidCustomerNameException|InvalidCustomerCardException|InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testDeleteCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			assertTrue(ezShop.deleteCustomer(1));		
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException| InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testGetCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		Customer c = new ConcreteCustomer(1, "name1", "0123456789", 0);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().updateCustomer(1, "name1", "0123456789");
+			Customer res=ezShop.getCustomer(1);
+			assertEquals(c.getId(), res.getId());
+			assertEquals(c.getCustomerName(), res.getCustomerName());
+			assertEquals(c.getCustomerCard(), res.getCustomerCard());
+			assertEquals(c.getPoints(), res.getPoints());
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testGetAllCustomersValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().insertCustomer("name2");
+			ezShop.getDAO().insertCustomer("name3");
+			ezShop.getDAO().insertCustomer("name4");
+			ezShop.getDAO().insertCustomer("name5");
+			assertEquals(5, ezShop.getAllCustomers().size());
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+			dao.deleteCustomer(2);
+			dao.deleteCustomer(3);
+			dao.deleteCustomer(4);
+			dao.deleteCustomer(5);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testCreateCardValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			assertEquals(10, ezShop.createCard().length());
+		} catch(UnauthorizedException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testAttachCardToCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			assertTrue(ezShop.attachCardToCustomer("0123456789", 1));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException | InvalidCustomerIdException | InvalidCustomerCardException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testModifyPointsOnCardValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().updateCustomer(1, "name1", "0123456789");
+			assertTrue(ezShop.modifyPointsOnCard("0123456789", 20));
+			assertTrue(ezShop.modifyPointsOnCard("0123456789", -10));
+			assertTrue(ezShop.modifyPointsOnCard("0123456789", -10));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException | InvalidCustomerCardException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
 		} catch (DAOException e) {
 			System.out.println(e);
 		}

@@ -707,13 +707,12 @@ public class EZShop implements EZShopInterface {
         if (customerCard == null | customerCard.isEmpty() | customerCard.length() != 10) {
             throw new InvalidCustomerCardException();
         }
-
+  
         boolean result = false;
         try {
             result = dao.bindCardToCustomer(customerCard, customerId);
-
         } catch (DAOException e) {
-            System.out.println("db excepiton");
+            System.out.println("db excepiton" + e);
         }
 
         return result;
