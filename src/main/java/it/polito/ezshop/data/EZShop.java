@@ -775,7 +775,7 @@ public class EZShop implements EZShopInterface {
         if (amount < 0) {
             throw new InvalidQuantityException();
         }
-        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (saleTransaction.getTicketNumber() != transactionId)
@@ -848,7 +848,7 @@ public class EZShop implements EZShopInterface {
         if (amount < 0) {
             throw new InvalidQuantityException();
         }
-        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (saleTransaction.getTicketNumber() != transactionId)
@@ -913,7 +913,7 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (discountRate < 0 || discountRate >= 1.00) {
@@ -1572,6 +1572,14 @@ public class EZShop implements EZShopInterface {
         this.saleTransaction= st;
     }
     
+    public boolean getSaleTransactionState(){
+        return this.saleTransaction_state;
+    }
+
+    public void setSaleTransactionState(boolean state){
+        this.saleTransaction_state= state;
+    }
+
     public ReturnTransaction getReturnTransaction() {
     	return this.returnTransaction;
     }
