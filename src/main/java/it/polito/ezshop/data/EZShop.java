@@ -959,8 +959,17 @@ public class EZShop implements EZShopInterface {
         if (saleTransaction.getTicketNumber() != transactionId)
             return false;
 
-        saleTransaction.setDiscountRate(discountRate);
+        try{
+            SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
 
+            if(checkTransaction==null){
+                return false;
+            }
+        }catch(DAOException e){
+            System.out.println(e);
+        }
+
+        saleTransaction.setDiscountRate(discountRate);
         return true;
     }
 
@@ -976,6 +985,16 @@ public class EZShop implements EZShopInterface {
         }
         if (saleTransaction.getTicketNumber() != transactionId)
             return -1;
+
+        try{
+            SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
+    
+            if(checkTransaction==null){
+                return -1;
+            }
+        }catch(DAOException e){
+            System.out.println(e);
+        }
 
         return (int) saleTransaction.getPrice() / 10;
     }
@@ -995,9 +1014,17 @@ public class EZShop implements EZShopInterface {
             return false;
         if (saleTransaction_state == Constants.CLOSED)
             return false;
-        // if(saleTransaction.getEntries().isEmpty())
-        //	return false;
-        // calculate price for sale transaction
+
+            try{
+                SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
+        
+                if(checkTransaction==null){
+                    return false;
+                }
+            }catch(DAOException e){
+                System.out.println(e);
+            }
+
         double price = 0;
         for (TicketEntry te : saleTransaction.getEntries())
             price += ((1 - te.getDiscountRate()) * te.getPricePerUnit()) * te.getAmount();
@@ -1031,6 +1058,7 @@ public class EZShop implements EZShopInterface {
         SaleTransaction st = null;
         try {
             st = dao.searchSaleTransaction(saleNumber);
+            System.out.println("dopo ricerca " + st == null);
         } catch (DAOException e) {
             System.out.println(e);
         }
@@ -1272,10 +1300,11 @@ public class EZShop implements EZShopInterface {
     		return false;
     	
     	boolean state = false;
-        try {
+        System.out.println("entro qui");
+        System.out.println(returnId);
+    	try {
             state = dao.deleteReturnTransaction(returnId);						//deletes entry in return_transaction + all related entries in return_ticket_entry
-    		System.out.println("value: " + rt.getReturnId());
-            System.out.println("state returned: " + state);
+    		
         } catch (DAOException e) {
             System.out.println(e);
         }
@@ -1283,24 +1312,33 @@ public class EZShop implements EZShopInterface {
         //update sale transaction (product sold + final price)
         // 1. update final price
 
+    	System.out.println("value: " + rt.getReturnId());
+        System.out.println("state returned: " + state);
+        System.out.println("pric: " + rt.getPrice());
+        System.out.println("id: " + returnTransaction.getTransactionId());
+        System.out.println("done");
         try {
-            dao.updateSaleTransactionPrice(rt.getTransactionId(), rt.getPrice(), Constants.NOT_COMMITTED);		
+            dao.updateSaleTransactionPrice(returnTransaction.getTransactionId(), rt.getPrice(), Constants.NOT_COMMITTED);		
         } catch (DAOException e) {
             System.out.println(e);
         }
         // 2. update ticket entries
+        //System.out.println(returnTransaction.getTransactionId());
         try {
             dao.updateSaleTransactionEntries(returnTransaction.getTransactionId(), rt.getEntries(), Constants.NOT_COMMITTED);		
         } catch (DAOException e) {
+        	System.out.println(e);
         }
         
         //decrease product availability
+        System.out.println("updating");
 		for (TicketEntry te : returnTransaction.getEntries()) {
 			try {
 				ProductType pt = dao.getProductTypeByBarCode(te.getBarCode());
                 dao.updateQuantity(pt.getId(), -te.getAmount());
-            } catch (DAOException e) {
-                System.out.println("dsasd" + e);
+                System.out.println("updated");
+			} catch (DAOException e) {
+                System.out.println(e);
                 return false;
             }
 		}

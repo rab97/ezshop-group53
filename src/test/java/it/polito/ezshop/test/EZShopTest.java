@@ -6,7 +6,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.sql.SQLException;
+import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,9 +18,27 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 
 import it.polito.ezshop.Constants;
+
+import it.polito.ezshop.data.BalanceOperation;
+import it.polito.ezshop.data.EZShop;
+import it.polito.ezshop.data.ProductType;
+import it.polito.ezshop.data.ReturnTransaction;
+import it.polito.ezshop.data.SaleTransaction;
+import it.polito.ezshop.data.TicketEntry;
+import it.polito.ezshop.data.User;
+import it.polito.ezshop.exceptions.InvalidCreditCardException;
+import it.polito.ezshop.exceptions.InvalidProductCodeException;
+import it.polito.ezshop.exceptions.InvalidQuantityException;
+import it.polito.ezshop.exceptions.InvalidTransactionIdException;
+import it.polito.ezshop.exceptions.UnauthorizedException;
+
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
-import it.polito.ezshop.model.*;
+import it.polito.ezshop.model.ConcreteProductType;
+import it.polito.ezshop.model.ConcreteReturnTransaction;
+import it.polito.ezshop.model.ConcreteSaleTransaction;
+import it.polito.ezshop.model.ConcreteTicketEntry;
+import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
@@ -37,6 +55,7 @@ public class EZShopTest {
 	public void setUp () {
 		ezShop = new EZShop();
 		dao = new DAOEZShop();
+		ezShop.reset();
 	}
 	
 	
@@ -370,7 +389,30 @@ public class EZShopTest {
 	}
 	
 	@Test
-	public void testAddProductToSaleProductNotExists(){
+	public void testGetProductTypeByDescriptionValid() throws UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		try {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		} catch (InvalidProductDescriptionException | InvalidProductCodeException | InvalidPricePerUnitException
+				| UnauthorizedException e) {
+			fail("Unexpected Exception" + e);
+		}
+		
+		//Test part of description
+		assertEquals(1, ezShop.getProductTypesByDescription("des").size());
+		
+		//Test empty description
+		assertEquals(1, ezShop.getProductTypesByDescription("").size());
+		
+		//Test null description
+		assertEquals(1, ezShop.getProductTypesByDescription(null).size());
+	}
+
+
+	@Test
+	public void testSaleTransactionProductNotExists(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
@@ -385,28 +427,135 @@ public class EZShopTest {
 			ezShop.setSaleTransactionState(Constants.OPENED);
 			
 			assertFalse(ezShop.addProductToSale(saleTransaction.getTicketNumber(), "123456789104", 1));
+			assertFalse(ezShop.deleteProductFromSale(saleTransaction.getTicketNumber(), "123456789104", 1));
+			assertFalse(ezShop.applyDiscountRateToProduct(saleTransaction.getTicketNumber(), "123456789104", 0.2));
+
+			ezShop.getDAO().resetApplication();
 
 		}catch(DAOException e){
 			fail();
-		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException e){
+		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|
+				InvalidQuantityException| InvalidDiscountRateException e){
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
 	}
 
+
+	//TODO: add the deleteProductFromSale here
 	@Test
-	public void testAddProductNotEnoughProduct(){
+	public void testAddProductToSaleNotEnoughProduct(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
-		IDAOEZshop dao= new DAOEZShop();
-		ezShop.setDAO(dao);
 
+		ProductType pt= new ConcreteProductType(null, "product_test", "123456789104", null, 5, 2.0, null);
 		try{
+			ezShop.getDAO().createProductType(pt);
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
+			ezShop.setSaleTransaction(saleTransaction);
+			ezShop.setSaleTransactionState(Constants.OPENED);
+
+			assertFalse(ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 6));
+
+			ezShop.getDAO().resetApplication();
 
 		}catch(DAOException e){
+			fail();
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|UnauthorizedException e){
+			fail();
+		}
+	}
 
+	@Test
+	public void testSaleTransactionNotExist(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		SaleTransaction wrongTransaction= new ConcreteSaleTransaction(1, new ArrayList<TicketEntry>(), 0, 0);
+		ezShop.setSaleTransaction(wrongTransaction);
+
+		try{
+			assertFalse(ezShop.addProductToSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
+			assertFalse(ezShop.deleteProductFromSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
+			assertFalse(ezShop.applyDiscountRateToProduct(wrongTransaction.getTicketNumber(), "123456789104", 0.25));
+			assertFalse(ezShop.applyDiscountRateToSale(wrongTransaction.getTicketNumber(), 0.25));
+			assertEquals(-1, ezShop.computePointsForSale(wrongTransaction.getTicketNumber()));
+			assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
+			assertFalse(ezShop.deleteSaleTransaction(wrongTransaction.getTicketNumber()));
+
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|
+				UnauthorizedException|InvalidDiscountRateException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testSaleTransactionWrongTransactionStatus(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		try{
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction wrongTransaction= new ConcreteSaleTransaction(stId+1, new ArrayList<TicketEntry>(), 0, 0);
+			ezShop.setSaleTransaction(wrongTransaction);
+			ezShop.setSaleTransactionState(Constants.CLOSED);
+
+			assertFalse(ezShop.addProductToSale(wrongTransaction.getTicketNumber(), "123456789104", 2));
+			assertFalse(ezShop.deleteProductFromSale(wrongTransaction.getTicketNumber(), "123456789104", 2));
+			assertFalse(ezShop.applyDiscountRateToProduct(wrongTransaction.getTicketNumber(), "123456789104", 0.25));
+			assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
+
+			//deleteSaleTransaction test
+			wrongTransaction.setPayed(true);
+			boolean saleUpdate= ezShop.getDAO().storeSaleTransaction(wrongTransaction);
+
+			if(saleUpdate==false){
+				fail();
+			}
+			assertFalse(ezShop.deleteSaleTransaction(wrongTransaction.getTicketNumber()));	
+
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|
+				UnauthorizedException|InvalidDiscountRateException e){
+			fail();
+		}
+
+	}
+
+	
+	@Test
+	public void testGetSaleTransaction(){
+		
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		try{
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction wrongTransaction= new ConcreteSaleTransaction(stId+1, new ArrayList<TicketEntry>(), 0, 0);
+			assertEquals(null,ezShop.getSaleTransaction(wrongTransaction.getTicketNumber()));
+
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidTransactionIdException e){
+			fail();
 		}
 
 	}
@@ -1062,24 +1211,28 @@ public class EZShopTest {
 		
 	}
 	
-	/*@Test
+	@Test
 	public void testDeleteReturnTransactionValid(){
+		ezShop.reset();
 		User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);;
 		ezShop.setRunningUser(user);
-		dao.resetApplication();
+		ezShop.reset();
 		TicketEntry t1 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
 		TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
 		List<TicketEntry> tickets = new ArrayList<>();
 		tickets.add(t1);
 		tickets.add(t2);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		r.setPayed(false);
+		r.setDiscountRate(0);
+		r.setReturnId(2);
+		r.setTransactionId(3);
+		r.setEntries(tickets);
+		r.setTransactionId(1);
+		r.setPrice(5.21);
+		ezShop.setReturnTransaction(r);
 		
-		ReturnTransaction r1 = new ConcreteReturnTransaction();
-		r1.setReturnId(1);
-		r1.setDiscountRate(0);
-		r1.setPrice(5.21);
-		r1.setPayed(false);
-		r1.setEntries(tickets);
-		r1.setTransactionId(2);
+		
 		ReturnTransaction r2 = new ConcreteReturnTransaction();
 		r2.setReturnId(2);
 		r2.setDiscountRate(0);
@@ -1087,7 +1240,7 @@ public class EZShopTest {
 		r2.setPayed(true);
 		r2.setEntries(tickets);
 		r2.setTransactionId(1);
-		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 32.5);
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, tickets, 0 , 32.5);
 		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 44.5);
 		s1.setPayed(false);
 		s2.setPayed(true);
@@ -1100,7 +1253,7 @@ public class EZShopTest {
 			dao.updateQuantity(1, 50);
 			dao.updateQuantity(2, 150);
 			dao.updateQuantity(3, 150);
-			dao.storeReturnTransaction(r1);
+			dao.storeReturnTransaction(r);
 			dao.storeReturnTransaction(r2);
 			dao.storeSaleTransaction(s1);
 			dao.storeSaleTransaction(s2);
@@ -1121,7 +1274,7 @@ public class EZShopTest {
 			fail();
 		}	
 		//dao.resetApplication();
-	}*/
+	}
 	
 	@Test
 	public void testReturnCashPaymentInvalidReutrnId() {
@@ -1170,18 +1323,65 @@ public class EZShopTest {
 		}
 	}
 	
-	/*@Test
+	@Test
 	public void testReturnCashPaymentReturnTransactionEndedAndNotPayed() {
 		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(user);
 		ReturnTransaction r = new ConcreteReturnTransaction();
 		ezShop.setReturnTransaction(r);
+		
+		TicketEntry t3 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		TicketEntry t4 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 44.5);
+		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 32.5);
+		s1.setPayed(false);
+		s2.setPayed(true);
+		tickets.add(t3);
+		tickets.add(t4);
+		
+		ReturnTransaction r1 = new ConcreteReturnTransaction();
+		r1.setReturnId(1);
+		r1.setDiscountRate(0);
+		r1.setPrice(5.21);
+		r1.setPayed(false);
+		r1.setEntries(new ArrayList());
+		ReturnTransaction r2 = new ConcreteReturnTransaction();
+		r2.setReturnId(2);
+		r2.setDiscountRate(0);
+		r2.setPrice(10.4);
+		r2.setPayed(true);
+		TicketEntry t = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		List<TicketEntry> returntickets = new ArrayList<>();
+		returntickets.add(t);
+		r2.setEntries(returntickets);
+		
+		try {
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.storeSaleTransaction(s1);
+			dao.storeSaleTransaction(s2);
+			dao.storeReturnTransaction(r1);
+			dao.storeReturnTransaction(r2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 		try {
 			assertTrue(5.21 == ezShop.returnCashPayment(1));
 		} catch (Exception e) {
 			fail();
 		}
-	}*/
+		try {
+			dao.resetApplication();
+		}catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
 
 	
 	@Test
@@ -1216,7 +1416,7 @@ public class EZShopTest {
 			assertTrue(-1 == ezShop.returnCashPayment(2));
 		
 		} catch (Exception e) {
-			System.out.println("apjdfppjfaepièfdaèièadf" + e);
+			System.out.println(e);
 			fail();
 		}
 		try {

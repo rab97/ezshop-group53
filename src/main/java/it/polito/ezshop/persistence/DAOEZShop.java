@@ -824,6 +824,7 @@ public class DAOEZShop implements IDAOEZshop {
             // Search for return transaction
             String query = "DELETE FROM return_transaction WHERE id=?";
             PreparedStatement pstm = connection.prepareStatement(query);
+            
             pstm.setDouble(1, returnId);
             if (pstm.executeUpdate() == -1)
                 return false;
@@ -851,13 +852,15 @@ public class DAOEZShop implements IDAOEZshop {
         ResultSet resultSet = null;
         ReturnTransaction returnTransaction;
         try {
+        	System.out.println("sto cercadno: " + returnId);
             connection = dataSource.getConnection();
             statment = connection.createStatement();
             String query = "select * from return_transaction where id = '" + returnId + "';";
             resultSet = statment.executeQuery(query);
             
-            if (!resultSet.next())
-                return null;
+            if (!resultSet.next()) {
+            	return null;
+            }
 
             List<TicketEntry> entries = getReturnEntries(returnId);         
             returnTransaction = new ConcreteReturnTransaction(returnId, -1, entries, resultSet.getDouble("amount"), resultSet.getDouble("discountRate"));
@@ -1253,6 +1256,7 @@ public class DAOEZShop implements IDAOEZshop {
         Statement statement = null;
         ResultSet resultSet = null;
         SaleTransaction saleTransaction;
+        
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
@@ -1265,12 +1269,11 @@ public class DAOEZShop implements IDAOEZshop {
             List<TicketEntry> entries = getEntries(transactionId);
             saleTransaction = new ConcreteSaleTransaction(transactionId, entries, resultSet.getDouble("discountRate"),
             		resultSet.getDouble("price"));
-            
-            
+            System.out.println("true");
             if(resultSet.getInt("payed") == 1) {
             	saleTransaction.setPayed(true);
             } else {
-            	saleTransaction.setPayed(false);
+            	System.out.println("true");
             }
 
         } catch (SQLException ex) {
@@ -1369,8 +1372,9 @@ public class DAOEZShop implements IDAOEZshop {
         int update;
         double finalPrice;
         
-        
+        System.out.println("esegio apapj");
         SaleTransaction s = this.searchSaleTransaction(transactionId);
+        System.out.println(s == null);
         if(committed)
         	finalPrice= s.getPrice()-price;
         else
