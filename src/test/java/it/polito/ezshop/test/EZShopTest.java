@@ -2,7 +2,6 @@ package it.polito.ezshop.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,10 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-<<<<<<< HEAD
-import java.util.Iterator;
-=======
->>>>>>> 60d90f342ccf003efe2b62945c2f057ef201398a
 import java.util.List;
 
 import org.junit.After;
@@ -32,7 +27,7 @@ import it.polito.ezshop.data.ReturnTransaction;
 import it.polito.ezshop.data.SaleTransaction;
 import it.polito.ezshop.data.TicketEntry;
 import it.polito.ezshop.data.User;
-<<<<<<< HEAD
+
 import it.polito.ezshop.exceptions.InvalidCreditCardException;
 import it.polito.ezshop.exceptions.InvalidProductCodeException;
 import it.polito.ezshop.exceptions.InvalidQuantityException;
@@ -42,19 +37,18 @@ import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
 import it.polito.ezshop.model.ConcreteTicketEntry;
-=======
+
 import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
->>>>>>> 60d90f342ccf003efe2b62945c2f057ef201398a
+
 import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
-<<<<<<< HEAD
+
 import org.junit.runners.MethodSorters;
-=======
->>>>>>> 60d90f342ccf003efe2b62945c2f057ef201398a
+
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EZShopTest {
