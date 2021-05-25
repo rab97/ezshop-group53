@@ -322,15 +322,15 @@ public class EZShopTest {
 		ezShop.setRunningUser(u);
 
 		assertThrows(InvalidProductCodeException.class, ()->{ezShop.addProductToSale(1, " ", 2);});
-		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.addProductToSale(1, null, 2);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.addProductToSale(1, null, 2);});
 		assertThrows(InvalidProductCodeException.class, ()->{ezShop.addProductToSale(1, "invalidCode", 2);});
 		
 		assertThrows(InvalidProductCodeException.class, ()->{ezShop.deleteProductFromSale(1, " ", 2);});
-		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.deleteProductFromSale(1, null, 2);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.deleteProductFromSale(1, null, 2);});
 		assertThrows(InvalidProductCodeException.class, ()->{ezShop.deleteProductFromSale(1, "invalidCode", 2);});
 
 		assertThrows(InvalidProductCodeException.class, ()->{ezShop.applyDiscountRateToProduct(1, " ", 0.2);});
-		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.applyDiscountRateToProduct(1, null, 0.2);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.applyDiscountRateToProduct(1, null, 0.2);});
 		assertThrows(InvalidProductCodeException.class, ()->{ezShop.applyDiscountRateToProduct(1, "invalidCode", 0.2);});
 	}
 
@@ -367,24 +367,41 @@ public class EZShopTest {
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
-		IDAOEZshop dao= new DAOEZShop();
-		ezShop.setDAO(dao);
 
 		try{
 			Integer  stId= ezShop.getDAO().insertSaleTransaction();
-			/* DA CONTINUARE
+			if(stId<0){
+				fail();
+			}
 			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
 			ezShop.setSaleTransaction(saleTransaction);
-        	saleTransaction_state = Constants.OPENED;
-			*/
-			assertFalse(ezShop.addProductToSale(stId, "123456789104", 1));
+			ezShop.setSaleTransactionState(Constants.OPENED);
+			
+			assertFalse(ezShop.addProductToSale(saleTransaction.getTicketNumber(), "123456789104", 1));
 
 		}catch(DAOException e){
 			fail();
 		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException e){
+			System.out.println("Error message: " + e);
 			fail();
 		}
 		ezShop.reset();
+	}
+
+	@Test
+	public void testAddProductNotEnoughProduct(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+		IDAOEZshop dao= new DAOEZShop();
+		ezShop.setDAO(dao);
+
+		try{
+
+		}catch(DAOException e){
+
+		}
+
 	}
 	
 	@Test
