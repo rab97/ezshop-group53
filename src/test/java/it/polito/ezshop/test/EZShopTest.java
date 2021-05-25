@@ -21,16 +21,13 @@ import it.polito.ezshop.Constants;
 
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
-<<<<<<< HEAD
 import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.model.ConcreteCustomer;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
 import it.polito.ezshop.model.ConcreteTicketEntry;
 import it.polito.ezshop.model.ConcreteUser;
-=======
-import it.polito.ezshop.model.*;
->>>>>>> 6df5060f2e54715d5a3d5b69226fec033487b00f
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
@@ -84,6 +81,9 @@ public class EZShopTest {
 	@Test
 	public void testUserAlreadyExists(){
 
+		User running= new ConcreteUser("Admin", 20, "pw", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(running);
+
 		User u= new ConcreteUser("validUsername", null, "validPassword", Constants.SHOP_MANAGER);
 
 		try{
@@ -94,7 +94,8 @@ public class EZShopTest {
 			}
 
 			assertEquals(Integer.valueOf(-1), ezShop.createUser(u.getUsername(), u.getPassword(), u.getRole()));
-			assertFalse(ezShop.deleteUser(uId));
+			assertTrue(ezShop.deleteUser(uId));
+			assertFalse(ezShop.deleteUser(uId)); //User already deleted
 
 			dao.resetApplication();
 
@@ -107,7 +108,20 @@ public class EZShopTest {
 			System.out.print(e);
 			fail();
 		}
-		
+	}
+
+	@Test
+	public void testGetAllUsers(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		try{
+			assertTrue(ezShop.getAllUsers().isEmpty());
+
+		}catch(UnauthorizedException e){
+			fail();
+		}
 	}
 
 	@Test

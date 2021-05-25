@@ -107,6 +107,7 @@ public class DAOEZShop implements IDAOEZshop {
 
             if (resultSet.next())
                 id = resultSet.getInt(1);
+                System.out.print("user just inserted: " + id);
             
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
