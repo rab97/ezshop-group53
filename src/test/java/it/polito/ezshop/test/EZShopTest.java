@@ -1916,6 +1916,161 @@ public class EZShopTest {
 	}
 	
 	
+	//CUSTOMERS
+	
+	@Test 
+	public void testCustomerUnauthorizedUser() {
+		User u= null;
+		ezShop.setRunningUser(u);
+		
+		assertThrows(UnauthorizedException.class, ()->{ezShop.defineCustomer("name");});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.modifyCustomer(1,"newName","0123456789");});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.deleteCustomer(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getCustomer(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllCustomers();});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.createCard();});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.attachCardToCustomer("0123456789",1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.modifyPointsOnCard("0123456789",10);});
+	}
+	
+	@Test 
+	public void testCustomerInvalidCustomerName() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidCustomerNameException.class, ()->{ezShop.defineCustomer("");});
+		//assertThrows(InvalidCustomerNameException.class, ()->{ezShop.defineCustomer(null);});
+		
+		assertThrows(InvalidCustomerNameException.class, ()->{ezShop.modifyCustomer(1,"","0123456789");});
+		//assertThrows(InvalidCustomerNameException.class, ()->{ezShop.modifyCustomer(1,null,"0123456789");});
+	}
+	
+	@Test 
+	public void testCustomerInvalidCustomerCard() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyCustomer(1,"name","");});
+		//assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyCustomer(1,"name",null);});
+		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyCustomer(1,"name","corta");});
+		
+		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.attachCardToCustomer("",1);});
+		//assertThrows(InvalidCustomerCardException.class, ()->{ezShop.attachCardToCustomer(null,1);});
+		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.attachCardToCustomer("corta",1);});
+		
+		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyPointsOnCard("",10);});
+		//assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyPointsOnCard(null,10);});
+		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyPointsOnCard("corta",10);});	
+	}
+	
+	@Test 
+	public void testCustomerInvalidCustomerId() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.modifyCustomer(0,"name","0123456789");});
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.modifyCustomer(-1,"name","0123456789");});
+		//assertThrows(InvalidCustomerIdException.class, ()->{ezShop.modifyCustomer(null,"name","0123456789");});
+		
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.deleteCustomer(0);});
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.deleteCustomer(-1);});
+		//assertThrows(InvalidCustomerIdException.class, ()->{ezShop.deleteCustomer(null);});
+		
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.getCustomer(0);});
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.getCustomer(-1);});
+		//assertThrows(InvalidCustomerIdException.class, ()->{ezShop.getCustomer(null);});
+		
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.attachCardToCustomer("0123456789",0);});
+		assertThrows(InvalidCustomerIdException.class, ()->{ezShop.attachCardToCustomer("0123456789",-1);});
+		//assertThrows(InvalidCustomerIdException.class, ()->{ezShop.attachCardToCustomer("0123456789",null);});
+	}
+	
+	@Test 
+	public void testDefineCustomerNameAlreadyInUse() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().insertCustomer("name2");	
+			assertEquals(Integer.valueOf(-1), ezShop.defineCustomer("name1"));			
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidCustomerNameException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	@Test 
+	public void testCustomerCardAlreadyInUse() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().insertCustomer("name2");
+			ezShop.getDAO().updateCustomer(1,"name1", "0123456789");	
+			assertFalse(ezShop.modifyCustomer(2,"name2","0123456789"));		
+			assertFalse(ezShop.attachCardToCustomer("0123456789", 2));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidCustomerNameException|InvalidCustomerCardException|InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	@Test 
+	public void testCustomerCustomerNotExists() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			assertFalse(ezShop.deleteCustomer(2));		
+			assertEquals(null,ezShop.getCustomer(2));
+			assertFalse(ezShop.attachCardToCustomer("0123456789", 2));
+		} catch(UnauthorizedException|InvalidCustomerCardException|InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	@Test 
+	public void testModifyPointsOnCardInexistentCard() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {			
+			assertFalse(ezShop.modifyPointsOnCard("0123456789", 10));
+		} catch(UnauthorizedException|InvalidCustomerCardException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	@Test 
+	public void testModifyPointsOnCardNotEnoughPoints() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().updateCustomer(1,"name1", "0123456789");		
+			assertFalse(ezShop.modifyPointsOnCard("0123456789", -10));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidCustomerCardException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
 }
 
 

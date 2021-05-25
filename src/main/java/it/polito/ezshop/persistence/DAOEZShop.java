@@ -581,6 +581,15 @@ public class DAOEZShop implements IDAOEZshop {
                 if(newCustomerCard.length()!=10){
                     return false;
                 }
+                
+              //Check if the card already exists
+                String query2= "SELECT * FROM customer WHERE card= '" + newCustomerCard + "';";
+                ResultSet resultSet= statement.executeQuery(query2);
+
+                if(resultSet.next()){
+                    return false;
+                }
+                
                 query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
