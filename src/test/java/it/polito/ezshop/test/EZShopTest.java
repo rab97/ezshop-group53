@@ -2,6 +2,7 @@ package it.polito.ezshop.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -2991,8 +2992,8 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1);
-			dao.deleteCustomer(2);
+			ezShop.getDAO().deleteCustomer(1);
+			ezShop.getDAO().deleteCustomer(2);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3013,11 +3014,11 @@ public class EZShopTest {
 			fail();
 		}catch(UnauthorizedException|InvalidCustomerNameException|InvalidCustomerCardException|InvalidCustomerIdException e) {
 			System.out.println("Error message: " + e);
-			fail();
+			fail();  
 		}
 		try {
-			dao.deleteCustomer(1);
-			dao.deleteCustomer(2);   
+			ezShop.getDAO().deleteCustomer(1);
+			ezShop.getDAO().deleteCustomer(2);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3030,7 +3031,7 @@ public class EZShopTest {
 		
 		try {		
 			assertFalse(ezShop.deleteCustomer(2));		
-			assertEquals(null,ezShop.getCustomer(2));
+			assertNull(ezShop.getCustomer(2));
 			assertFalse(ezShop.attachCardToCustomer("0123456789", 2));
 		} catch(UnauthorizedException|InvalidCustomerCardException|InvalidCustomerIdException e) {
 			System.out.println("Error message: " + e);
@@ -3077,7 +3078,7 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1);
+			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3095,7 +3096,7 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1);
+			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3116,7 +3117,7 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1); 
+			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3137,7 +3138,7 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1); 
+			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3165,7 +3166,7 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1); 
+			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3190,11 +3191,11 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1); 
-			dao.deleteCustomer(2);
-			dao.deleteCustomer(3);
-			dao.deleteCustomer(4);
-			dao.deleteCustomer(5);
+			ezShop.getDAO().deleteCustomer(1);
+			ezShop.getDAO().deleteCustomer(2);
+			ezShop.getDAO().deleteCustomer(3);
+			ezShop.getDAO().deleteCustomer(4);
+			ezShop.getDAO().deleteCustomer(5);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3228,7 +3229,7 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1); 
+			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
@@ -3252,7 +3253,7 @@ public class EZShopTest {
 			fail();
 		}
 		try {
-			dao.deleteCustomer(1); 
+			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
