@@ -7,12 +7,14 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.EZShop;
+import it.polito.ezshop.data.ProductType;
 import it.polito.ezshop.data.ReturnTransaction;
 import it.polito.ezshop.data.SaleTransaction;
 import it.polito.ezshop.data.TicketEntry;
@@ -121,8 +123,9 @@ public class EZShopTest {
 		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(user);
 		
-		
-		assertEquals(Integer.valueOf(-1), ezShop.createProductType("description", "123456789104", 5.0, "note"));
+		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		assertEquals(Integer.valueOf(-1), ezShop.createProductType("description", "1234567891231", 5.0, "note"));
+		ezShop.reset();
 		
 	}
 	
@@ -131,8 +134,8 @@ public class EZShopTest {
 		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(user);
 		
-		
-		assertEquals(Integer.valueOf(4), ezShop.createProductType("description", "125489796456", 5.0, "note"));
+		assertEquals(Integer.valueOf(1), ezShop.createProductType("description", "884846564847", 5.0, "note"));
+		ezShop.reset();
 		
 	}
 	
@@ -247,7 +250,8 @@ public class EZShopTest {
 		ezShop.setRunningUser(user);
 		
 		//Test no product with given id
-		assertFalse(ezShop.updateProduct(150, "description", "1234567891231", 5.0, "note"));
+		ezShop.reset();
+		assertFalse(ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note"));
 	}
 	
 	@Test
@@ -256,7 +260,241 @@ public class EZShopTest {
 		ezShop.setRunningUser(user);
 		
 		//Test existing bar_code
-		assertFalse(ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note"));
+		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		ezShop.createProductType("description", "785462151575", 5.0, "note");
+		assertFalse(ezShop.updateProduct(1, "description", "785462151575", 5.0, "note"));
+		ezShop.reset();
+	}
+	
+	@Test
+	public void testProductUpdateValid() throws InvalidProductIdException, UnauthorizedException, InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		//Test valid update
+		ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		assertTrue(ezShop.updateProduct(1, "description", "785462151575", 5.0, "note"));
+		ezShop.reset();
+	}
+	
+	@Test
+	public void testDeleteProductTypeInvalidId() throws InvalidProductIdException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		//Test null id
+		assertThrows(InvalidProductIdException.class, () -> {
+			ezShop.deleteProductType(null);
+		});
+		
+		//Test id negative
+		assertThrows(InvalidProductIdException.class, () -> {
+			ezShop.deleteProductType(-1);
+		});
+		
+		//Test id=0
+		assertThrows(InvalidProductIdException.class, () -> {
+			ezShop.deleteProductType(0);
+		});
+	} 
+	
+	@Test
+	public void testDeleteProductTypeUnauthorizedException() throws InvalidProductIdException, UnauthorizedException {
+		//Test no user
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.deleteProductType(1);
+		});
+				
+				
+		//Test generic user role
+		User user = new ConcreteUser("name", 1, "123", "role");
+		ezShop.setRunningUser(user);
+				
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.deleteProductType(1);
+		});
+				
+				
+		//Test user role=CASHIER
+		user.setRole("role");
+		ezShop.setRunningUser(user);
+				
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.deleteProductType(1);
+		});
+	} 
+	
+	@Test
+	public void testDeleteProductNotExisting() throws InvalidProductIdException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		ezShop.reset();
+		assertFalse(ezShop.deleteProductType(1));
+	}
+	
+	@Test
+	public void testDeleteProductValidProduct() throws InvalidProductIdException, UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		try {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		} catch (InvalidProductDescriptionException e) {
+			fail("Unexpected exception: " + e );
+		} catch (InvalidProductCodeException e) {
+			fail("Unexpected exception: " + e );
+		} catch (InvalidPricePerUnitException e) {
+			fail("Unexpected exception: " + e );
+		} catch (UnauthorizedException e) {
+			fail("Unexpected exception: " + e );
+		}
+		assertTrue(ezShop.deleteProductType(1));	
+	}
+	
+	@Test
+	public void testGetAllProductTypeUnauthorizedException() throws UnauthorizedException {
+		//Test no user
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.getAllProductTypes();
+		});
+				
+				
+		//Test generic user role
+		User user = new ConcreteUser("name", 1, "123", "role");
+		ezShop.setRunningUser(user);
+				
+		assertThrows(UnauthorizedException.class, () -> {
+			ezShop.getAllProductTypes();
+		});
+	} 
+	
+	@Test
+	public void testGetAllProductTypeValid() throws UnauthorizedException{
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		List<ProductType> products = new ArrayList<>();
+		
+		//Test no products
+		products = ezShop.getAllProductTypes();
+		assertEquals(0, products.size());
+		
+		//Test products list with 1 one product
+		try {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+			products = ezShop.getAllProductTypes();
+			assertEquals(1, products.size());
+			ezShop.reset();
+		} catch (InvalidProductDescriptionException | InvalidProductCodeException | InvalidPricePerUnitException
+				| UnauthorizedException e) {
+			fail("Unexpected Exception" + e);
+		}
+		
+	}
+	
+	@Test 
+	public void testGetProductTypeByBarCodeUnauthorizedException() throws UnauthorizedException, InvalidProductCodeException{
+		//Test no user
+		ezShop.setRunningUser(null);
+			assertThrows(UnauthorizedException.class, () -> {
+				ezShop.getProductTypeByBarCode("1234567891231");
+		});
+							
+		//Test generic user role
+		User user = new ConcreteUser("name", 1, "123", "role");
+		ezShop.setRunningUser(user);
+						
+		assertThrows(UnauthorizedException.class, () -> {
+				ezShop.getProductTypeByBarCode("1234567891231");
+		});
+		
+		//Test user= CASHIER
+		user.setRole(Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		assertThrows(UnauthorizedException.class, () -> {	
+			ezShop.getProductTypeByBarCode("1234567891231");
+		});
+	}
+	
+	@Test 
+	public void testGetProductTypeByBarCodeInvalidBarCode() throws UnauthorizedException, InvalidProductCodeException {
+
+		//Test product code null
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.getProductTypeByBarCode(null);
+		});
+
+		//Test product code empty
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.getProductTypeByBarCode("");
+		});
+				
+		//Test product code is valid code
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.getProductTypeByBarCode("123456");
+		});
+	
+		//Test product code is a number
+		assertThrows(InvalidProductCodeException.class, () -> {
+			ezShop.getProductTypeByBarCode("productCode");
+		});
+	}
+	
+	@Test
+	public void testGetProductTypeByBarCodeProductNotExists() throws UnauthorizedException, InvalidProductCodeException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		assertEquals(null, ezShop.getProductTypeByBarCode("1234567891231"));
+	}
+	
+	@Test
+	public void testGetProductTypeByBarCodeValidProduct() throws UnauthorizedException, InvalidProductCodeException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		try {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+			assertEquals("1234567891231", ezShop.getProductTypeByBarCode("1234567891231").getBarCode());
+			ezShop.reset();
+		} catch (InvalidProductDescriptionException | InvalidProductCodeException | InvalidPricePerUnitException
+				| UnauthorizedException e) {
+			fail("Unexpected Exception" + e);
+		}
+	}
+	
+	@Test
+	public void testGetProductTypeByDescriptionUnauthorizedException() throws UnauthorizedException {
+		//Test no user
+		ezShop.setRunningUser(null);
+			assertThrows(UnauthorizedException.class, () -> {
+			ezShop.getProductTypesByDescription("description");
+		});
+									
+		//Test generic user role
+		User user = new ConcreteUser("name", 1, "123", "role");
+		ezShop.setRunningUser(user);
+								
+		assertThrows(UnauthorizedException.class, () -> {
+				ezShop.getProductTypesByDescription("description");
+		});
+				
+		//Test user= CASHIER
+		user.setRole(Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		assertThrows(UnauthorizedException.class, () -> {	
+			ezShop.getProductTypesByDescription("description");
+		});
+	}
+	
+	@Test
+	public void testGetProductTypeByDescriptionProductsNotExist() throws UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		assertEquals(0, ezShop.getProductTypesByDescription("description").size());
 	}
 
 	@Test
@@ -363,6 +601,27 @@ public class EZShopTest {
 	}
 	
 	@Test
+	public void testGetProductTypeByDescriptionValid() throws UnauthorizedException {
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		
+		try {
+			ezShop.createProductType("description", "1234567891231", 5.0, "note");
+		} catch (InvalidProductDescriptionException | InvalidProductCodeException | InvalidPricePerUnitException
+				| UnauthorizedException e) {
+			fail("Unexpected Exception" + e);
+		}
+		
+		//Test part of description
+		assertEquals(1, ezShop.getProductTypesByDescription("des").size());
+		
+		//Test empty description
+		assertEquals(1, ezShop.getProductTypesByDescription("").size());
+		
+		//Test null description
+		assertEquals(1, ezShop.getProductTypesByDescription(null).size());
+	}
+
 	public void testAddProductToSaleProductNotExists(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
