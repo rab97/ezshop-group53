@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +21,7 @@ import it.polito.ezshop.data.SaleTransaction;
 import it.polito.ezshop.data.TicketEntry;
 import it.polito.ezshop.data.User;
 import it.polito.ezshop.exceptions.*;
+import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
 import it.polito.ezshop.model.ConcreteUser;
@@ -622,7 +624,9 @@ public class EZShopTest {
 		assertEquals(1, ezShop.getProductTypesByDescription(null).size());
 	}
 
-	public void testAddProductToSaleProductNotExists(){
+
+	@Test
+	public void testSaleTransactionProductNotExists(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
@@ -637,28 +641,135 @@ public class EZShopTest {
 			ezShop.setSaleTransactionState(Constants.OPENED);
 			
 			assertFalse(ezShop.addProductToSale(saleTransaction.getTicketNumber(), "123456789104", 1));
+			assertFalse(ezShop.deleteProductFromSale(saleTransaction.getTicketNumber(), "123456789104", 1));
+			assertFalse(ezShop.applyDiscountRateToProduct(saleTransaction.getTicketNumber(), "123456789104", 0.2));
+
+			ezShop.getDAO().resetApplication();
 
 		}catch(DAOException e){
 			fail();
-		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException e){
+		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|
+				InvalidQuantityException| InvalidDiscountRateException e){
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
 	}
 
+
+	//TODO: add the deleteProductFromSale here
 	@Test
-	public void testAddProductNotEnoughProduct(){
+	public void testAddProductToSaleNotEnoughProduct(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
-		IDAOEZshop dao= new DAOEZShop();
-		ezShop.setDAO(dao);
 
+		ProductType pt= new ConcreteProductType(null, "product_test", "123456789104", null, 5, 2.0, null);
 		try{
+			ezShop.getDAO().createProductType(pt);
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
+			ezShop.setSaleTransaction(saleTransaction);
+			ezShop.setSaleTransactionState(Constants.OPENED);
+
+			assertFalse(ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 6));
+
+			ezShop.getDAO().resetApplication();
 
 		}catch(DAOException e){
+			fail();
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|UnauthorizedException e){
+			fail();
+		}
+	}
 
+	@Test
+	public void testSaleTransactionNotExist(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		SaleTransaction wrongTransaction= new ConcreteSaleTransaction(1, new ArrayList<TicketEntry>(), 0, 0);
+		ezShop.setSaleTransaction(wrongTransaction);
+
+		try{
+			assertFalse(ezShop.addProductToSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
+			assertFalse(ezShop.deleteProductFromSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
+			assertFalse(ezShop.applyDiscountRateToProduct(wrongTransaction.getTicketNumber(), "123456789104", 0.25));
+			assertFalse(ezShop.applyDiscountRateToSale(wrongTransaction.getTicketNumber(), 0.25));
+			assertEquals(-1, ezShop.computePointsForSale(wrongTransaction.getTicketNumber()));
+			assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
+			assertFalse(ezShop.deleteSaleTransaction(wrongTransaction.getTicketNumber()));
+
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|
+				UnauthorizedException|InvalidDiscountRateException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testSaleTransactionWrongTransactionStatus(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		try{
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction wrongTransaction= new ConcreteSaleTransaction(stId+1, new ArrayList<TicketEntry>(), 0, 0);
+			ezShop.setSaleTransaction(wrongTransaction);
+			ezShop.setSaleTransactionState(Constants.CLOSED);
+
+			assertFalse(ezShop.addProductToSale(wrongTransaction.getTicketNumber(), "123456789104", 2));
+			assertFalse(ezShop.deleteProductFromSale(wrongTransaction.getTicketNumber(), "123456789104", 2));
+			assertFalse(ezShop.applyDiscountRateToProduct(wrongTransaction.getTicketNumber(), "123456789104", 0.25));
+			assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
+
+			//deleteSaleTransaction test
+			wrongTransaction.setPayed(true);
+			boolean saleUpdate= ezShop.getDAO().storeSaleTransaction(wrongTransaction);
+
+			if(saleUpdate==false){
+				fail();
+			}
+			assertFalse(ezShop.deleteSaleTransaction(wrongTransaction.getTicketNumber()));	
+
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|
+				UnauthorizedException|InvalidDiscountRateException e){
+			fail();
+		}
+
+	}
+
+	
+	@Test
+	public void testGetSaleTransaction(){
+		
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		try{
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction wrongTransaction= new ConcreteSaleTransaction(stId+1, new ArrayList<TicketEntry>(), 0, 0);
+			assertEquals(null,ezShop.getSaleTransaction(wrongTransaction.getTicketNumber()));
+
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidTransactionIdException e){
+			fail();
 		}
 
 	}

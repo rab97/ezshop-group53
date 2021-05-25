@@ -953,8 +953,17 @@ public class EZShop implements EZShopInterface {
         if (saleTransaction.getTicketNumber() != transactionId)
             return false;
 
-        saleTransaction.setDiscountRate(discountRate);
+        try{
+            SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
 
+            if(checkTransaction==null){
+                return false;
+            }
+        }catch(DAOException e){
+            System.out.println(e);
+        }
+
+        saleTransaction.setDiscountRate(discountRate);
         return true;
     }
 
@@ -970,6 +979,16 @@ public class EZShop implements EZShopInterface {
         }
         if (saleTransaction.getTicketNumber() != transactionId)
             return -1;
+
+        try{
+            SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
+    
+            if(checkTransaction==null){
+                return -1;
+            }
+        }catch(DAOException e){
+            System.out.println(e);
+        }
 
         return (int) saleTransaction.getPrice() / 10;
     }
@@ -989,9 +1008,17 @@ public class EZShop implements EZShopInterface {
             return false;
         if (saleTransaction_state == Constants.CLOSED)
             return false;
-        // if(saleTransaction.getEntries().isEmpty())
-        //	return false;
-        // calculate price for sale transaction
+
+            try{
+                SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
+        
+                if(checkTransaction==null){
+                    return false;
+                }
+            }catch(DAOException e){
+                System.out.println(e);
+            }
+
         double price = 0;
         for (TicketEntry te : saleTransaction.getEntries())
             price += ((1 - te.getDiscountRate()) * te.getPricePerUnit()) * te.getAmount();
