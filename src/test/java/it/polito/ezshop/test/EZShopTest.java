@@ -501,7 +501,7 @@ public class EZShopTest {
 		}
 		assertFalse(ezShop.deleteProductType(1));
 	}
-	
+	  
 	@Test
 	public void testDeleteProductValidProduct() throws InvalidProductIdException, UnauthorizedException {
 		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
@@ -1895,25 +1895,25 @@ public class EZShopTest {
 		ReturnTransaction r = new ConcreteReturnTransaction();
 		r.setPayed(false);
 		r.setDiscountRate(0);
-		r.setReturnId(2);
-		r.setTransactionId(3);
-		r.setEntries(tickets);
+		r.setReturnId(1);
 		r.setTransactionId(1);
+		r.setEntries(tickets);
+		r.setTransactionId(1);  
 		r.setPrice(5.21);
 		ezShop.setReturnTransaction(r);
 		
-		
+		/*
 		ReturnTransaction r2 = new ConcreteReturnTransaction();
 		r2.setReturnId(2);
 		r2.setDiscountRate(0);
 		r2.setPrice(10.4);
 		r2.setPayed(true);
 		r2.setEntries(tickets);
-		r2.setTransactionId(1);
-		SaleTransaction s1 = new ConcreteSaleTransaction(3, tickets, 0 , 32.5);
-		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 44.5);
-		s1.setPayed(false);
-		s2.setPayed(true);
+		r2.setTransactionId(1);*/
+		SaleTransaction s1 = new ConcreteSaleTransaction(1, tickets, 0 , 32.5);
+		//SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 44.5);
+		s1.setPayed(true);
+		//s2.setPayed(true);
 
 		try {
 			dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
@@ -1924,13 +1924,19 @@ public class EZShopTest {
 			dao.updateQuantity(2, 150);
 			dao.updateQuantity(3, 150);
 			dao.storeReturnTransaction(r);
-			dao.storeReturnTransaction(r2);
+			//dao.storeReturnTransaction(r2);
 			dao.storeSaleTransaction(s1);
-			dao.storeSaleTransaction(s2);
+			//dao.storeSaleTransaction(s2);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
 		
+		try {
+			System.out.println("ciao ciao " + dao.searchReturnTransaction(1).getTransactionId());
+		} catch (DAOException e) {
+			System.out.println(e);  
+		}
+	
 		try {
 			assertTrue(ezShop.deleteReturnTransaction(1));
 			//assertEquals(Integer.valueOf(50), ezShop.getProductTypeByBarCode("123456789104").getQuantity());

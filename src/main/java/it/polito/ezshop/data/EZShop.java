@@ -1321,6 +1321,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
+        
         // 2. update ticket entries
         //System.out.println(returnTransaction.getTransactionId());
         try {
