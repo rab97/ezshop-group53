@@ -581,6 +581,15 @@ public class DAOEZShop implements IDAOEZshop {
                 if(newCustomerCard.length()!=10){
                     return false;
                 }
+                
+              //Check if the card already exists
+                String query2= "SELECT * FROM customer WHERE card= '" + newCustomerCard + "';";
+                ResultSet resultSet= statement.executeQuery(query2);
+
+                if(resultSet.next()){
+                    return false;
+                }
+                
                 query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
@@ -1482,5 +1491,31 @@ public class DAOEZShop implements IDAOEZshop {
 			dataSource.close(connection);
 		}
 		
+	}
+
+	@Override
+	public boolean searchProductById(Integer productId) throws DAOException {
+		Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        boolean state = false;
+        try {
+        	connection = dataSource.getConnection();
+        	statement = connection.createStatement();
+        	String query = "SELECT * FROM product_type WHERE id = '" + productId + "';";
+			
+        	resultSet = statement.executeQuery(query);
+        	if(resultSet.next())
+        		state = true;
+        	
+			
+		} catch(SQLException ex) {
+			System.out.println("Impossible to execute query: " + ex.getMessage());
+			
+		} finally {
+			dataSource.close(connection);
+		}
+		
+		return state;
 	}
 }

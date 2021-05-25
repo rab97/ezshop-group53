@@ -75,4 +75,6 @@ public interface IDAOEZshop {
 
 	public void resetApplication() throws DAOException;
 
+	public boolean searchProductById(Integer productId) throws DAOException;
+
 }
