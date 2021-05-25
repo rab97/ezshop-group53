@@ -1561,6 +1561,14 @@ public class EZShop implements EZShopInterface {
     public void setRunningUser(User user) {
     	this.runningUser = user;
     }
+
+    public SaleTransaction getSaleTransaction(){
+        return this.saleTransaction;
+    }
+
+    public void setSaleTransaction(SaleTransaction st){
+        this.saleTransaction= st;
+    }
     
     public ReturnTransaction getReturnTransaction() {
     	return this.returnTransaction;
@@ -1569,5 +1577,14 @@ public class EZShop implements EZShopInterface {
     public void setReturnTransaction(ReturnTransaction r) {
     	this.returnTransaction = r;
     }
+
+    public IDAOEZshop getDAO(){
+        return this.dao;
+    }
+
+    public void setDAO(IDAOEZshop dao){
+        this.dao= dao;
+    }
+
     
 }

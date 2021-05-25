@@ -14,10 +14,16 @@ import org.junit.Test;
 import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.EZShop;
 import it.polito.ezshop.data.ReturnTransaction;
+import it.polito.ezshop.data.SaleTransaction;
+import it.polito.ezshop.data.TicketEntry;
 import it.polito.ezshop.data.User;
 import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
+import it.polito.ezshop.model.ConcreteSaleTransaction;
 import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.persistence.DAOEZShop;
+import it.polito.ezshop.persistence.DAOException;
+import it.polito.ezshop.persistence.IDAOEZshop;
 
 public class EZShopTest {
 
@@ -356,6 +362,30 @@ public class EZShopTest {
 		assertThrows(InvalidDiscountRateException.class, ()->{ezShop.applyDiscountRateToSale(1, 1.37);});
 	}
 	
+	@Test
+	public void testAddProductToSaleProductNotExists(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+		IDAOEZshop dao= new DAOEZShop();
+		ezShop.setDAO(dao);
+
+		try{
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			/* DA CONTINUARE
+			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
+			ezShop.setSaleTransaction(saleTransaction);
+        	saleTransaction_state = Constants.OPENED;
+			*/
+			assertFalse(ezShop.addProductToSale(stId, "123456789104", 1));
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException e){
+			fail();
+		}
+		ezShop.reset();
+	}
 	
 	@Test
 	public void testStartReturnTransactionNotFoundSale() {
