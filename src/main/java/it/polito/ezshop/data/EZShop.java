@@ -583,6 +583,12 @@ public class EZShop implements EZShopInterface {
         if (newCustomerName == null | newCustomerName.isEmpty()) {
             throw new InvalidCustomerNameException();
         }
+        if (newCustomerCard == null | newCustomerCard.isEmpty() | newCustomerCard.length() != 10) {
+            throw new InvalidCustomerCardException();
+        }
+        if (id == null | id <= 0) {
+            throw new InvalidCustomerIdException();
+        }
 
         boolean modification = false;
 
@@ -701,13 +707,12 @@ public class EZShop implements EZShopInterface {
         if (customerCard == null | customerCard.isEmpty() | customerCard.length() != 10) {
             throw new InvalidCustomerCardException();
         }
-
+  
         boolean result = false;
         try {
             result = dao.bindCardToCustomer(customerCard, customerId);
-
         } catch (DAOException e) {
-            System.out.println("db excepiton");
+            System.out.println("db excepiton" + e);
         }
 
         return result;

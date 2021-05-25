@@ -581,6 +581,15 @@ public class DAOEZShop implements IDAOEZshop {
                 if(newCustomerCard.length()!=10){
                     return false;
                 }
+                
+              //Check if the card already exists
+                String query2= "SELECT * FROM customer WHERE card= '" + newCustomerCard + "';";
+                ResultSet resultSet= statement.executeQuery(query2);
+
+                if(resultSet.next()){
+                    return false; 
+                }
+                
                 query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
@@ -843,7 +852,6 @@ public class DAOEZShop implements IDAOEZshop {
         ResultSet resultSet = null;
         ReturnTransaction returnTransaction;
         try {
-        	System.out.println("sto cercadno: " + returnId);
             connection = dataSource.getConnection();
             statment = connection.createStatement();
             String query = "select * from return_transaction where id = '" + returnId + "';";
@@ -885,7 +893,7 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
 
-            String query = "SELECT * FROM customer WHERE customerId= '" + customerId + "' OR card= '" + card + "';";
+            String query = "SELECT * FROM customer WHERE id= '" + customerId + "' OR card= '" + card + "';";
             ResultSet rs = statement.executeQuery(query);
 
             boolean customerExistance = false;
