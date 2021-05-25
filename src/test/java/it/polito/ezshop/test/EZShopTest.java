@@ -1915,7 +1915,7 @@ public class EZShopTest {
 	
 	@Test 
 	public void testOrderInvalidProductCode() {
-		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);  
 		ezShop.setRunningUser(u);
 
 		assertThrows(InvalidProductCodeException.class, ()->{ezShop.issueOrder("", 2, 2.0);});
@@ -1985,7 +1985,11 @@ public class EZShopTest {
 		}catch(DAOException e){
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 
 	}
 	
@@ -2004,12 +2008,34 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
 	public void testIssueOrderValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u); 
 		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().createProductType(pt);
+			assertEquals(Integer.valueOf(1), ezShop.issueOrder("4314324224124", 100, 1.0));		
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException|InvalidProductCodeException|InvalidQuantityException|InvalidPricePerUnitException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	
@@ -2029,12 +2055,35 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
 	public void testPayOrderForValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u); 
 		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt);
+			assertEquals(Integer.valueOf(1), ezShop.payOrderFor("4314324224124", 100, 1.0));		
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException|InvalidProductCodeException|InvalidQuantityException|InvalidPricePerUnitException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		} 
 	}
 	
 	@Test 
@@ -2049,7 +2098,11 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	
@@ -2073,13 +2126,37 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	
 	@Test 
 	public void testPayOrderValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);  
 		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt);
+			ezShop.getDAO().insertNewOrder("4314324224124", 1, 1.0);
+			assertTrue(ezShop.payOrder(1));		
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException|InvalidOrderIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	
@@ -2102,17 +2179,64 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
 	public void testRecordOrderArrivalValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);  
 		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt);
+			ezShop.getDAO().updatePosition(1, "4-A-4");
+			ezShop.getDAO().payOrderDirectly("4314324224124", 1, 1.0); 
+			assertTrue(ezShop.recordOrderArrival(1));		
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException|InvalidOrderIdException|InvalidLocationException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
 	public void testGetAllOrdersValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);  
 		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt); 
+			ezShop.getDAO().insertNewOrder("4314324224124", 1, 1.0); 
+			ezShop.getDAO().insertNewOrder("4314324224124", 3, 1.0); 
+			ezShop.getDAO().insertNewOrder("4314324224124", 4, 1.0); 
+			assertEquals(3, ezShop.getAllOrders().size());		
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	
@@ -2200,7 +2324,12 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.deleteCustomer(1);
+			dao.deleteCustomer(2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
@@ -2220,7 +2349,12 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.deleteCustomer(1);
+			dao.deleteCustomer(2);   
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
@@ -2236,7 +2370,11 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
@@ -2250,7 +2388,11 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 	@Test 
@@ -2268,7 +2410,11 @@ public class EZShopTest {
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
+		try {
+			dao.deleteCustomer(1);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
 	}
 	
 }
