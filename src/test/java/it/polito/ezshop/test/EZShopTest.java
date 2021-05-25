@@ -15,13 +15,7 @@ import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.EZShop;
 import it.polito.ezshop.data.ReturnTransaction;
 import it.polito.ezshop.data.User;
-import it.polito.ezshop.exceptions.InvalidPricePerUnitException;
-import it.polito.ezshop.exceptions.InvalidProductCodeException;
-import it.polito.ezshop.exceptions.InvalidProductDescriptionException;
-import it.polito.ezshop.exceptions.InvalidProductIdException;
-import it.polito.ezshop.exceptions.InvalidQuantityException;
-import it.polito.ezshop.exceptions.InvalidTransactionIdException;
-import it.polito.ezshop.exceptions.UnauthorizedException;
+import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteUser;
 
@@ -257,6 +251,109 @@ public class EZShopTest {
 		
 		//Test existing bar_code
 		assertFalse(ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note"));
+	}
+
+	@Test
+	public void testSaleTransactionUnauthorizedUser(){
+
+		User u= null;
+		ezShop.setRunningUser(u);
+
+		assertThrows(UnauthorizedException.class, ()->{ezShop.startSaleTransaction();});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.addProductToSale(1, "123456789104", 5);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.deleteProductFromSale(1, "123456789104", 5);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.applyDiscountRateToProduct(1, "123456789104", 0.2);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.applyDiscountRateToSale(1, 0.2);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.computePointsForSale(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.endSaleTransaction(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.deleteSaleTransaction(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getSaleTransaction(1);});
+	}
+
+	@Test
+	public void testSaleTransactionInvalidTransactionId(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.addProductToSale(0, "123456789104", 5);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.addProductToSale(-1, "123456789104", 5);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.addProductToSale(null, "123456789104", 5);});
+
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.deleteProductFromSale(0, "123456789104", 5);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.deleteProductFromSale(-1, "123456789104", 5);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.deleteProductFromSale(null, "123456789104", 5);});
+		
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.applyDiscountRateToProduct(0, "123456789104", 0.2);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.applyDiscountRateToProduct(-1, "123456789104", 0.2);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.applyDiscountRateToProduct(null, "123456789104", 0.2);});
+
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.applyDiscountRateToSale(0, 0.2);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.applyDiscountRateToSale(-1, 0.2);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.applyDiscountRateToSale(null, 0.2);});
+
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.computePointsForSale(0);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.computePointsForSale(-1);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.computePointsForSale(null);});
+		
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.endSaleTransaction(0);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.endSaleTransaction(-1);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.endSaleTransaction(null);});
+		
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.deleteSaleTransaction(0);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.deleteSaleTransaction(-1);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.deleteSaleTransaction(null);});
+		
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.getSaleTransaction(0);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.getSaleTransaction(-1);});
+		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.getSaleTransaction(null);});
+	}
+
+	@Test //Questo test fallisce sui null value perchè vuole che sia lanciata NullPointerException
+	public void testSaleTransactionInvalidProductCode(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.addProductToSale(1, " ", 2);});
+		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.addProductToSale(1, null, 2);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.addProductToSale(1, "invalidCode", 2);});
+		
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.deleteProductFromSale(1, " ", 2);});
+		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.deleteProductFromSale(1, null, 2);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.deleteProductFromSale(1, "invalidCode", 2);});
+
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.applyDiscountRateToProduct(1, " ", 0.2);});
+		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.applyDiscountRateToProduct(1, null, 0.2);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.applyDiscountRateToProduct(1, "invalidCode", 0.2);});
+	}
+
+	@Test
+	public void testSaleTransactionInvalidQuantity(){
+		
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.addProductToSale(1, "123456789104", -1);});
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.addProductToSale(1, "123456789104", -10);});
+		
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.deleteProductFromSale(1, "123456789104", -1);});
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.deleteProductFromSale(1, "123456789104", -10);});
+	}
+
+	@Test
+	public void testSaleTransactionInvalidDiscountRate(){
+		
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidDiscountRateException.class, ()->{ezShop.applyDiscountRateToProduct(1, "123456789104", -1);});
+		assertThrows(InvalidDiscountRateException.class, ()->{ezShop.applyDiscountRateToProduct(1, "123456789104", 1.0);});
+		assertThrows(InvalidDiscountRateException.class, ()->{ezShop.applyDiscountRateToProduct(1, "123456789104", 1.37);});
+
+		assertThrows(InvalidDiscountRateException.class, ()->{ezShop.applyDiscountRateToSale(1, -1);});
+		assertThrows(InvalidDiscountRateException.class, ()->{ezShop.applyDiscountRateToSale(1, 1.0);});
+		assertThrows(InvalidDiscountRateException.class, ()->{ezShop.applyDiscountRateToSale(1, 1.37);});
 	}
 	
 	
