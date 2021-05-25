@@ -2,11 +2,11 @@ package it.polito.ezshop.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.sql.SQLException;
+import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,10 +16,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestMethodOrder;
 
 import it.polito.ezshop.Constants;
+
 import it.polito.ezshop.data.BalanceOperation;
 import it.polito.ezshop.data.EZShop;
 import it.polito.ezshop.data.ProductType;
@@ -32,15 +31,13 @@ import it.polito.ezshop.exceptions.InvalidProductCodeException;
 import it.polito.ezshop.exceptions.InvalidQuantityException;
 import it.polito.ezshop.exceptions.InvalidTransactionIdException;
 import it.polito.ezshop.exceptions.UnauthorizedException;
+
+import it.polito.ezshop.data.*;
+import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
 import it.polito.ezshop.model.ConcreteTicketEntry;
-
-import it.polito.ezshop.exceptions.*;
-import it.polito.ezshop.model.ConcreteReturnTransaction;
-import it.polito.ezshop.model.ConcreteSaleTransaction;
-
 import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
@@ -149,9 +146,8 @@ public class EZShopTest {
 		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(user);
 		
-		ezShop.createProductType("description", "1234567891231", 5.0, "note");
-		assertEquals(Integer.valueOf(-1), ezShop.createProductType("description", "1234567891231", 5.0, "note"));
-		ezShop.reset();
+		
+		assertEquals(Integer.valueOf(-1), ezShop.createProductType("description", "123456789104", 5.0, "note"));
 		
 	}
 	
@@ -160,8 +156,8 @@ public class EZShopTest {
 		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(user);
 		
-		assertEquals(Integer.valueOf(1), ezShop.createProductType("description", "884846564847", 5.0, "note"));
-		ezShop.reset();
+		
+		assertEquals(Integer.valueOf(4), ezShop.createProductType("description", "125489796456", 5.0, "note"));
 		
 	}
 	
@@ -276,8 +272,7 @@ public class EZShopTest {
 		ezShop.setRunningUser(user);
 		
 		//Test no product with given id
-		ezShop.reset();
-		assertFalse(ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note"));
+		assertFalse(ezShop.updateProduct(150, "description", "1234567891231", 5.0, "note"));
 	}
 	
 	@Test
@@ -286,242 +281,9 @@ public class EZShopTest {
 		ezShop.setRunningUser(user);
 		
 		//Test existing bar_code
-		ezShop.createProductType("description", "1234567891231", 5.0, "note");
-		ezShop.createProductType("description", "785462151575", 5.0, "note");
-		assertFalse(ezShop.updateProduct(1, "description", "785462151575", 5.0, "note"));
-		ezShop.reset();
+		assertFalse(ezShop.updateProduct(1, "description", "1234567891231", 5.0, "note"));
 	}
 	
-	@Test
-	public void testProductUpdateValid() throws InvalidProductIdException, UnauthorizedException, InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException {
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		
-		//Test valid update
-		ezShop.createProductType("description", "1234567891231", 5.0, "note");
-		assertTrue(ezShop.updateProduct(1, "description", "785462151575", 5.0, "note"));
-		ezShop.reset();
-	}
-	
-	@Test
-	public void testDeleteProductTypeInvalidId() throws InvalidProductIdException, UnauthorizedException {
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		
-		//Test null id
-		assertThrows(InvalidProductIdException.class, () -> {
-			ezShop.deleteProductType(null);
-		});
-		
-		//Test id negative
-		assertThrows(InvalidProductIdException.class, () -> {
-			ezShop.deleteProductType(-1);
-		});
-		
-		//Test id=0
-		assertThrows(InvalidProductIdException.class, () -> {
-			ezShop.deleteProductType(0);
-		});
-	} 
-	
-	@Test
-	public void testDeleteProductTypeUnauthorizedException() throws InvalidProductIdException, UnauthorizedException {
-		//Test no user
-		ezShop.setRunningUser(null);
-		assertThrows(UnauthorizedException.class, () -> {
-			ezShop.deleteProductType(1);
-		});
-				
-				
-		//Test generic user role
-		User user = new ConcreteUser("name", 1, "123", "role");
-		ezShop.setRunningUser(user);
-				
-		assertThrows(UnauthorizedException.class, () -> {
-			ezShop.deleteProductType(1);
-		});
-				
-				
-		//Test user role=CASHIER
-		user.setRole("role");
-		ezShop.setRunningUser(user);
-				
-		assertThrows(UnauthorizedException.class, () -> {
-			ezShop.deleteProductType(1);
-		});
-	} 
-	
-	@Test
-	public void testDeleteProductNotExisting() throws InvalidProductIdException, UnauthorizedException {
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		
-		ezShop.reset();
-		assertFalse(ezShop.deleteProductType(1));
-	}
-	
-	@Test
-	public void testDeleteProductValidProduct() throws InvalidProductIdException, UnauthorizedException {
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		
-		try {
-			ezShop.createProductType("description", "1234567891231", 5.0, "note");
-		} catch (InvalidProductDescriptionException e) {
-			fail("Unexpected exception: " + e );
-		} catch (InvalidProductCodeException e) {
-			fail("Unexpected exception: " + e );
-		} catch (InvalidPricePerUnitException e) {
-			fail("Unexpected exception: " + e );
-		} catch (UnauthorizedException e) {
-			fail("Unexpected exception: " + e );
-		}
-		assertTrue(ezShop.deleteProductType(1));	
-	}
-	
-	@Test
-	public void testGetAllProductTypeUnauthorizedException() throws UnauthorizedException {
-		//Test no user
-		ezShop.setRunningUser(null);
-		assertThrows(UnauthorizedException.class, () -> {
-			ezShop.getAllProductTypes();
-		});
-				
-				
-		//Test generic user role
-		User user = new ConcreteUser("name", 1, "123", "role");
-		ezShop.setRunningUser(user);
-				
-		assertThrows(UnauthorizedException.class, () -> {
-			ezShop.getAllProductTypes();
-		});
-	} 
-	
-	@Test
-	public void testGetAllProductTypeValid() throws UnauthorizedException{
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		List<ProductType> products = new ArrayList<>();
-		
-		//Test no products
-		products = ezShop.getAllProductTypes();
-		assertEquals(0, products.size());
-		
-		//Test products list with 1 one product
-		try {
-			ezShop.createProductType("description", "1234567891231", 5.0, "note");
-			products = ezShop.getAllProductTypes();
-			assertEquals(1, products.size());
-			ezShop.reset();
-		} catch (InvalidProductDescriptionException | InvalidProductCodeException | InvalidPricePerUnitException
-				| UnauthorizedException e) {
-			fail("Unexpected Exception" + e);
-		}
-		
-	}
-	
-	@Test 
-	public void testGetProductTypeByBarCodeUnauthorizedException() throws UnauthorizedException, InvalidProductCodeException{
-		//Test no user
-		ezShop.setRunningUser(null);
-			assertThrows(UnauthorizedException.class, () -> {
-				ezShop.getProductTypeByBarCode("1234567891231");
-		});
-							
-		//Test generic user role
-		User user = new ConcreteUser("name", 1, "123", "role");
-		ezShop.setRunningUser(user);
-						
-		assertThrows(UnauthorizedException.class, () -> {
-				ezShop.getProductTypeByBarCode("1234567891231");
-		});
-		
-		//Test user= CASHIER
-		user.setRole(Constants.CASHIER);
-		ezShop.setRunningUser(user);
-		assertThrows(UnauthorizedException.class, () -> {	
-			ezShop.getProductTypeByBarCode("1234567891231");
-		});
-	}
-	
-	@Test 
-	public void testGetProductTypeByBarCodeInvalidBarCode() throws UnauthorizedException, InvalidProductCodeException {
-
-		//Test product code null
-		assertThrows(InvalidProductCodeException.class, () -> {
-			ezShop.getProductTypeByBarCode(null);
-		});
-
-		//Test product code empty
-		assertThrows(InvalidProductCodeException.class, () -> {
-			ezShop.getProductTypeByBarCode("");
-		});
-				
-		//Test product code is valid code
-		assertThrows(InvalidProductCodeException.class, () -> {
-			ezShop.getProductTypeByBarCode("123456");
-		});
-	
-		//Test product code is a number
-		assertThrows(InvalidProductCodeException.class, () -> {
-			ezShop.getProductTypeByBarCode("productCode");
-		});
-	}
-	
-	@Test
-	public void testGetProductTypeByBarCodeProductNotExists() throws UnauthorizedException, InvalidProductCodeException {
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		
-		assertEquals(null, ezShop.getProductTypeByBarCode("1234567891231"));
-	}
-	
-	@Test
-	public void testGetProductTypeByBarCodeValidProduct() throws UnauthorizedException, InvalidProductCodeException {
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		
-		try {
-			ezShop.createProductType("description", "1234567891231", 5.0, "note");
-			assertEquals("1234567891231", ezShop.getProductTypeByBarCode("1234567891231").getBarCode());
-			ezShop.reset();
-		} catch (InvalidProductDescriptionException | InvalidProductCodeException | InvalidPricePerUnitException
-				| UnauthorizedException e) {
-			fail("Unexpected Exception" + e);
-		}
-	}
-	
-	@Test
-	public void testGetProductTypeByDescriptionUnauthorizedException() throws UnauthorizedException {
-		//Test no user
-		ezShop.setRunningUser(null);
-			assertThrows(UnauthorizedException.class, () -> {
-			ezShop.getProductTypesByDescription("description");
-		});
-									
-		//Test generic user role
-		User user = new ConcreteUser("name", 1, "123", "role");
-		ezShop.setRunningUser(user);
-								
-		assertThrows(UnauthorizedException.class, () -> {
-				ezShop.getProductTypesByDescription("description");
-		});
-				
-		//Test user= CASHIER
-		user.setRole(Constants.CASHIER);
-		ezShop.setRunningUser(user);
-		assertThrows(UnauthorizedException.class, () -> {	
-			ezShop.getProductTypesByDescription("description");
-		});
-	}
-	
-	@Test
-	public void testGetProductTypeByDescriptionProductsNotExist() throws UnauthorizedException {
-		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
-		ezShop.setRunningUser(user);
-		
-		assertEquals(0, ezShop.getProductTypesByDescription("description").size());
-	}
 
 	@Test
 	public void testSaleTransactionUnauthorizedUser(){
@@ -648,7 +410,9 @@ public class EZShopTest {
 		assertEquals(1, ezShop.getProductTypesByDescription(null).size());
 	}
 
-	public void testAddProductToSaleProductNotExists(){
+
+	@Test
+	public void testSaleTransactionProductNotExists(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
@@ -663,28 +427,135 @@ public class EZShopTest {
 			ezShop.setSaleTransactionState(Constants.OPENED);
 			
 			assertFalse(ezShop.addProductToSale(saleTransaction.getTicketNumber(), "123456789104", 1));
+			assertFalse(ezShop.deleteProductFromSale(saleTransaction.getTicketNumber(), "123456789104", 1));
+			assertFalse(ezShop.applyDiscountRateToProduct(saleTransaction.getTicketNumber(), "123456789104", 0.2));
+
+			ezShop.getDAO().resetApplication();
 
 		}catch(DAOException e){
 			fail();
-		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException e){
+		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|
+				InvalidQuantityException| InvalidDiscountRateException e){
 			System.out.println("Error message: " + e);
 			fail();
 		}
-		ezShop.reset();
 	}
 
+
+	//TODO: add the deleteProductFromSale here
 	@Test
-	public void testAddProductNotEnoughProduct(){
+	public void testAddProductToSaleNotEnoughProduct(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
-		IDAOEZshop dao= new DAOEZShop();
-		ezShop.setDAO(dao);
 
+		ProductType pt= new ConcreteProductType(null, "product_test", "123456789104", null, 5, 2.0, null);
 		try{
+			ezShop.getDAO().createProductType(pt);
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
+			ezShop.setSaleTransaction(saleTransaction);
+			ezShop.setSaleTransactionState(Constants.OPENED);
+
+			assertFalse(ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 6));
+
+			ezShop.getDAO().resetApplication();
 
 		}catch(DAOException e){
+			fail();
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|UnauthorizedException e){
+			fail();
+		}
+	}
 
+	@Test
+	public void testSaleTransactionNotExist(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		SaleTransaction wrongTransaction= new ConcreteSaleTransaction(1, new ArrayList<TicketEntry>(), 0, 0);
+		ezShop.setSaleTransaction(wrongTransaction);
+
+		try{
+			assertFalse(ezShop.addProductToSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
+			assertFalse(ezShop.deleteProductFromSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
+			assertFalse(ezShop.applyDiscountRateToProduct(wrongTransaction.getTicketNumber(), "123456789104", 0.25));
+			assertFalse(ezShop.applyDiscountRateToSale(wrongTransaction.getTicketNumber(), 0.25));
+			assertEquals(-1, ezShop.computePointsForSale(wrongTransaction.getTicketNumber()));
+			assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
+			assertFalse(ezShop.deleteSaleTransaction(wrongTransaction.getTicketNumber()));
+
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|
+				UnauthorizedException|InvalidDiscountRateException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testSaleTransactionWrongTransactionStatus(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		try{
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction wrongTransaction= new ConcreteSaleTransaction(stId+1, new ArrayList<TicketEntry>(), 0, 0);
+			ezShop.setSaleTransaction(wrongTransaction);
+			ezShop.setSaleTransactionState(Constants.CLOSED);
+
+			assertFalse(ezShop.addProductToSale(wrongTransaction.getTicketNumber(), "123456789104", 2));
+			assertFalse(ezShop.deleteProductFromSale(wrongTransaction.getTicketNumber(), "123456789104", 2));
+			assertFalse(ezShop.applyDiscountRateToProduct(wrongTransaction.getTicketNumber(), "123456789104", 0.25));
+			assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
+
+			//deleteSaleTransaction test
+			wrongTransaction.setPayed(true);
+			boolean saleUpdate= ezShop.getDAO().storeSaleTransaction(wrongTransaction);
+
+			if(saleUpdate==false){
+				fail();
+			}
+			assertFalse(ezShop.deleteSaleTransaction(wrongTransaction.getTicketNumber()));	
+
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|
+				UnauthorizedException|InvalidDiscountRateException e){
+			fail();
+		}
+
+	}
+
+	
+	@Test
+	public void testGetSaleTransaction(){
+		
+		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+
+		try{
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction wrongTransaction= new ConcreteSaleTransaction(stId+1, new ArrayList<TicketEntry>(), 0, 0);
+			assertEquals(null,ezShop.getSaleTransaction(wrongTransaction.getTicketNumber()));
+
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidTransactionIdException e){
+			fail();
 		}
 
 	}
@@ -2022,4 +1893,230 @@ public class EZShopTest {
 		}
 	}
 	
+	@Test 
+	public void testOrderUnauthorizedUser() {
+		User u= null;
+		ezShop.setRunningUser(u);
+		
+		assertThrows(UnauthorizedException.class, ()->{ezShop.issueOrder("4314324224124",2,2.0);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrderFor("4314324224124",2,2.0);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrder(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrival(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllOrders();});
+		
+		u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(u);
+		assertThrows(UnauthorizedException.class, ()->{ezShop.issueOrder("4314324224124",2,2.0);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrderFor("4314324224124",2,2.0);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrder(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrival(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllOrders();});
+	}
+	
+	@Test 
+	public void testOrderInvalidProductCode() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.issueOrder("", 2, 2.0);});
+		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.issueOrder(null, 2, 2.0);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.issueOrder("invalidCode", 2, 2.0);});
+		
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.payOrderFor("", 2, 2.0);});
+		//assertThrows(InvalidProductCodeException.class, ()->{ezShop.payOrderFor(null, 2, 2.0);});
+		assertThrows(InvalidProductCodeException.class, ()->{ezShop.payOrderFor("invalidCode", 2, 2.0);});
+	}
+	
+	@Test
+	public void testOrderInvalidQUantity() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.issueOrder("4314324224124", -2, 2.0);});
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.issueOrder("4314324224124", 0, 2.0);});
+		
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.payOrderFor("4314324224124", -2, 2.0);});
+		assertThrows(InvalidQuantityException.class, ()->{ezShop.payOrderFor("4314324224124", 0, 2.0);});
+	}
+	
+	@Test 
+	public void testOrderInvalidPricePerQty() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidPricePerUnitException.class, ()->{ezShop.issueOrder("4314324224124", 2, -2.0);});
+		assertThrows(InvalidPricePerUnitException.class, ()->{ezShop.issueOrder("4314324224124", 2, 0);});
+		
+		assertThrows(InvalidPricePerUnitException.class, ()->{ezShop.payOrderFor("4314324224124", 2, -2.0);});
+		assertThrows(InvalidPricePerUnitException.class, ()->{ezShop.payOrderFor("4314324224124", 2, 0);});
+	}
+	
+	@Test 
+	public void testOrderInvalidOrderId() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.payOrder(-1);});
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.payOrder(0);});
+		//assertThrows(InvalidOrderIdException.class, ()->{ezShop.payOrder(null);});
+		
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(-1);});
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(0);});
+		//assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(null);});	
+	}
+	
+	@Test 
+	public void testRecordOrderArrivalInvalidLocation() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		//devo avere ordine riferito a prodotto senza location nel db -> inserisco sia prodotto che ordine
+		try{
+			ezShop.getDAO().createProductType(pt);
+			Integer ordId = ezShop.getDAO().payOrderDirectly("4314324224124", 1, 1.0);
+			if(ordId<0){
+				fail();
+			}
+			
+			assertThrows(InvalidLocationException.class, () ->{ezShop.recordOrderArrival(ordId);});
+
+		}catch(DAOException e){
+			fail();
+		}
+		ezShop.reset();
+
+	}
+	
+	@Test 
+	public void testOrderProductNotExists() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());							//otherwise the test fails for the balance and not for the product
+			assertEquals(Integer.valueOf(-1), ezShop.issueOrder("4314324224124", 1, 1.0));			//this product should not exist since I've not inserted it
+			assertEquals(Integer.valueOf(-1), ezShop.payOrderFor("4314324224124", 1, 1.0));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidProductCodeException|InvalidQuantityException|InvalidPricePerUnitException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	@Test 
+	public void testIssueOrderValidData() {
+		
+	}
+	
+	
+	@Test 
+	public void testPayOrderForBalanceNotEnough() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().createProductType(pt);
+			assertEquals(Integer.valueOf(-1), ezShop.payOrderFor("4314324224124", 100, 1.0));			//the balance should be 0 with an empty db
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException|InvalidProductCodeException|InvalidQuantityException|InvalidPricePerUnitException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	@Test 
+	public void testPayOrderForValidData() {
+		
+	}
+	
+	@Test 
+	public void testOrderOrderNotExists() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {	
+			assertFalse(ezShop.payOrder(3));
+			assertFalse(ezShop.recordOrderArrival(3));
+		} catch(UnauthorizedException|InvalidOrderIdException|InvalidLocationException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	
+	//ORDERED = PAYED! SO THERE IS RETURN FALSE ONLY IF THE ORDER IS ALREADY COMPLETED
+	@Test 
+	public void testPayOrderOrderNotIssuedOrOrdered() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt);										
+			ezShop.getDAO().payOrderDirectly("4314324224124", 1, 1.0);
+			ezShop.getDAO().recordArrival(1);
+			assertFalse(ezShop.payOrder(1));		
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException|InvalidOrderIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	
+	@Test 
+	public void testPayOrderValidData() {
+		
+	}
+	
+	
+	//ORDERED=PAYED SO THERE IS RETURN FALSE ONLY IF THE ORDER IS JUST ISSUED
+	@Test 
+	public void testRecordOrderArrivalOrderNotOrderedOrCompleted() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt);
+			ezShop.getDAO().insertNewOrder("4314324224124", 1, 1.0);
+			assertFalse(ezShop.recordOrderArrival(1));		
+		}catch(DAOException e){
+			fail();
+		} catch(UnauthorizedException|InvalidOrderIdException|InvalidLocationException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		ezShop.reset();
+	}
+	
+	@Test 
+	public void testRecordOrderArrivalValidData() {
+		
+	}
+	
+	@Test 
+	public void testGetAllOrdersValidData() {
+		
+	}
+	
+	
 }
+
+
+
