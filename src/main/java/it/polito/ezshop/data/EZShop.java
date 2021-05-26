@@ -1201,10 +1201,6 @@ public class EZShop implements EZShopInterface {
         	prodToReturn.setAmount(amount);
             returnTransaction.getEntries().add(prodToReturn);
         }
-        
-        //for (TicketEntry t : returnTransaction.getEntries())
-        	//System.out.println("t finale: " + t.getBarCode());
-        	
     	return true;
     }
 
