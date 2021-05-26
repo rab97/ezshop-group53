@@ -460,5 +460,124 @@ public class DAOTest {
     	dao.resetApplication();
     }
     
+    @Test
+    public void testInsertCustomerButAlreadyExists() throws DAOException {
+    	dao.insertCustomer("name");
+    	assertEquals(Integer.valueOf(-1), dao.insertCustomer("name"));
+    	dao.deleteCustomer(1);
+    }
+    
+    @Test
+    public void testInsertCustomerValid() throws DAOException {
+    	assertEquals(Integer.valueOf(1), dao.insertCustomer("name"));
+    	dao.deleteCustomer(1);
+    }
+    
+    @Test
+    public void testUpdateCustomerInvalidCard() throws DAOException {
+    	dao.insertCustomer("name");
+    	assertFalse(dao.updateCustomer(1, "name", "0123"));	//too short
+    	dao.deleteCustomer(1);
+    }
+    
+    @Test
+    public void testUpdateCustomerCardAlreadyExists() throws DAOException {
+    	dao.insertCustomer("name1");
+    	dao.insertCustomer("name2");
+    	dao.updateCustomer(1, "name1", "0123456789");
+    	assertFalse(dao.updateCustomer(2, "name2", "0123456789"));	
+    	dao.deleteCustomer(1);
+    	dao.deleteCustomer(2);
+    }
+    
+    @Test
+    public void testUpdateCustomerValid() throws DAOException {
+    	dao.insertCustomer("name1");
+    	assertTrue(dao.updateCustomer(1, "name1", "0123456789"));	
+    	dao.deleteCustomer(1);
+    }
+    
+    @Test
+    public void testDeleteCustomerButNotExists() throws DAOException {
+    	assertFalse(dao.deleteCustomer(5));	
+    }
+    
+    @Test
+    public void testDeleteCustomerValid() throws DAOException {
+    	dao.insertCustomer("name1");
+    	assertTrue(dao.deleteCustomer(1));	
+    	dao.deleteCustomer(1);
+    }
+    
+    @Test
+    public void testGetCustomerButNotExists() throws DAOException {
+    	assertNull(dao.getCustomer(5));	
+    }
+    
+    @Test
+    public void testGetCustomerValid() throws DAOException {
+    	dao.insertCustomer("name1");
+    	assertEquals("name1", dao.getCustomer(1).getCustomerName());	
+    	dao.deleteCustomer(1);
+    }
+    
+    @Test
+    public void testGetAllCustomers() throws DAOException {
+    	//ArrayList empty
+    	assertEquals(0, dao.getAllCustomers().size());
+    	
+    	//ArrayList with 1 product
+    	dao.insertCustomer("name1");
+    	dao.insertCustomer("name2");
+    	assertEquals(2, dao.getAllCustomers().size());
+    	dao.deleteCustomer(1);
+    	dao.deleteCustomer(2);
+    }
+    
+    @Test
+    public void testBindCardToCustomerButNotExists() throws DAOException {
+    	assertFalse(dao.bindCardToCustomer("0123456789", 7));
+    }
+    
+    @Test
+    public void testBindCardToCustomerCardAlreadyExists() throws DAOException {
+    	dao.insertCustomer("name1");
+    	dao.insertCustomer("name2");
+    	dao.updateCustomer(1, "name1", "0123456789");
+    	assertFalse(dao.updateCustomer(2, "name2", "0123456789"));
+    	dao.deleteCustomer(1);
+    	dao.deleteCustomer(2);
+    }
+    
+    @Test
+    public void testBindCardToCustomerValid() throws DAOException {
+    	dao.insertCustomer("name1");
+    	dao.insertCustomer("name2");
+    	dao.updateCustomer(1, "name1", "0123456789");
+    	assertTrue(dao.updateCustomer(2, "name2", "9876543210"));
+    	dao.deleteCustomer(1);
+    	dao.deleteCustomer(2);
+    }
+    
+    @Test
+    public void testUpdatePointsCustomerNotExists() throws DAOException {
+    	assertFalse(dao.updatePoints("0123456789", 10));
+    }
+    
+    @Test
+    public void testUpdatePointsButNotEnough() throws DAOException {
+    	dao.insertCustomer("name1");
+    	dao.updateCustomer(1, "name1", "0123456789");
+    	assertFalse(dao.updatePoints("0123456789", -20));
+    	dao.deleteCustomer(1);
+    }
+    
+    @Test
+    public void testUpdatePointsValid() throws DAOException {
+    	dao.insertCustomer("name1");
+    	dao.updateCustomer(1, "name1", "0123456789");
+    	assertTrue(dao.updatePoints("0123456789", 20));
+    	dao.deleteCustomer(1);
+    }
     
 }
