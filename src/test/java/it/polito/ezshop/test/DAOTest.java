@@ -450,13 +450,15 @@ public class DAOTest {
     @Test 
     public void testGetAllOrdersValid() throws DAOException {
     	//ArrayList empty
-    	assertEquals(0, dao.getAllProducTypet().size());
+    	assertEquals(0, dao.getAllOrders().size());
     	
     	//ArrayList with 1 product
     	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
-    	
-    	assertEquals(1, dao.getAllProducTypet().size());
+    	dao.insertNewOrder("1234567891231", 1, 1.0);
+    	assertEquals(1, dao.getAllOrders().size());
     	
     	dao.resetApplication();
     }
+    
+    
 }
