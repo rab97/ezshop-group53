@@ -672,14 +672,14 @@ public class DAOTest {
     }
   
     @Test
-    public void searchUserInvalid() {
+    public void testSearchUserInvalid() {
     	assertThrows(DAOException.class, () -> {
     		dao.searchUser("'ORDER'", null);
     	});
     }
     
     @Test
-    public void searchUserNull() throws DAOException {
+    public void testSearchUserNull() throws DAOException {
     	assertEquals(null, dao.searchUser("name", "password"));
     }
     
@@ -815,8 +815,9 @@ public class DAOTest {
 			fail();
 		}
 	}
-    
-    public void searchUserValid() throws DAOException {
+
+    	
+    public void testSearchUserValid() throws DAOException {
     	dao.insertUser("name", "password", Constants.ADMINISTRATOR);
     	
     	assertEquals(Integer.valueOf(1), dao.searchUser("name", "password").getId());

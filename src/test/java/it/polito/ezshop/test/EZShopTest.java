@@ -143,7 +143,7 @@ public class EZShopTest {
 		ezShop.setRunningUser(u);
 
 		try{
-			assertTrue(ezShop.getAllUsers().isEmpty());
+			assertEquals(0, ezShop.getAllUsers().size());
 
 		}catch(UnauthorizedException e){
 			fail();
@@ -1112,6 +1112,44 @@ public class EZShopTest {
 	}
 
 	@Test
+	public void testDeleteProductFromSaleWithSuccess(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+
+		ProductType pt= new ConcreteProductType(1, "product1", "123456789104", null, 5, 1.0, null);
+		try{
+			ezShop.getDAO().createProductType(pt);
+			ezShop.getDAO().updatePosition(1, "1-A-23");
+			ezShop.getDAO().updateQuantity(1, 50);
+			
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
+			boolean inserted= ezShop.getDAO().storeSaleTransaction(saleTransaction);
+			if(inserted==false){
+				fail();
+			}
+
+			ezShop.setSaleTransaction(saleTransaction);
+			ezShop.setSaleTransactionState(Constants.OPENED);
+
+			ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1);
+			ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1);
+
+			assertTrue(ezShop.deleteProductFromSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1));
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException e){
+			fail();
+		}
+	}
+
+	@Test
 	public void testEndSaleTransactionWithSuccess(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
@@ -1212,6 +1250,42 @@ public class EZShopTest {
 			fail();
 		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|
 				InvalidQuantityException|InvalidDiscountRateException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testdeleteSaleTransactionWithSuccess(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+
+		ProductType pt= new ConcreteProductType(1, "product1", "123456789104", null, 5, 1.0, null);
+		try{
+			ezShop.getDAO().createProductType(pt);
+			ezShop.getDAO().updatePosition(1, "1-A-23");
+			ezShop.getDAO().updateQuantity(1, 50);
+			
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
+			boolean inserted= ezShop.getDAO().storeSaleTransaction(saleTransaction);
+			if(inserted==false){
+				fail();
+			}
+			ezShop.setSaleTransaction(saleTransaction);
+			ezShop.setSaleTransactionState(Constants.CLOSED);
+
+			ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 2);
+			assertTrue(ezShop.deleteSaleTransaction(saleTransaction.getTicketNumber()));
+
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidQuantityException| InvalidProductCodeException e){
 			fail();
 		}
 	}
@@ -3955,6 +4029,7 @@ public class EZShopTest {
 	}
 	
 	@Test
+
 	public void testCustomerDetachCard() throws InvalidCustomerNameException {
 		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
 		ezShop.setRunningUser(u);
@@ -3975,6 +4050,27 @@ public class EZShopTest {
 			System.out.println(e);
 		}
 	}
+	
+	@Test
+	public void testUpdatePositionNull() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.getDAO().createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+		ezShop.getDAO().updatePosition(1, "1-A-23");
+		
+		assertTrue(ezShop.updatePosition(1, null));
+		
+		ezShop.getDAO().resetApplication();
+	}
+	
+	@Test
+	public void testUpdatePositionEmpty() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.getDAO().createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+		ezShop.getDAO().updatePosition(1, "1-A-23");
+		
+		assertTrue(ezShop.updatePosition(1, ""));
+		
+		ezShop.getDAO().resetApplication();
+	}
+
 }
 
 

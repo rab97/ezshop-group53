@@ -287,11 +287,10 @@ public class EZShop implements EZShopInterface {
         ProductType productType = null;
         try {
             productType = dao.getProductTypeByBarCode(barCode);
-            return productType;
         } catch (Exception e) {
             System.out.println("errror");
         }
-        return null;
+        return productType;
     }
 
     @Override
@@ -895,14 +894,7 @@ public class EZShop implements EZShopInterface {
             System.out.println(e);
             return false;
         }
-
-        // print log
-        System.out.println("Removed product from sale:");
-        for (TicketEntry td : saleTransaction.getEntries()) {
-            System.out.println(td.getProductDescription() + td.getAmount());
-        }
-
-        return false;
+        return true;
     }
 
     @Override
@@ -957,17 +949,8 @@ public class EZShop implements EZShopInterface {
         if (saleTransaction.getTicketNumber() != transactionId)
             return false;
 
-        try{
-            SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
-
-            if(checkTransaction==null){
-                return false;
-            }
-        }catch(DAOException e){
-            System.out.println(e);
-        }
-
         saleTransaction.setDiscountRate(discountRate);
+        
         return true;
     }
 
@@ -1012,17 +995,6 @@ public class EZShop implements EZShopInterface {
             return false;
         if (saleTransaction_state == Constants.CLOSED)
             return false;
-
-            try{
-                SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
-        
-                if(checkTransaction==null){
-                    System.out.println("Arrivo qui nella endSaleTransaction di ezShop?Transaction null? Transaction id=" + transactionId);
-                    return false;
-                }
-            }catch(DAOException e){
-                System.out.println(e);
-            }
 
         double price = 0;
         for (TicketEntry te : saleTransaction.getEntries())
