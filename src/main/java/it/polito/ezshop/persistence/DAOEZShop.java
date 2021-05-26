@@ -921,6 +921,8 @@ public class DAOEZShop implements IDAOEZshop {
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
         }
 
         return true;

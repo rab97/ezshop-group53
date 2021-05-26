@@ -13,6 +13,7 @@ import it.polito.ezshop.Constants;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -235,6 +236,105 @@ public class DAOTest {
 
     @Test
     public void testGetAllProductTypetValid() throws DAOException {
+    	//ArrayList empty
+    	assertEquals(0, dao.getAllProducTypet().size());
+    	
+    	//ArrayList with 1 product
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	
+    	assertEquals(1, dao.getAllProducTypet().size());
+    	
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testInsertNewOrderProductNotExists() throws DAOException {
+    	assertEquals(Integer.valueOf(-1), dao.insertNewOrder("1234567891231", 1, 1.0));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testInsertNewOrderValid() throws DAOException {
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	assertEquals(Integer.valueOf(1), dao.insertNewOrder("1234567891231", 1, 1.0));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testPayOrderDirectlyProductNotExists() throws DAOException {
+    	assertEquals(Integer.valueOf(-1), dao.payOrderDirectly("1234567891231", 1, 1.0));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testPayOrderDirectlyValid() throws DAOException {
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	assertEquals(Integer.valueOf(1), dao.payOrderDirectly("1234567891231", 1, 1.0));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testPayOrderOrderNotExists() throws DAOException {
+    	assertFalse(dao.payOrder(5));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testPayOrderIssued() throws DAOException {
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	dao.insertNewOrder("1234567891231", 1, 1.0);
+    	assertTrue(dao.payOrder(1));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testPayOrderPayed() throws DAOException {
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	dao.payOrderDirectly("1234567891231", 1, 1.0);
+    	assertTrue(dao.payOrder(1));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testPayOrderCompleted() throws DAOException {
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	dao.payOrderDirectly("1234567891231", 1, 1.0);
+    	dao.recordArrival(1);
+    	assertFalse(dao.payOrder(1));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testRecordArrivalOrderNotExists() throws DAOException{
+    	assertFalse(dao.recordArrival(1));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testRecordArrivalValid() throws DAOException {
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	dao.payOrderDirectly("1234567891231", 1, 1.0);
+    	assertTrue(dao.recordArrival(1));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testGetOrderOrderNotExists() throws DAOException {
+    	assertNull(dao.getOrder(1));
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testGetOrderValid() throws DAOException {
+    	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+    	dao.payOrderDirectly("1234567891231", 1, 1.0);
+    	assertEquals("1234567891231", dao.getOrder(1).getProductCode());
+    	assertEquals("PAYED", dao.getOrder(1).getStatus());
+    	dao.resetApplication();
+    }
+    
+    @Test 
+    public void testGetAllOrdersValid() throws DAOException {
     	//ArrayList empty
     	assertEquals(0, dao.getAllProducTypet().size());
     	
