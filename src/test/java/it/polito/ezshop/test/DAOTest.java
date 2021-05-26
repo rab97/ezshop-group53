@@ -702,7 +702,6 @@ public class DAOTest {
     @Test
     public void testRemoveSaleTransactionInvalid() {
     	try {
-			dao.storeSaleTransaction(new ConcreteSaleTransaction(1, new ArrayList(), 25.0, 2.5));
 			assertFalse(dao.removeSaleTransaction(1));
 			assertFalse(dao.removeSaleTransaction(0));
 			assertFalse(dao.removeSaleTransaction(-1));
