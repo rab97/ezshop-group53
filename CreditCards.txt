@@ -4,13 +4,26 @@
 #Here you can add all the credit card numbers you need with their balance. The format MUST be :
 #<creditCardNumber>;<balance>
 <<<<<<< HEAD
+<<<<<<< HEAD
 4485370086510891;90.88999999999997
 =======
 <<<<<<< HEAD
 4485370086510891;116.93999999999994
 =======
+<<<<<<< HEAD;0.0
+4485370086510891;184.67000000000002
+=======;116.93999999999994
+4485370086510891;148.19999999999996
+>>>>>>> 76fd17e1009357a5c26438c5440337d4a0d720b1;80.46999999999998
+>>>>>>> branch 'testing' of https://git-softeng.polito.it/se-2021/group-53/ezshop.git
+=======
+<<<<<<< HEAD
 4485370086510891;80.46999999999998
 >>>>>>> 76fd17e1009357a5c26438c5440337d4a0d720b1
+>>>>>>> branch 'testing' of https://git-softeng.polito.it/se-2021/group-53/ezshop.git
+=======
+4485370086510891;44.0
+>>>>>>> 5ffa402936201c514bfa582ae32272d1f796d3d1
 >>>>>>> branch 'testing' of https://git-softeng.polito.it/se-2021/group-53/ezshop.git
 100293991053009;10.0
 4716258050958645;0.0

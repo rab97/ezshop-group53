@@ -43,14 +43,14 @@ public class EZShop implements EZShopInterface {
             throws InvalidUsernameException, InvalidPasswordException, InvalidRoleException {
         Integer user_id = -1;
         if (username == null || username.isEmpty()) {
-            throw new InvalidUsernameException();
+            throw new InvalidUsernameException("Invalid Username");
         }
         if (password == null || password.isEmpty()) {
-            throw new InvalidPasswordException();
+            throw new InvalidPasswordException("Invalid Password");
         }
         if (role == null || role.isEmpty() || (!role.equals(Constants.ADMINISTRATOR) && !role.equals(Constants.CASHIER)
                 && !role.equals(Constants.SHOP_MANAGER))) {
-            throw new InvalidRoleException();
+            throw new InvalidRoleException("Invalid Role");
         }
         try {
             user_id = dao.insertUser(username, password, role);
@@ -121,7 +121,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         if (id == null||id <= 0) {
-            throw new InvalidUserIdException();
+            throw new InvalidUserIdException("Invalid User Id");
         }
         if (role == null || role.isEmpty() || (!role.equals(Constants.ADMINISTRATOR) && !role.equals(Constants.CASHIER)
                 && !role.equals(Constants.SHOP_MANAGER))) {
@@ -185,7 +185,7 @@ public class EZShop implements EZShopInterface {
         }
         if (pricePerUnit <= 0) {
         	System.out.println("throw invalid price");
-            throw new InvalidPricePerUnitException();
+            throw new InvalidPricePerUnitException("Invalid PricePerUnit");
         }
         if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
@@ -213,7 +213,7 @@ public class EZShop implements EZShopInterface {
     	}
     	
         if (newDescription == null || newDescription.isEmpty()) {
-            throw new InvalidProductDescriptionException();
+            throw new InvalidProductDescriptionException("Invalid Product Description");
         }
         try {
             Long.parseLong(newCode);
@@ -243,7 +243,7 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean deleteProductType(Integer id) throws InvalidProductIdException, UnauthorizedException {
         if (id == null || id <= 0) {
-            throw new InvalidProductIdException();
+            throw new InvalidProductIdException("Invalid Product Id");
         }
         if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
@@ -397,7 +397,7 @@ public class EZShop implements EZShopInterface {
             throw new InvalidProductCodeException();
         }
         if (quantity <= 0) {
-            throw new InvalidQuantityException();
+            throw new InvalidQuantityException("Invalid Quantity");
         }
         if (pricePerUnit <= 0) {
             throw new InvalidPricePerUnitException();
@@ -453,10 +453,10 @@ public class EZShop implements EZShopInterface {
 
         if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException("Invalid User Role");
         }
         if (orderId == null | orderId <= 0) {
-            throw new InvalidOrderIdException();
+            throw new InvalidOrderIdException("Invalid Order Id");
         }
 
         boolean payment = false;
@@ -551,7 +551,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         if (customerName == null | customerName.isEmpty()) {
-            throw new InvalidCustomerNameException();
+            throw new InvalidCustomerNameException("Invalid Customer Name");
         }
 
         Integer newCustomerId = -1;
@@ -584,10 +584,10 @@ public class EZShop implements EZShopInterface {
             throw new InvalidCustomerNameException();
         }
         if (newCustomerCard == null | newCustomerCard.isEmpty() | newCustomerCard.length() != 10) {
-            throw new InvalidCustomerCardException();
+            throw new InvalidCustomerCardException("Invalid Customer Card");
         }
         if (id == null | id <= 0) {
-            throw new InvalidCustomerIdException();
+            throw new InvalidCustomerIdException("Invalid Customer Id");
         }
 
         boolean modification = false;
@@ -918,10 +918,10 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) { // manca invalid
-            throw new InvalidProductCodeException();
+            throw new InvalidProductCodeException("Invalid Product Code");
         }
         if (discountRate < 0 || discountRate >= 1.00) {
-            throw new InvalidDiscountRateException();
+            throw new InvalidDiscountRateException("Invalid Discount Rate");
         }
         if (saleTransaction.getTicketNumber() != transactionId)
             return false;
@@ -1356,10 +1356,10 @@ public class EZShop implements EZShopInterface {
         }
     	
     	if(transactionId<=0 || transactionId==null) {
-    		throw new InvalidTransactionIdException();
+    		throw new InvalidTransactionIdException("Invalid TransactionId");
     	}
     	if(cash<=0) {
-    		throw new InvalidPaymentException();
+    		throw new InvalidPaymentException("Invalid Payment");
     	}
     	
     	SaleTransaction s=null;
@@ -1404,7 +1404,7 @@ public class EZShop implements EZShopInterface {
     	}
     	
     	if(creditCard.isEmpty() || creditCard==null || !o.luhnCheck(creditCard)) {			
-    		throw new InvalidCreditCardException();
+    		throw new InvalidCreditCardException("");
     	}
     	
     	SaleTransaction s=null;
@@ -1497,11 +1497,11 @@ public class EZShop implements EZShopInterface {
         }
     	
     	if(returnId==null || returnId<=0 ) {
-    		throw new InvalidTransactionIdException();
+    		throw new InvalidTransactionIdException("Invalid Transaction Id");
     	}
     	
     	if(creditCard==null || creditCard.isEmpty() || !o.luhnCheck(creditCard)) {			
-    		throw new InvalidCreditCardException();
+    		throw new InvalidCreditCardException("Invalid Credit Card");
     	}
     	
     	ReturnTransaction r=null;
