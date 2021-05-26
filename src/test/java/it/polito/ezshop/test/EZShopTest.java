@@ -3975,14 +3975,6 @@ public class EZShopTest {
 			System.out.println(e);
 		}
 	}
-
-<<<<<<< HEAD
-	@Test
-	public void testDeleteProductFromSaleValid() {
-		
-	}
-=======
->>>>>>> e73e96f6973bf05e7a9ed160188bfd6c5fc3aee4
 }
 
 
