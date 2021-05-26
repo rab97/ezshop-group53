@@ -143,7 +143,7 @@ public class EZShopTest {
 		ezShop.setRunningUser(u);
 
 		try{
-			assertTrue(ezShop.getAllUsers().isEmpty());
+			assertEquals(0, ezShop.getAllUsers().size());
 
 		}catch(UnauthorizedException e){
 			fail();
@@ -3955,6 +3955,7 @@ public class EZShopTest {
 	}
 	
 	@Test
+
 	public void testCustomerDetachCard() throws InvalidCustomerNameException {
 		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
 		ezShop.setRunningUser(u);
@@ -3975,6 +3976,27 @@ public class EZShopTest {
 			System.out.println(e);
 		}
 	}
+	
+	@Test
+	public void testUpdatePositionNull() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.getDAO().createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+		ezShop.getDAO().updatePosition(1, "1-A-23");
+		
+		assertTrue(ezShop.updatePosition(1, null));
+		
+		ezShop.getDAO().resetApplication();
+	}
+	
+	@Test
+	public void testUpdatePositionEmpty() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.getDAO().createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
+		ezShop.getDAO().updatePosition(1, "1-A-23");
+		
+		assertTrue(ezShop.updatePosition(1, ""));
+		
+		ezShop.getDAO().resetApplication();
+	}
+
 }
 
 

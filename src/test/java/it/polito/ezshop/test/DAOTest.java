@@ -670,19 +670,18 @@ public class DAOTest {
     }
   
     @Test
-    public void searchUserInvalid() {
+    public void testSearchUserInvalid() {
     	assertThrows(DAOException.class, () -> {
     		dao.searchUser("'ORDER'", null);
     	});
     }
     
     @Test
-    public void searchUserNull() throws DAOException {
+    public void testSearchUserNull() throws DAOException {
     	assertEquals(null, dao.searchUser("name", "password"));
     }
     
     @Test
-<<<<<<< HEAD
     public void testSetTransactionPaid() {
     	try {
 			dao.storeSaleTransaction(new ConcreteSaleTransaction(1, new ArrayList(), 25.0, 2.5));
@@ -814,18 +813,12 @@ public class DAOTest {
 			fail();
 		}
 	}
-    
-    
-    @Test
-    public void testGetEntries() {
     	
-=======
-    public void searchUserValid() throws DAOException {
+    public void testSearchUserValid() throws DAOException {
     	dao.insertUser("name", "password", Constants.ADMINISTRATOR);
     	
     	assertEquals(Integer.valueOf(1), dao.searchUser("name", "password").getId());
     	
     	dao.removeUser(1);
->>>>>>> 73731b8c9537d7a8a1b0949f2d6f09156680a813
     }
 }
