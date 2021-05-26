@@ -3542,7 +3542,7 @@ public class EZShopTest {
 
 	
 	@Test
-	public void testReceveCashPaymentTransactionAlreadyPayed() {
+	public void testReceiveCashPaymentTransactionAlreadyPayed() {
 		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(user);
 		ReturnTransaction r = new ConcreteReturnTransaction();

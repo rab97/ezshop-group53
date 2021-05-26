@@ -827,7 +827,7 @@ public class DAOEZShop implements IDAOEZshop {
             String query = "DELETE FROM return_transaction WHERE id=?";
             PreparedStatement pstm = connection.prepareStatement(query);
             pstm.setDouble(1, returnId);
-            if (pstm.executeUpdate() == -1) {
+            if (pstm.executeUpdate() == 0) {
             	System.out.println("TRANSACTION NOT FOUND");
                 return false;
             }
@@ -1273,11 +1273,10 @@ public class DAOEZShop implements IDAOEZshop {
             List<TicketEntry> entries = getEntries(transactionId);
             saleTransaction = new ConcreteSaleTransaction(transactionId, entries, resultSet.getDouble("discountRate"),
             		resultSet.getDouble("price"));
-            System.out.println("true");
             if(resultSet.getInt("payed") == 1) {
             	saleTransaction.setPayed(true);
             } else {
-            	System.out.println("true");
+            	saleTransaction.setPayed(false);
             }
 
         } catch (SQLException ex) {
@@ -1309,7 +1308,6 @@ public class DAOEZShop implements IDAOEZshop {
             pstm.setInt(1, saleNumber);
             if(pstm.executeUpdate() <= 0) 
             	return false;
-
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
@@ -1376,9 +1374,7 @@ public class DAOEZShop implements IDAOEZshop {
         int update;
         double finalPrice;
         
-        System.out.println("esegio apapj");
         SaleTransaction s = this.searchSaleTransaction(transactionId);
-        System.out.println(s == null);
         if(committed)
         	finalPrice= s.getPrice()-price;
         else
