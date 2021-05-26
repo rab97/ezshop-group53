@@ -1307,18 +1307,13 @@ public class DAOEZShop implements IDAOEZshop {
             query = "DELETE FROM ticket_entry WHERE transactionId=?";
             pstm = connection.prepareStatement(query);
             pstm.setInt(1, saleNumber);
-            if(pstm.executeUpdate() <= 0){
-            	return false;
-            }else{
-                return true;
-            }
+            
+            return true;
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-
-        return true;
     }
     
     @Override
