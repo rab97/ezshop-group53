@@ -7,6 +7,9 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.model.Operator;
 import it.polito.ezshop.model.ConcreteCustomer;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
@@ -41,12 +45,15 @@ public class EZShopTest {
 
 	EZShop ezShop;
 	IDAOEZshop dao;
+	Operator o = new Operator();
+	
 	@Before	
 	public void setUp () {
 		ezShop = new EZShop();
 		dao = new DAOEZShop();
 		ezShop.reset();
 	}
+	
 	
 	@Test
 	public void testUserInvalidUsername(){
@@ -1862,42 +1869,16 @@ public class EZShopTest {
 		
 		try {
 			assertTrue(ezShop.returnProduct(1, "123456789104", 1));
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		assertEquals(1, r.getEntries().size());
-		try {
 			assertEquals(Integer.valueOf(50), ezShop.getProductTypeByBarCode("123456789104").getQuantity());
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		//System.out.println(r.getPrice());
-		//assertTrue(0.5 == r.getPrice()); // inseire controllo anche alla fine?
-		try {
+			assertEquals(1, r.getEntries().size());
 			assertTrue(ezShop.returnProduct(1, "123456789104", 19));
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		assertEquals(1, r.getEntries().size());
-		try {
+			assertEquals(1, r.getEntries().size());
 			assertEquals(Integer.valueOf(50), ezShop.getProductTypeByBarCode("123456789104").getQuantity());
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		try {
 			assertTrue(ezShop.returnProduct(1, "4314324224124", 1));
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		assertEquals(2, r.getEntries().size());
-		try {
+			assertEquals(2, r.getEntries().size());
 			assertEquals(Integer.valueOf(150), ezShop.getProductTypeByBarCode("4314324224124").getQuantity());
 		} catch (Exception e) {
+			System.out.println(e);
 			fail();
 		}
 		try {
@@ -2490,6 +2471,8 @@ public class EZShopTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		o.updateCreditCardAmount("4485370086510891", 5.21, true);
 	}
 	
 	@Test
@@ -2504,6 +2487,7 @@ public class EZShopTest {
 			fail();
 		}
 	}
+	
 	
 	@Test
 	public void testReturnCreditCardPaymentReturnTransactionAlreadyPayed() {
@@ -3528,6 +3512,374 @@ public class EZShopTest {
 			ezShop.getDAO().deleteCustomer(1);
 		} catch (DAOException e) {
 			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testReceiveCashPaymentInvalidTransactionId() {
+		User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.receiveCashPayment(-1, 12);});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.receiveCashPayment(0, 2);});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.receiveCashPayment(null, 400);});
+	}
+	
+	@Test
+	public void testReceiveCashPaymentInvalidUser() {
+		User user = null;
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.receiveCashPayment(1, 12);});
+	}
+	
+	@Test
+	public void testReceiveCashPaymentInvalidCash() {
+		User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		assertThrows(InvalidPaymentException .class, () -> {ezShop.receiveCashPayment(1, -12);});
+		assertThrows(InvalidPaymentException .class, () -> {ezShop.receiveCashPayment(1, 0);});
+	}
+	
+	@Test
+	public void testReceiveCashPaymentReturnTransactionInexistent() {
+		User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		try {
+			assertTrue(-1 == ezShop.receiveCashPayment(1, 12));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testReceiveCashPaymentReturnTransactionNotEnded() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		SaleTransaction s = new ConcreteSaleTransaction();
+		s.setTicketNumber(1);
+		s.setPrice(23);
+		s.setEntries(new ArrayList());
+		s.setPayed(false);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		try {
+			assertTrue(-1 == ezShop.receiveCashPayment(1, 1));
+		} catch (Exception e) {
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		}catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testReceveCashPaymentReturnTransactionEndedAndNotPayed() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		
+		TicketEntry t3 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		TicketEntry t4 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 44.5);
+		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 32.5);
+		s1.setPayed(false);
+		s2.setPayed(true);
+		try {
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.storeSaleTransaction(s1);
+			dao.storeSaleTransaction(s2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+		try {
+			assertTrue(5.5 == ezShop.receiveCashPayment(1, 50));
+		} catch (Exception e) {
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		}catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+
+	
+	@Test
+	public void testReceveCashPaymentTransactionAlreadyPayed() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		
+		TicketEntry t3 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		TicketEntry t4 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 44.5);
+		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 32.5);
+		s1.setPayed(false);
+		s2.setPayed(true);
+		try {
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.storeSaleTransaction(s1);
+			dao.storeSaleTransaction(s2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+		try {
+			assertTrue(-1 == ezShop.receiveCashPayment(2, 50));
+		} catch (Exception e) {
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		}catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	@Test
+	public void testReceivenCreditCardPaymentInvalidReuturnId() {
+		User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.receiveCreditCardPayment(-1, "4485370086510891" );});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.returnCreditCardPayment(0, "4485370086510891" );});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.returnCreditCardPayment(null, "4485370086510891" );});
+	}
+	
+	
+	@Test
+	public void testReceiveCreditCardPaymentInvalidUser() {
+		User user = null;
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.receiveCreditCardPayment(1, "4485370086510891" );});
+	}
+	
+	
+	@Test
+	public void testReceiveCreditCardPaymentInvalidCard() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		assertThrows(InvalidCreditCardException.class, () -> {ezShop.receiveCreditCardPayment(1, "1234131"); });
+		assertThrows(InvalidCreditCardException.class, () -> {ezShop.receiveCreditCardPayment(1, ""); });
+		assertThrows(InvalidCreditCardException.class, () -> {ezShop.receiveCreditCardPayment(1, null); });
+	}
+	
+	@Test
+	public void testReceiveCreditCardPaymentTransactionInexistent() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		try {
+			assertFalse(ezShop.receiveCreditCardPayment(1, "4716258050958645"));	
+		} catch (Exception e) {
+			fail();
+		}
+	}
+	
+	
+	@Test
+	public void testReceiveCreditCardPaymentTransactionNotEnded() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		r.setEntries(new ArrayList<>());
+		r.setPayed(false);
+		r.setDiscountRate(0);
+		r.setTransactionId(1);
+		ezShop.setReturnTransaction(r);
+		try {
+			assertFalse(ezShop.receiveCreditCardPayment(1, "4716258050958645"));
+		} catch (Exception e) {
+			fail();
+		}
+	}
+	
+	@Test
+	public void testReceiveCreditCardPaymentTransactionNotEnoughMoney() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		r.setEntries(new ArrayList<>());
+		r.setPayed(false);
+		r.setDiscountRate(0);
+		r.setTransactionId(1);
+		TicketEntry t3 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		TicketEntry t4 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 44.5);
+		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 32.5);
+		s1.setPayed(false);
+		s2.setPayed(true);
+		try {
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.storeSaleTransaction(s1);
+			dao.storeSaleTransaction(s2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+		ezShop.setReturnTransaction(r);
+		try {
+			assertFalse(ezShop.receiveCreditCardPayment(1, "4716258050958645"));
+		} catch (Exception e) {
+			fail();
+		}
+	}
+
+	
+	@Test
+	public void testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed() {
+		
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		
+		TicketEntry t3 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		TicketEntry t4 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 43.5);
+		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 32.5);
+		s1.setPayed(false);
+		s2.setPayed(true);
+		try {
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.storeSaleTransaction(s1);
+			dao.storeSaleTransaction(s2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+		
+		try {
+			//System.out.println(ezShop.returnCreditCardPayment(1, "4485370086510891"));
+			assertTrue(ezShop.receiveCreditCardPayment(1, "4485370086510891"));	
+		} catch (Exception e) {
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		o.updateCreditCardAmount("4485370086510891", 43.5, false);
+	}
+	
+	@Test
+	public void testReceiveCreditCardPaymentCardNotRegistered() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		ezShop.setReturnTransaction(r);
+		
+		TicketEntry t3 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		TicketEntry t4 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 43.5);
+		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 32.5);
+		s1.setPayed(false);
+		s2.setPayed(true);
+		try {
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.storeSaleTransaction(s1);
+			dao.storeSaleTransaction(s2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+		
+		
+		try {
+			assertFalse(ezShop.receiveCreditCardPayment(1, "1002939910217"));
+		} catch (Exception e) {
+			fail();
+		}
+	}
+	
+	
+	@Test
+	public void testReceievCreditCardPaymentReturnTransactionAlreadyPayed() {
+		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		ezShop.setRunningUser(user);
+		ReturnTransaction r = new ConcreteReturnTransaction();
+		
+		TicketEntry t3 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+		TicketEntry t4 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 43.5);
+		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 32.5);
+		s1.setPayed(false);
+		s2.setPayed(true);
+		try {
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType(new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.storeSaleTransaction(s1);
+			dao.storeSaleTransaction(s2);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+		try {
+			assertFalse(ezShop.receiveCreditCardPayment(2, "4485370086510891"));
+		} catch (Exception e) {
+			fail();
+		}
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	

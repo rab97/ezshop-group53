@@ -1202,10 +1202,6 @@ public class EZShop implements EZShopInterface {
         	prodToReturn.setAmount(amount);
             returnTransaction.getEntries().add(prodToReturn);
         }
-        
-        //for (TicketEntry t : returnTransaction.getEntries())
-        	//System.out.println("t finale: " + t.getBarCode());
-        	
     	return true;
     }
 
@@ -1356,7 +1352,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
     	
-    	if(transactionId<=0 || transactionId==null) {
+    	if(transactionId==null || transactionId<=0) {
     		throw new InvalidTransactionIdException("Invalid TransactionId");
     	}
     	if(cash<=0) {
@@ -1372,7 +1368,9 @@ public class EZShop implements EZShopInterface {
     	
     	if(s==null || s.getPrice()>cash)
     		return -1;
-    	
+    	if(s.getPayed()) {
+    		return -1;
+    	}
     	//update the db: the sale transaction is payed
     	try {
     		dao.setSaleTransactionPaid(transactionId);
@@ -1404,7 +1402,7 @@ public class EZShop implements EZShopInterface {
     		throw new InvalidTransactionIdException();
     	}
     	
-    	if(creditCard.isEmpty() || creditCard==null || !o.luhnCheck(creditCard)) {			
+    	if(creditCard==null || creditCard.isEmpty() || !o.luhnCheck(creditCard)) {			
     		throw new InvalidCreditCardException("");
     	}
     	
@@ -1417,7 +1415,9 @@ public class EZShop implements EZShopInterface {
     	
     	if(s==null)
     		return false;
-    	
+    	if(s.getPayed()) {
+    		return false;
+    	}
     	//check existence of credit card and if it has enough money and update amount of money on credit card 
     	if(o.checkCreditCardAmount(creditCard, s.getPrice(), true)) {
     		if(!o.updateCreditCardAmount(creditCard, s.getPrice(), true))
