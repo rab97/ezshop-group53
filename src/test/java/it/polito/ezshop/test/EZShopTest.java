@@ -19,21 +19,10 @@ import org.junit.Test;
 
 import it.polito.ezshop.Constants;
 
-import it.polito.ezshop.data.BalanceOperation;
-import it.polito.ezshop.data.EZShop;
-import it.polito.ezshop.data.ProductType;
-import it.polito.ezshop.data.ReturnTransaction;
-import it.polito.ezshop.data.SaleTransaction;
-import it.polito.ezshop.data.TicketEntry;
-import it.polito.ezshop.data.User;
-import it.polito.ezshop.exceptions.InvalidCreditCardException;
-import it.polito.ezshop.exceptions.InvalidProductCodeException;
-import it.polito.ezshop.exceptions.InvalidQuantityException;
-import it.polito.ezshop.exceptions.InvalidTransactionIdException;
-import it.polito.ezshop.exceptions.UnauthorizedException;
-
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
+import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.model.ConcreteCustomer;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
@@ -58,7 +47,142 @@ public class EZShopTest {
 		ezShop.reset();
 	}
 	
+	@Test
+	public void testUserInvalidUsername(){
+
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.createUser("", "a_valid_password", Constants.CASHIER);});
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.createUser(null, "a_valid_password", Constants.CASHIER);});
+
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.login("", "a_valid_password");});
+		assertThrows(InvalidUsernameException.class, ()->{ezShop.login(null, "a_valid_password");});
+	}
+
+	@Test
+	public void testUserInvalidPassword(){
+
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.createUser("validUsername", "", Constants.CASHIER);});
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.createUser("validUsername", null, Constants.CASHIER);});
+
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.login("validUsername", "");});
+		assertThrows(InvalidPasswordException.class, ()->{ezShop.login("validUsername", null);});
+	}
 	
+	@Test
+	public void testCreateUserCheckRole(){
+
+		assertThrows(InvalidRoleException.class, ()->{ezShop.createUser("name", "password", "");});
+		assertThrows(InvalidRoleException.class, ()->{ezShop.createUser("name", "password", null);});
+		assertThrows(InvalidRoleException.class, ()->{ezShop.createUser("name", "password", "invalidRole");});
+
+		//Come faccio ad avere un valore di riferimento per l'id dell'user che verrà creato? Come posso
+		//testare i casi con Cashier,ShopManager e Admin?
+	}
+
+	@Test
+	public void testUserAlreadyExists(){
+
+		User running= new ConcreteUser("Admin", 20, "pw", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(running);
+
+		User u= new ConcreteUser("validUsername", null, "validPassword", Constants.SHOP_MANAGER);
+
+		try{
+			Integer uId= ezShop.getDAO().insertUser(u.getUsername(), u.getPassword(), u.getRole());
+			if(uId<=0){
+				fail();
+			}
+
+			assertEquals(Integer.valueOf(-1), ezShop.createUser(u.getUsername(), u.getPassword(), u.getRole()));
+			assertTrue(ezShop.deleteUser(uId));
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidUsernameException|InvalidPasswordException|InvalidRoleException e){
+			System.out.print(e);
+			fail();
+		}catch(InvalidUserIdException| UnauthorizedException e){
+			System.out.print(e);
+			fail();
+		}
+	}
+
+	@Test
+	public void testUserNotExists(){
+
+		User running= new ConcreteUser("Admin", 20, "pw", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(running);
+
+		User wrongUser= new ConcreteUser("wrongName", 19, "wrongPw", Constants.CASHIER);
+
+		try{
+			assertFalse(ezShop.deleteUser(wrongUser.getId()));
+			assertEquals(null, ezShop.getUser(wrongUser.getId()));
+			assertFalse(ezShop.updateUserRights(wrongUser.getId(), Constants.SHOP_MANAGER));
+			assertEquals(null, ezShop.login(wrongUser.getUsername(), wrongUser.getPassword()));
+
+		}catch(InvalidUsernameException|InvalidPasswordException|InvalidUserIdException|
+				InvalidRoleException|UnauthorizedException e){
+			System.out.print(e);
+			fail();
+		}
+
+	}
+
+	@Test
+	public void testGetAllUsers(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		try{
+			assertTrue(ezShop.getAllUsers().isEmpty());
+
+		}catch(UnauthorizedException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testUserInvalidId(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.deleteUser(null);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.deleteUser(-1);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.deleteUser(0);});
+
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.getUser(null);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.getUser(-1);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.getUser(0);});
+
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.updateUserRights(null, Constants.SHOP_MANAGER);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.updateUserRights(-1, Constants.CASHIER);});
+		assertThrows(InvalidUserIdException.class, ()->{ezShop.updateUserRights(0, Constants.CASHIER);});
+
+	}
+
+	@Test
+	public void testUserUnauthorizedUser(){
+
+		User u= null;
+		ezShop.setRunningUser(u);
+
+		assertThrows(UnauthorizedException.class, ()->{ezShop.deleteUser(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllUsers();});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getUser(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.updateUserRights(5, Constants.SHOP_MANAGER);});
+		assertFalse(ezShop.logout());
+
+		u= new ConcreteUser("testUser", 2, "testPassword", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+
+		assertThrows(UnauthorizedException.class, ()->{ezShop.deleteUser(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllUsers();});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.getUser(1);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.updateUserRights(1, Constants.SHOP_MANAGER);});
+	}
+
 	@Test
 	public void testCreateProductTypeInvalidDescription() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 	
@@ -395,7 +519,7 @@ public class EZShopTest {
 		}
 		assertFalse(ezShop.deleteProductType(1));
 	}
-	
+	  
 	@Test
 	public void testDeleteProductValidProduct() throws InvalidProductIdException, UnauthorizedException {
 		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
@@ -1789,25 +1913,25 @@ public class EZShopTest {
 		ReturnTransaction r = new ConcreteReturnTransaction();
 		r.setPayed(false);
 		r.setDiscountRate(0);
-		r.setReturnId(2);
-		r.setTransactionId(3);
-		r.setEntries(tickets);
+		r.setReturnId(1);
 		r.setTransactionId(1);
+		r.setEntries(tickets);
+		r.setTransactionId(1);  
 		r.setPrice(5.21);
 		ezShop.setReturnTransaction(r);
 		
-		
+		/*
 		ReturnTransaction r2 = new ConcreteReturnTransaction();
 		r2.setReturnId(2);
 		r2.setDiscountRate(0);
 		r2.setPrice(10.4);
 		r2.setPayed(true);
 		r2.setEntries(tickets);
-		r2.setTransactionId(1);
-		SaleTransaction s1 = new ConcreteSaleTransaction(3, tickets, 0 , 32.5);
-		SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 44.5);
-		s1.setPayed(false);
-		s2.setPayed(true);
+		r2.setTransactionId(1);*/
+		SaleTransaction s1 = new ConcreteSaleTransaction(1, tickets, 0 , 32.5);
+		//SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 44.5);
+		s1.setPayed(true);
+		//s2.setPayed(true);
 
 		try {
 			dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
@@ -1818,13 +1942,19 @@ public class EZShopTest {
 			dao.updateQuantity(2, 150);
 			dao.updateQuantity(3, 150);
 			dao.storeReturnTransaction(r);
-			dao.storeReturnTransaction(r2);
+			//dao.storeReturnTransaction(r2);
 			dao.storeSaleTransaction(s1);
-			dao.storeSaleTransaction(s2);
+			//dao.storeSaleTransaction(s2);
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
 		
+		try {
+			System.out.println("ciao ciao " + dao.searchReturnTransaction(1).getTransactionId());
+		} catch (DAOException e) {
+			System.out.println(e);  
+		}
+	
 		try {
 			assertTrue(ezShop.deleteReturnTransaction(1));
 			//assertEquals(Integer.valueOf(50), ezShop.getProductTypeByBarCode("123456789104").getQuantity());
@@ -2989,6 +3119,181 @@ public class EZShopTest {
 		}
 		try {
 			dao.deleteCustomer(1);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testDefineCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {			
+			assertEquals(Integer.valueOf(1), ezShop.defineCustomer("name1"));			
+		} catch(UnauthorizedException|InvalidCustomerNameException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testModifyCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			assertTrue(ezShop.modifyCustomer(1,"name1","0123456789"));		
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidCustomerNameException|InvalidCustomerCardException|InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testDeleteCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			assertTrue(ezShop.deleteCustomer(1));		
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException| InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testGetCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		Customer c = new ConcreteCustomer(1, "name1", "0123456789", 0);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().updateCustomer(1, "name1", "0123456789");
+			Customer res=ezShop.getCustomer(1);
+			assertEquals(c.getId(), res.getId());
+			assertEquals(c.getCustomerName(), res.getCustomerName());
+			assertEquals(c.getCustomerCard(), res.getCustomerCard());
+			assertEquals(c.getPoints(), res.getPoints());
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidCustomerIdException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testGetAllCustomersValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().insertCustomer("name2");
+			ezShop.getDAO().insertCustomer("name3");
+			ezShop.getDAO().insertCustomer("name4");
+			ezShop.getDAO().insertCustomer("name5");
+			assertEquals(5, ezShop.getAllCustomers().size());
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+			dao.deleteCustomer(2);
+			dao.deleteCustomer(3);
+			dao.deleteCustomer(4);
+			dao.deleteCustomer(5);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testCreateCardValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			assertEquals(10, ezShop.createCard().length());
+		} catch(UnauthorizedException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testAttachCardToCustomerValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			assertTrue(ezShop.attachCardToCustomer("0123456789", 1));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException | InvalidCustomerIdException | InvalidCustomerCardException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+	
+	@Test
+	public void testModifyPointsOnCardValidData() {
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().updateCustomer(1, "name1", "0123456789");
+			assertTrue(ezShop.modifyPointsOnCard("0123456789", 20));
+			assertTrue(ezShop.modifyPointsOnCard("0123456789", -10));
+			assertTrue(ezShop.modifyPointsOnCard("0123456789", -10));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException | InvalidCustomerCardException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			dao.deleteCustomer(1); 
 		} catch (DAOException e) {
 			System.out.println(e);
 		}

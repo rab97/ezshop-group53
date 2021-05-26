@@ -253,8 +253,11 @@ public class DAOEZShop implements IDAOEZshop {
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, role);
             preparedStatement.setInt(2, id);
-            if(preparedStatement.executeUpdate() > 0);
+            if(preparedStatement.executeUpdate() > 0){
             	state = true;
+            }else{
+                return false;
+            }
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
@@ -587,7 +590,7 @@ public class DAOEZShop implements IDAOEZshop {
                 ResultSet resultSet= statement.executeQuery(query2);
 
                 if(resultSet.next()){
-                    return false;
+                    return false; 
                 }
                 
                 query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
@@ -825,17 +828,20 @@ public class DAOEZShop implements IDAOEZshop {
             // Search for return transaction
             String query = "DELETE FROM return_transaction WHERE id=?";
             PreparedStatement pstm = connection.prepareStatement(query);
-            
             pstm.setDouble(1, returnId);
-            if (pstm.executeUpdate() == -1)
+            if (pstm.executeUpdate() == -1) {
+            	System.out.println("TRANSACTION NOT FOUND");
                 return false;
+            }
             
             // Delete product entry from return_ticket_entry
             query = "DELETE FROM return_ticket_entry WHERE returnId=?";
             pstm = connection.prepareStatement(query);
             pstm.setInt(1, returnId);
-            if(pstm.executeUpdate() <= 0) 
+            if(pstm.executeUpdate() <= 0) {
+            	System.out.println("ENTRIES NOT FOUND");
             	return false;
+            }
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -894,7 +900,7 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
 
-            String query = "SELECT * FROM customer WHERE customerId= '" + customerId + "' OR card= '" + card + "';";
+            String query = "SELECT * FROM customer WHERE id= '" + customerId + "' OR card= '" + card + "';";
             ResultSet rs = statement.executeQuery(query);
 
             boolean customerExistance = false;

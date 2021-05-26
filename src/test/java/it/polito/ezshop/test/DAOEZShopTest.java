@@ -33,7 +33,7 @@ public class DAOEZShopTest {
 	}
 	
 	@Test
-	public void insertReturnTransactionTest() {
+	public void testInsertReturnTransactionTest() {
 		try {
 			assertEquals(Integer.valueOf(0), dao.insertReturnTransaction());
 			dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1, new ArrayList<>(), 1.0, 2.5));			
