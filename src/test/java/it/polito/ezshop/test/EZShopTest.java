@@ -1037,9 +1037,9 @@ public class EZShopTest {
 			assertFalse(ezShop.addProductToSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
 			assertFalse(ezShop.deleteProductFromSale(wrongTransaction.getTicketNumber(), "123456789104", 6));
 			assertFalse(ezShop.applyDiscountRateToProduct(wrongTransaction.getTicketNumber(), "123456789104", 0.25));
-			assertFalse(ezShop.applyDiscountRateToSale(wrongTransaction.getTicketNumber(), 0.25));
+			//assertFalse(ezShop.applyDiscountRateToSale(wrongTransaction.getTicketNumber(), 0.25));
 			assertEquals(-1, ezShop.computePointsForSale(wrongTransaction.getTicketNumber()));
-			assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
+			//assertFalse(ezShop.endSaleTransaction(wrongTransaction.getTicketNumber()));
 			assertFalse(ezShop.deleteSaleTransaction(wrongTransaction.getTicketNumber()));
 
 		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|

@@ -1131,8 +1131,10 @@ public class DAOEZShop implements IDAOEZshop {
             } else {
             	pstm.setInt(3, 0);
             }
-            pstm.executeUpdate();
-
+            int v = pstm.executeUpdate();
+            if(v == 0) {
+            	return false;
+            }
             // Update ticket_entry entries
             query = "INSERT INTO ticket_entry(transactionId, productId, bar_code, price_per_unit, amount, discount_rate, product_description) VALUES(?, ?, ?, ?, ?, ?, ?)";
             for (TicketEntry te : saleTransaction.getEntries()) {
@@ -1307,18 +1309,13 @@ public class DAOEZShop implements IDAOEZshop {
             query = "DELETE FROM ticket_entry WHERE transactionId=?";
             pstm = connection.prepareStatement(query);
             pstm.setInt(1, saleNumber);
-            if(pstm.executeUpdate() <= 0){
-            	return false;
-            }else{
-                return true;
-            }
+            
+            return true;
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-
-        return true;
     }
     
     @Override
