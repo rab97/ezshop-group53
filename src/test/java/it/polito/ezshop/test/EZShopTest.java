@@ -184,6 +184,136 @@ public class EZShopTest {
 	}
 
 	@Test
+	public void testCreateUserWithSuccess(){
+
+		User u= new ConcreteUser("validName", null, "validPassword", Constants.SHOP_MANAGER);
+
+		try{
+			Integer newId= ezShop.createUser(u.getUsername(), u.getPassword(), u.getRole());
+			if(newId<=0){
+				fail();
+			}
+
+			assertEquals(newId, ezShop.getDAO().searchUser(u.getUsername(), u.getPassword()).getId());
+
+			ezShop.getDAO().removeUser(newId);
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidUsernameException|InvalidPasswordException|InvalidRoleException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testDeleteUserWithSuccess(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		User user_to_delete= new ConcreteUser("validName", null, "validPassword", Constants.CASHIER);
+
+		try{
+			Integer newId= ezShop.getDAO().insertUser(user_to_delete.getUsername(), user_to_delete.getPassword(), user_to_delete.getRole());
+			if(newId<=0){
+				fail();
+			}
+
+			assertTrue(ezShop.deleteUser(newId));
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidUserIdException|UnauthorizedException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testGetUserWithSuccess(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		User user_to_get= new ConcreteUser("validName", null, "validPassword", Constants.CASHIER);
+
+		try{
+			Integer newId= ezShop.getDAO().insertUser(user_to_get.getUsername(), user_to_get.getPassword(), user_to_get.getRole());
+			if(newId<=0){
+				fail();
+			}
+			User returnedUser= ezShop.getUser(newId);
+
+			assertEquals(newId, returnedUser.getId());
+			assertEquals(user_to_get.getUsername(),returnedUser.getUsername());
+			assertEquals(user_to_get.getPassword(), returnedUser.getPassword());
+			assertEquals(user_to_get.getRole(), returnedUser.getRole());
+
+			ezShop.getDAO().removeUser(newId);
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidUserIdException|UnauthorizedException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testUpdateUserRightsWithSuccess(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+		User user_to_update= new ConcreteUser("validName", null, "validPassword", Constants.CASHIER);
+
+		try{
+			Integer newId= ezShop.getDAO().insertUser(user_to_update.getUsername(), user_to_update.getPassword(), user_to_update.getRole());
+			if(newId<=0){
+				fail();
+			}
+			
+			assertTrue(ezShop.updateUserRights(newId,Constants.SHOP_MANAGER));
+			ezShop.getDAO().removeUser(newId);
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidUserIdException|UnauthorizedException|InvalidRoleException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testLoginWithSuccess(){
+
+		User u= new ConcreteUser("name", null, "password", Constants.SHOP_MANAGER);
+
+		try{
+			Integer newId= ezShop.getDAO().insertUser(u.getUsername(), u.getPassword(), u.getRole());
+			if(newId<=0){
+				fail();
+			}
+			User returnedUser= ezShop.login(u.getUsername(), u.getPassword());
+
+			assertEquals(newId, returnedUser.getId());
+			assertEquals(u.getUsername(),returnedUser.getUsername());
+			assertEquals(u.getPassword(), returnedUser.getPassword());
+			assertEquals(u.getRole(), returnedUser.getRole());
+
+			ezShop.getDAO().removeUser(newId);
+
+		}catch(DAOException e){
+			fail();
+		}catch(InvalidUsernameException|InvalidPasswordException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testLogoutWithSuccess(){
+
+		User u= new ConcreteUser("name", null, "password", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+
+		assertTrue(ezShop.logout());
+	}
+
+	@Test
 	public void testCreateProductTypeInvalidDescription() throws InvalidProductDescriptionException, InvalidProductCodeException, InvalidPricePerUnitException, UnauthorizedException {
 	
 		//Test null description
