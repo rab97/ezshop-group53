@@ -7,6 +7,9 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ import it.polito.ezshop.Constants;
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.model.Operator;
 import it.polito.ezshop.model.ConcreteCustomer;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
@@ -41,12 +45,15 @@ public class EZShopTest {
 
 	EZShop ezShop;
 	IDAOEZshop dao;
+	Operator o = new Operator();
+	
 	@Before	
 	public void setUp () {
 		ezShop = new EZShop();
 		dao = new DAOEZShop();
 		ezShop.reset();
 	}
+	
 	
 	@Test
 	public void testUserInvalidUsername(){
@@ -1781,42 +1788,16 @@ public class EZShopTest {
 		
 		try {
 			assertTrue(ezShop.returnProduct(1, "123456789104", 1));
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		assertEquals(1, r.getEntries().size());
-		try {
 			assertEquals(Integer.valueOf(50), ezShop.getProductTypeByBarCode("123456789104").getQuantity());
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		//System.out.println(r.getPrice());
-		//assertTrue(0.5 == r.getPrice()); // inseire controllo anche alla fine?
-		try {
+			assertEquals(1, r.getEntries().size());
 			assertTrue(ezShop.returnProduct(1, "123456789104", 19));
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		assertEquals(1, r.getEntries().size());
-		try {
+			assertEquals(1, r.getEntries().size());
 			assertEquals(Integer.valueOf(50), ezShop.getProductTypeByBarCode("123456789104").getQuantity());
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		try {
 			assertTrue(ezShop.returnProduct(1, "4314324224124", 1));
-		} catch (Exception e) {
-			System.out.println(e);
-			fail();
-		}
-		assertEquals(2, r.getEntries().size());
-		try {
+			assertEquals(2, r.getEntries().size());
 			assertEquals(Integer.valueOf(150), ezShop.getProductTypeByBarCode("4314324224124").getQuantity());
 		} catch (Exception e) {
+			System.out.println(e);
 			fail();
 		}
 		try {
@@ -2409,6 +2390,8 @@ public class EZShopTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
+		o.updateCreditCardAmount("4485370086510891", 5.21, true);
 	}
 	
 	@Test
