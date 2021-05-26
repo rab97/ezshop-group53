@@ -39,7 +39,6 @@ public class ReturnTransactionTest {
 		assertEquals(Integer.valueOf(500), retTransaction.getReturnId());
 	}
 	
-    
     @Test
 	public void testReturnTransactionSetTransactionId(){
 		retTransaction.setTransactionId(0);

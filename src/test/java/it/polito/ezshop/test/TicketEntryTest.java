@@ -23,7 +23,6 @@ public class TicketEntryTest {
 		
 	}
    
-    
     @Test
 	public void testTicketEntrySetBarCode() {
 		te.setBarCode(null);

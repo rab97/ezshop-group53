@@ -4,7 +4,7 @@ Authors: Marta Caggiano, Francesco Rabezzano, Marco Sapio, Emma Marrocu
 
 Date: 26/05/2021
 
-Version: 1.0.0
+Version: 1.0.1
 
 # Contents
 
@@ -27,10 +27,7 @@ Version: 1.0.0
 
 # Integration approach
 
-    <Write here the integration sequence you adopted, in general terms (top down, bottom up, mixed) and as sequence
-    (ex: step1: class A, step 2: class A+B, step 3: class A+B+C, etc)> 
-    <Some steps may  correspond to unit testing (ex step1 in ex above), presented in other document UnitTestReport.md>
-    <One step will  correspond to API testing>
+    The integration sequence adopted is Bottom Up.
 
 
 
@@ -42,10 +39,14 @@ Version: 1.0.0
 ## Step 1
 | Classes           | JUnit test cases |
 |--|--|
-|User|--|
-|ProductType||
-|ReturnTransaction||
-|BalanceOperation||
+|BalanceOperation|testSetAndGetBalanceId(), testSetAndGetDate(), testSetAndGetMoney(), testSetAndGetType()|
+|Customer|testSetAndGetCostumerName(), testSetAndGetCostumerCard(), testSetAndGetId(), testSetAndGetPoints()|
+|Order|testOrderSetBalanceId(), testOrderSetProductCode(), testOrderSetPricePerUnit(), testOrderSetQuantity(), testOrderSetStatus(), testOrderSetOrderId()|
+|ProductType|testProductTypeSetQuantity(), testProductTypeSetLocation(),  testProductTypeSetNote(), testProductTypeSetProductDescription(), testProductTypeSetBarCode(), testProductTypeSetPricePerUnit(), testProductTypeSetId()|
+|ReturnTransaction|testReturnTransactionSetReturnId(), testReturnTransactionSetTransactionId(), testReturnTransactionSetEntries(), testReturnTransactionSetPrice(), testReturnTransactionSetPayed(), testReturnTransactionSetDiscountRate()|
+|SaleTransaction|testSaleTransacionSetTicketNumber(), testSaleTransactionSetEntries(), testSaleTransactionSetDiscountRate(), testSaleTransactionSetPrice(), testSaleTransactionSetPayed()|
+|TicketEntry|testTicketEntrySetBarCode(), testTicketEntrySetProductDescription(), testTicketEntrySetAmount(), testTicketEntrySetPricePerUnit(), testTicketEntrySetDiscountRate()|
+|User|testUserSetId(), testUserSetUsername(), testUserSetPassword(), testUserSetRole()|
 
 
 ## Step 2
@@ -69,9 +70,8 @@ Version: 1.0.0
 |ProductType+ DAOEZShop+ EZShop|testCreateProductTypeInvalidDescription, testCreateProductTypeInvalidProductCode, testCreateProductTypeInvalidPricePerUnit, testCreateProductTypeUnauthorizedUser, testCreateProductTypeExistingProduct, testCreateProductTypeValidProduct, testUpdateProductInvalidId, testUpdateProductInvalidDescription, testUpdateProductInvalidProductCode, testUpdateProductInvalidPricePerUnit, testUpdateProductUnauthorizedException, testProductUpdateNotAvailableId, testProductUpdateExistingBarCode, testProductUpdateValid, testDeleteProductTypeInvalidId, testDeleteProductTypeUnauthorizedException, testDeleteProductNotExisting, testDeleteProductValidProduct, testGetAllProductTypeUnauthorizedException, testGetAllProductTypeValid, testGetProductTypeByBarCodeUnauthorizedException, testGetProductTypeByBarCodeInvalidBarCode, testGetProductTypeByBarCodeProductNotExists, testGetProductTypeByBarCodeValidProduct, testGetProductTypeByDescriptionUnauthorizedException, testGetProductTypeByDescriptionProductsNotExist, testGetProductTypeByDescriptionValid, testUpdateQuantityUnauthorizedUser, testUpdateQuantityInvalidProductId, testUpdateQuantityProductLocationNull, testUpdateQuantityProductLocationEmpty, testUpdateQuantityProductInvalidQuantity, testUpdateQuantityProductNotExists, testUpdateQuantityProductValidPositive, testUpdateQuantityProductValidNegative, testUpdatePositionUnauthorizedException, testUpdatePositionInvalidLocation, testUpdatePositionInvalidId, testUpdatePositionProductNotExist, testUpdatePositionAlreadyAssigned, testUpdatePositionValid, testUpdatePositionNull, testUpdatePositionEmpty,|
 |Order+ DAOEZShop+ EZShop|testOrderUnauthorizedUser, testOrderInvalidProductCode, testOrderInvalidQUantity, testOrderInvalidPricePerQty, testOrderInvalidOrderId, testRecordOrderArrivalInvalidLocation, testOrderProductNotExists, testIssueOrderValidData, testPayOrderForBalanceNotEnough, testPayOrderForValidData, testOrderOrderNotExists, testPayOrderOrderNotIssuedOrOrdered, testPayOrderValidData, testRecordOrderArrivalOrderNotOrderedOrCompleted, testRecordOrderArrivalValidData, testGetAllOrdersValidData|
 |Customer+ DAOEZShop+ EZShop|testCustomerUnauthorizedUser, testCustomerInvalidCustomerName, testCustomerInvalidCustomerCard, testCustomerInvalidCustomerId, testDefineCustomerNameAlreadyInUse, testCustomerCardAlreadyInUse, testCustomerCustomerNotExists, testModifyPointsOnCardInexistentCard, testModifyPointsOnCardNotEnoughPoints, testDefineCustomerValidData, testModifyCustomerValidData, testDeleteCustomerValidData, testGetCustomerValidData, testGetAllCustomersValidData, testCreateCardValidData, testAttachCardToCustomerValidData, testModifyPointsOnCardValidData, testCustomerDetachCard,|
-|SaleTransaction+ DAOEZShop+ EZShop|testSaleTransactionUnauthorizedUser, testSaleTransactionInvalidTransactionId, testSaleTransactionInvalidProductCode, testSaleTransactionInvalidQuantity, testSaleTransactionInvalidDiscountRate, testSaleTransactionProductNotExists, testSaleTransactionNotExist, testStartSaleTransactionWithSuccess, testAddProductToSaleWithSuccess, testDeleteProductFromSaleWithSuccess, testEndSaleTransactionWithSuccess, testApplyDiscountRateToProductWithSuccess, testApplyDiscountRateToSaleWithSuccess, testdeleteSaleTransactionWithSuccess, testSaleTransactionWrongTransactionStatus, testGetSaleTransaction|
-|ReturnTransaction+ DAOEZShop+ EZShop|testStartReturnTransactionNotFoundSale, testStartReturnTransactionInvalidId, testStartReturnTransactionClosedSale, testStartReturnTransactionNotClosedSale, testStartReturnTransactionNullRole, testReturnProductExceedAmount, testReturnProductTransactioNotExists, testReturnProductReturnNotExists, testReturnProductProductNotExists, testReturnProductAmountTooBig, testReturnProductCodeInvalid, testReturnProductNullUser, testReturnProductNegativeQuanitity, testReturnProductTransactionIdError, testReturnProductValidData, testEndReturnTransactionInvalidTransactionId, testEndReturnTransactionUserNull, testEndReturnTransactionInactiveReturnTransaction, testEndReturnTransactionCommitReturn, testEndReturnTransactionCommitReturnFalse, testDeleteReturnTransactionInvalidTransaction, testDeleteReturnTransactionInvalidUser, testDeleteReturnTransactionInvalid, testDeleteReturnTransactionValid,|
-||testReturnCashPaymentInvalidReutrnId, testReturnCashPaymentInvalidUser, testReturnCashPaymentReturnTransactionInexistent, testReturnCashPaymentReturnTransactionNotEnded, testReturnCashPaymentReturnTransactionEndedAndNotPayed, testReturnCashPaymentReturnTransactionAlreadyPayed, testReturnCreditCardPaymentInvalidReuturnId, testReturnCreditCardPaymentInvalidUser, testReturnCreditCardPaymentInvalidCard, testReturnCreditCardPaymentReturnTransactionInexistent, testReturnCreditCardPaymentReturnTransactionNotEnded, testReturnCreditCardPaymentReturnTransactionEndedAndNotPayed, testReturnCreditCardPaymentReturnCardNotRegistered, testReturnCreditCardPaymentReturnTransactionAlreadyPayed, testReceiveCashPaymentInvalidTransactionId, testReceiveCashPaymentInvalidUser, testReceiveCashPaymentInvalidCash, testReceiveCashPaymentReturnTransactionInexistent, testReceiveCashPaymentReturnTransactionNotEnded, testReceveCashPaymentReturnTransactionEndedAndNotPayed, testReceiveCashPaymentTransactionAlreadyPayed, testReceivenCreditCardPaymentInvalidReuturnId, testReceiveCreditCardPaymentInvalidUser, testReceiveCreditCardPaymentInvalidCard, testReceiveCreditCardPaymentTransactionInexistent, testReceiveCreditCardPaymentTransactionNotEnded, testReceiveCreditCardPaymentTransactionNotEnoughMoney, testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed, testReceiveCreditCardPaymentCardNotRegistered, testReceievCreditCardPaymentReturnTransactionAlreadyPayed,|
+|SaleTransaction+ DAOEZShop+ EZShop|testSaleTransactionUnauthorizedUser, testSaleTransactionInvalidTransactionId, testSaleTransactionInvalidProductCode, testSaleTransactionInvalidQuantity, testSaleTransactionInvalidDiscountRate, testSaleTransactionProductNotExists, testSaleTransactionNotExist, testStartSaleTransactionWithSuccess, testAddProductToSaleWithSuccess, testDeleteProductFromSaleWithSuccess, testEndSaleTransactionWithSuccess, testApplyDiscountRateToProductWithSuccess, testApplyDiscountRateToSaleWithSuccess, testdeleteSaleTransactionWithSuccess, testSaleTransactionWrongTransactionStatus, testGetSaleTransaction, testReceiveCashPaymentInvalidTransactionId, testReceiveCashPaymentInvalidUser, testReceiveCashPaymentInvalidCash, testReceiveCashPaymentReturnTransactionInexistent, testReceiveCashPaymentReturnTransactionNotEnded, testReceveCashPaymentReturnTransactionEndedAndNotPayed, testReceiveCashPaymentTransactionAlreadyPayed, testReceivenCreditCardPaymentInvalidReuturnId, testReceiveCreditCardPaymentInvalidUser, testReceiveCreditCardPaymentInvalidCard, testReceiveCreditCardPaymentTransactionInexistent, testReceiveCreditCardPaymentTransactionNotEnded, testReceiveCreditCardPaymentTransactionNotEnoughMoney, testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed, testReceiveCreditCardPaymentCardNotRegistered, testReceievCreditCardPaymentReturnTransactionAlreadyPayed,|
+|ReturnTransaction+ DAOEZShop+ EZShop|testStartReturnTransactionNotFoundSale, testStartReturnTransactionInvalidId, testStartReturnTransactionClosedSale, testStartReturnTransactionNotClosedSale, testStartReturnTransactionNullRole, testReturnProductExceedAmount, testReturnProductTransactioNotExists, testReturnProductReturnNotExists, testReturnProductProductNotExists, testReturnProductAmountTooBig, testReturnProductCodeInvalid, testReturnProductNullUser, testReturnProductNegativeQuanitity, testReturnProductTransactionIdError, testReturnProductValidData, testEndReturnTransactionInvalidTransactionId, testEndReturnTransactionUserNull, testEndReturnTransactionInactiveReturnTransaction, testEndReturnTransactionCommitReturn, testEndReturnTransactionCommitReturnFalse, testDeleteReturnTransactionInvalidTransaction, testDeleteReturnTransactionInvalidUser, testDeleteReturnTransactionInvalid, testDeleteReturnTransactionValid, testReturnCashPaymentInvalidReutrnId, testReturnCashPaymentInvalidUser, testReturnCashPaymentReturnTransactionInexistent, testReturnCashPaymentReturnTransactionNotEnded, testReturnCashPaymentReturnTransactionEndedAndNotPayed, testReturnCashPaymentReturnTransactionAlreadyPayed, testReturnCreditCardPaymentInvalidReuturnId, testReturnCreditCardPaymentInvalidUser, testReturnCreditCardPaymentInvalidCard, testReturnCreditCardPaymentReturnTransactionInexistent, testReturnCreditCardPaymentReturnTransactionNotEnded, testReturnCreditCardPaymentReturnTransactionEndedAndNotPayed, testReturnCreditCardPaymentReturnCardNotRegistered, testReturnCreditCardPaymentReturnTransactionAlreadyPayed,|
 |BalanceOperation+ DAOEZShop+ EZShop|testRecordBalanceUpdateCashierUser, testRecordBalanceUpdateNullUser, testRecordBalanceUpdateAddCredit, testRecordBalanceUpdateAddDebit, testRecordBalanceUpdateNegativeTotal, testGetCreditsAndDebitInvalidUser, testGetCreditsAndDebitNullList, testzGetCreditsAndDebitCorrectValue, testGetCreditsAndDebitWithDateExchanged, testGetCreditsAndDebitFromDateNull, testGetCreditsAndDebitFromToNull, testGetCreditsAndDebitFromAndToNull, testComputeBalanceUserNull, testComputeBalance,|
 
 
@@ -106,7 +106,7 @@ Report also for each of the scenarios the (one or more) API JUnit tests that cov
 
 | Scenario ID | Functional Requirements covered | JUnit  Test(s) |
 | ----------- | ------------------------------- | ----------- |
-|  1-1     | FR3.1<br />FR4.2            | testCreateProductTypeValidProduct()<br />**testCreateProductTypeUnauthorizedUser**()<br />testUpdatePositionValid() |
+|  1-1     | FR3.1<br />FR4.2            | testCreateProductTypeValidProduct()<br />testUpdatePositionValid() |
 | 1-2 | FR4.2<br />FR3.4 | testGetProductTypeByBarCodeValidProduct()<br />testUpdatePositionValid() |
 | 1-3 | FR3.1<br />FR3.4 | testGetProductTypeByBarCodeValidProduct<br />testProductUpdateValid() |
 |  3-1  |                | testIssueOrderValidData() |
@@ -116,20 +116,20 @@ Report also for each of the scenarios the (one or more) API JUnit tests that cov
 | 4-2      | FR5.6<br />FR5.5 | testAttachCardToCustomerValidData()<br />testCreateCardValidData() |
 | 4-3 | FR5.1 | testCustomerDetachCard() |
 | 4-4 | FR5.1 | testModifyCustomerValidData() |
-| 5-1 |  | **test login** |
-| 5-2 |  | **test logout** |
-| 6-1 | FR6.1<br />FR6.2<br />FR4.1<br />FR7.1<br />FR7.2<br />FR8.2<br />FR6.10 | **test sale transaction**<br />**test add product**<br />test end sale transaction<br />test receive payment (cash and credit card) |
-| 6-2 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.5<br />FR6.10<br />FR7.1<br />FR7.2<br />FR8.2 | **test sale transaction**<br />**test add product**<br />test end sale transaction<br />test receive payment (cash and credit card)<br />test discount rate product |
-| 6-3 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.4<br />FR6.10<br />FR7.1<br />FR7.2<br />FR8.2 | **test sale transaction**<br />**test add product**<br />test end sale transaction<br />test receive payment (cash and credit card)<br />test discount rate |
-| 6-4 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.10<br />FR7.1<br />FR7.2<br />FR8.2<br />FR5.7 | **test sale transaction**<br />**test add product**<br />test end sale transaction<br />test receive payment (cash and credit card)<br />testModifyPointsOnCardValidData()<br />test compute points for sale |
-| 6-5 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.10<br />FR6.11 | **test sale transaction**<br />**test add product**<br />test end sale transaction<br />test receive payment (cash and credit card) Invalid<br /> |
-| 6-6 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.10<br />FR7.1<br />FR8.2 | **test sale transaction**<br />**test add product**<br />test end sale transaction<br />test receive payment (cash) |
-| 7-1 | FR7.2 | **test payment**<br /> |
-| 7-2 | FR7.2 | test invalid credit card |
-| 7-3 | FR7.2 | test invalid credit card |
-| 7-4 | FR7.1 | test cash payment |
-| 8-1 | FR6.12<br />FR6.13<br />FR6.14<br />FR6.15<br />FR4.1<br />FR8.1 | **testStartReturnTransactionNotClosedSale ()<br />testStartReturnTransactionClosedSale () <br />testReturnProductValidData()**<br />testReturnCreditCardPaymentReturnTransactionEndedAndNotPayed() |
-| 8-2 | FR6.12<br />FR6.13<br />FR6.14<br />FR6.15<br />FR4.1<br />FR8.1 | **testStartReturnTransactionNotClosedSale ()<br />testStartReturnTransactionClosedSale () <br />testReturnProductValidData()**<br />testReturnCashPaymentReturnTransactionEndedAndNotPayed() |
+| 5-1 |  | testLoginWithSuccess() |
+| 5-2 |  | testLogoutWithSuccess() |
+| 6-1 | FR6.1<br />FR6.2<br />FR4.1<br />FR7.1<br />FR7.2<br />FR8.2<br />FR6.10 | testStartSaleTransactionWithSuccess()<br />testAddProductToSaleWithSuccess()<br />testEndSaleTransactionWithSuccess()<br />testReceveCashPaymentSaleTransactionEndedAndNotPayed()<br />testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed()<br /> |
+| 6-2 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.5<br />FR6.10<br />FR7.1<br />FR7.2<br />FR8.2 | testStartSaleTransactionWithSuccess()<br />testAddProductToSaleWithSuccess()<br />testEndSaleTransactionWithSuccess()<br />testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed()<br />testReceveCashPaymentSaleTransactionEndedAndNotPayed()<br />testApplyDiscountRateToProductWithSuccess() |
+| 6-3 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.4<br />FR6.10<br />FR7.1<br />FR7.2<br />FR8.2 | testStartSaleTransactionWithSuccess()<br />testAddProductToSaleWithSuccess()<br />testEndSaleTransactionWithSuccess()<br />testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed()<br />testReceveCashPaymentSaleTransactionEndedAndNotPayed()<br />testApplyDiscountRateToSaleWithSuccess() |
+| 6-4 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.10<br />FR7.1<br />FR7.2<br />FR8.2<br />FR5.7 | testStartSaleTransactionWithSuccess()<br />testAddProductToSaleWithSuccess()<br />testEndSaleTransactionWithSuccess()<br />testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed()<br />testReceveCashPaymentSaleTransactionEndedAndNotPayed()<br />testModifyPointsOnCardValidData()<br />testComputePointsForSaleValid() |
+| 6-5 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.10<br />FR6.11 | testStartSaleTransactionWithSuccess()<br />testAddProductToSaleWithSuccess()<br />testEndSaleTransactionWithSuccess()<br />testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed()<br />testReceveCashPaymentSaleTransactionEndedAndNotPayed()<br />testdeleteSaleTransactionWithSuccess() |
+| 6-6 | FR6.1<br />FR6.2<br />FR4.1<br />FR6.10<br />FR7.1<br />FR8.2 | testStartSaleTransactionWithSuccess()<br />testAddProductToSaleWithSuccess()<br />testEndSaleTransactionWithSuccess()<br />testReceveCashPaymentSaleTransactionEndedAndNotPayed() |
+| 7-1 | FR7.2 | testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed()<br />testReturnCreditCardPaymentReturnTransactionEndedAndNotPayed() |
+| 7-2 | FR7.2 | testReturnCreditCardPaymentInvalidCard()<br />testReceiveCreditCardPaymentInvalidCard() |
+| 7-3 | FR7.2 | testReceiveCreditCardPaymentTransactionNotEnoughMoney() |
+| 7-4 | FR7.1 | testReceveCashPaymentSaleTransactionEndedAndNotPayed() |
+| 8-1 | FR6.12<br />FR6.13<br />FR6.14<br />FR6.15<br />FR4.1<br />FR8.1 | testStartReturnTransactionNotClosedSale ()<br />testStartReturnTransactionClosedSale () <br />testReturnProductValidData()<br />testReturnCreditCardPaymentReturnTransactionEndedAndNotPayed() |
+| 8-2 | FR6.12<br />FR6.13<br />FR6.14<br />FR6.15<br />FR4.1<br />FR8.1 | testStartReturnTransactionNotClosedSale ()<br />testStartReturnTransactionClosedSale () <br />testReturnProductValidData()<br />testReturnCashPaymentReturnTransactionEndedAndNotPayed() |
 | 9-1 | FR8.3 | testzGetCreditsAndDebitCorrectValue()                        |
 | 10-1 | FR-7.4 | testReturnCreditCardPaymentReturnTransactionEndedAndNotPayed() |
 | 10-2 | FR7.3 | testReturnCashPaymentReturnTransactionEndedAndNotPayed()     |

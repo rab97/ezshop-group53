@@ -2332,7 +2332,7 @@ public class EZShopTest {
 	}
 	
 	@Test
-	public void testReturnCashPaymentInvalidReutrnId() {
+	public void testReturnCashInvalidReutrnId() {
 		User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
 		ezShop.setRunningUser(user);
 		ReturnTransaction r = new ConcreteReturnTransaction();
@@ -3729,7 +3729,7 @@ public class EZShopTest {
 	}
 	
 	@Test
-	public void testReceveCashPaymentReturnTransactionEndedAndNotPayed() {
+	public void testReceveCashPaymentSaleTransactionEndedAndNotPayed() {
 		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(user);
 		ReturnTransaction r = new ConcreteReturnTransaction();
