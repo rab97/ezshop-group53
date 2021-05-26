@@ -1479,9 +1479,9 @@ public class DAOEZShop implements IDAOEZshop {
 		
 		try {
 			String query = "DELETE FROM ";
-			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'"};
+			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'", "user", "customer"};
 			connection = dataSource.getConnection();
-			for(int i = 0; i < 7; i++) {
+			for(int i = 0; i < 9; i++) {
 				pstm = connection.prepareStatement(query + table[i]);
 				pstm.executeUpdate();
 			}
