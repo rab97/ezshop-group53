@@ -1137,6 +1137,7 @@ public class EZShopTest {
 			ezShop.setSaleTransactionState(Constants.OPENED);
 
 			ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1);
+			ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1);
 
 			assertTrue(ezShop.deleteProductFromSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1));
 			ezShop.getDAO().resetApplication();
