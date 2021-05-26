@@ -800,6 +800,7 @@ public class DAOEZShop implements IDAOEZshop {
 
             id = resultSet.next() ? resultSet.getInt(1) : 1;
             
+            System.out.println("id" + id);
             //System.out.println("query ok and return_transaction created with id: " + id);
             
         } catch (SQLException ex) {
