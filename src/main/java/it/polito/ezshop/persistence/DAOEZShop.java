@@ -1131,8 +1131,10 @@ public class DAOEZShop implements IDAOEZshop {
             } else {
             	pstm.setInt(3, 0);
             }
-            pstm.executeUpdate();
-
+            int v = pstm.executeUpdate();
+            if(v == 0) {
+            	return false;
+            }
             // Update ticket_entry entries
             query = "INSERT INTO ticket_entry(transactionId, productId, bar_code, price_per_unit, amount, discount_rate, product_description) VALUES(?, ?, ?, ?, ?, ?, ?)";
             for (TicketEntry te : saleTransaction.getEntries()) {
@@ -1317,8 +1319,6 @@ public class DAOEZShop implements IDAOEZshop {
         } finally {
             dataSource.close(connection);
         }
-
-        return true;
     }
     
     @Override
