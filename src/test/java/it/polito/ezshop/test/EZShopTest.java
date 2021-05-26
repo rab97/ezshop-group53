@@ -956,7 +956,6 @@ public class EZShopTest {
 		
 	}
 
-
 	@Test
 	public void testSaleTransactionProductNotExists(){
 
@@ -1078,7 +1077,9 @@ public class EZShopTest {
 		ProductType pt= new ConcreteProductType(1, "product1", "123456789104", null, 5, 1.0, null);
 		try{
 			ezShop.getDAO().createProductType(pt);
-		
+			ezShop.getDAO().updatePosition(1, "1-A-23");
+			ezShop.getDAO().updateQuantity(1, 50);
+			
 			Integer  stId= ezShop.getDAO().insertSaleTransaction();
 			if(stId<0){
 				fail();
@@ -3900,6 +3901,11 @@ public class EZShopTest {
 		} catch (DAOException e) {
 			System.out.println(e);
 		}
+	}
+
+	@Test
+	public void testDeleteProductFromSaleValid() {
+		
 	}
 }
 
