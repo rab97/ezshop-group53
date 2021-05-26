@@ -667,5 +667,25 @@ public class DAOTest {
     	assertTrue(dao.updatePoints("0123456789", 20));
     	dao.deleteCustomer(1);
     }
+  
+    @Test
+    public void searchUserInvalid() {
+    	assertThrows(DAOException.class, () -> {
+    		dao.searchUser("'ORDER'", null);
+    	});
+    }
     
+    @Test
+    public void searchUserNull() throws DAOException {
+    	assertEquals(null, dao.searchUser("name", "password"));
+    }
+    
+    @Test
+    public void searchUserValid() throws DAOException {
+    	dao.insertUser("name", "password", Constants.ADMINISTRATOR);
+    	
+    	assertEquals(Integer.valueOf(1), dao.searchUser("name", "password").getId());
+    	
+    	dao.removeUser(1);
+    }
 }
