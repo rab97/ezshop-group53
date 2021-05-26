@@ -668,8 +668,21 @@ public class DAOTest {
     	assertTrue(dao.updatePoints("0123456789", 20));
     	dao.deleteCustomer(1);
     }
+  
+    @Test
+    public void searchUserInvalid() {
+    	assertThrows(DAOException.class, () -> {
+    		dao.searchUser("'ORDER'", null);
+    	});
+    }
     
     @Test
+    public void searchUserNull() throws DAOException {
+    	assertEquals(null, dao.searchUser("name", "password"));
+    }
+    
+    @Test
+<<<<<<< HEAD
     public void testSetTransactionPaid() {
     	try {
 			dao.storeSaleTransaction(new ConcreteSaleTransaction(1, new ArrayList(), 25.0, 2.5));
@@ -806,5 +819,13 @@ public class DAOTest {
     @Test
     public void testGetEntries() {
     	
+=======
+    public void searchUserValid() throws DAOException {
+    	dao.insertUser("name", "password", Constants.ADMINISTRATOR);
+    	
+    	assertEquals(Integer.valueOf(1), dao.searchUser("name", "password").getId());
+    	
+    	dao.removeUser(1);
+>>>>>>> 73731b8c9537d7a8a1b0949f2d6f09156680a813
     }
 }

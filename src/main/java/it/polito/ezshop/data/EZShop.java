@@ -583,7 +583,7 @@ public class EZShop implements EZShopInterface {
         if (newCustomerName == null | newCustomerName.isEmpty()) {
             throw new InvalidCustomerNameException();
         }
-        if (newCustomerCard == null | newCustomerCard.isEmpty() | newCustomerCard.length() != 10) {
+        if (newCustomerCard != null && !newCustomerCard.isEmpty() && newCustomerCard.length() != 10) {
             throw new InvalidCustomerCardException("Invalid Customer Card");
         }
         if (id == null | id <= 0) {
@@ -1017,6 +1017,7 @@ public class EZShop implements EZShopInterface {
                 SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
         
                 if(checkTransaction==null){
+                    System.out.println("Arrivo qui nella endSaleTransaction di ezShop?Transaction null? Transaction id=" + transactionId);
                     return false;
                 }
             }catch(DAOException e){
