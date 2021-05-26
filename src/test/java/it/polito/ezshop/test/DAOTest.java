@@ -18,7 +18,10 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 public class DAOTest {
     
@@ -30,7 +33,7 @@ public class DAOTest {
 		try {
 			dao.resetApplication();
 		} catch (DAOException e) {
-			e.printStackTrace();
+			System.out.println(e);
 		}
     }
     
@@ -144,15 +147,126 @@ public class DAOTest {
 			dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1, new ArrayList<>(), 1.0, 2.5));			
 			System.out.println(dao.insertReturnTransaction());
 			assertEquals(Integer.valueOf(1), dao.insertReturnTransaction());
-			dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1, new ArrayList<>(), 1.0, 2.5));
+			dao.storeReturnTransaction(new ConcreteReturnTransaction(2,1, new ArrayList<>(), 1.0, 2.5));
 			assertEquals(Integer.valueOf(2), dao.insertReturnTransaction());
+			dao.storeReturnTransaction(new ConcreteReturnTransaction(3,1, new ArrayList<>(), 1.0, 2.5));
+			assertEquals(Integer.valueOf(3), dao.insertReturnTransaction());
 		} catch (DAOException e) {
 			fail();
 		}
 		
 	}
+    
+    @Test
+	public void testDeleteReturnTransaction() {
+		try {
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			TicketEntry t1 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+			TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+			List<TicketEntry> tickets = new ArrayList<>();
+			tickets.add(t1);
+			tickets.add(t2);
+			dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1, tickets, 1.0, 2.5));
+			assertTrue(dao.deleteReturnTransaction(1));
+		} catch (DAOException e) {
+			fail();
+		}
+	}
+    
+    @Test
+	public void testDeleteReturnTransactionFailed() {
+    	try {
+			assertFalse(dao.deleteReturnTransaction(1));
+			assertFalse(dao.deleteReturnTransaction(0));
+			assertFalse(dao.deleteReturnTransaction(-1));
+		} catch (DAOException e) {
+			fail();
+		}
+	}
+    
+    @Test
+   	public void testSearchReturnTransaction() {
+       	try {
+       		dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			TicketEntry t1 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+			TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+			List<TicketEntry> tickets = new ArrayList<>();
+			tickets.add(t1);
+			tickets.add(t2);
+			dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1, tickets, 25.0, 2.5));
+			assertEquals(Integer.valueOf(1), dao.searchReturnTransaction(1).getReturnId());
+			assertTrue(Double.valueOf(25.0) == dao.searchReturnTransaction(1).getPrice());
+			assertTrue(2.5 ==  dao.searchReturnTransaction(1).getDiscountRate());
+   		} catch (DAOException e) {
+   			fail();
+   		}
+   	}
+    
+    @Test
+   	public void testSearchReturnTransactionNull() {
+       	try {
+			assertEquals(null, dao.searchReturnTransaction(1));
+			} catch (DAOException e) {
+   			fail();
+   		}
+   	}
 
     @Test
+   	public void testInsertBalanceOperation() {
+       	try {
+			assertTrue(null, dao.insertBalanceOperation(50, "CREDIT",  LocalDate.of(2021, 05, 26)));
+			assertTrue(null, dao.insertBalanceOperation(40, "DEBIT",  LocalDate.of(2021, 05, 22)));
+			assertTrue(null, dao.insertBalanceOperation(11, "DEBIT",  LocalDate.of(2021, 03, 18)));
+			assertThrows(DAOException.class, () -> {dao.insertBalanceOperation(50, null,  null);});
+       	} catch (DAOException e) {
+   			fail();
+   		}
+   	}
+
+    @Test
+   	public void testGetBalanceOperations() {
+       	try {
+			dao.insertBalanceOperation(50, "CREDIT",  LocalDate.of(2021, 04, 26));
+			dao.insertBalanceOperation(40, "DEBIT",  LocalDate.of(2021, 05, 22));
+			dao.insertBalanceOperation(11, "DEBIT",  LocalDate.of(2021, 03, 18));
+			assertEquals(2, dao.getBalanceOperations(LocalDate.of(2021, 04, 1), LocalDate.of(2021, 07, 1)).size());
+			assertThrows(DAOException.class, () -> {dao.insertBalanceOperation(50, null,  null);});
+       	} catch (DAOException e) {
+   			fail();
+   		}
+   	}
+    
+    @Test
+   	public void testStoreReturnTransaction() {
+       	try {
+			assertTrue(dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1,new ArrayList<>(),24.0, 0.0)));
+       	} catch (DAOException e) {
+   			fail();
+   		}
+   	}
+
+    @Test
+   	public void testSetReturnTransactionPaid() {
+       	try {
+       		dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1,new ArrayList<>(),24.0, 0.0));
+       		assertTrue(dao.setReturnTransactionPaid(1));
+       		assertFalse(dao.setReturnTransactionPaid(2));
+       		
+       	} catch (DAOException e) {
+   			fail();
+   		}
+   	}
+    
     public void testUpdatePositionValid() throws DAOException {
     	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
     	dao.updatePosition(1, "1-A-23");
