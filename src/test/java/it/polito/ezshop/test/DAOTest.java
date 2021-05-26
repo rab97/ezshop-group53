@@ -55,7 +55,7 @@ public class DAOTest {
         }   
 
     }
-
+  
     @Test
     public void testGetAllUsers(){
 
@@ -632,7 +632,7 @@ public class DAOTest {
     	dao.insertCustomer("name1");
     	dao.insertCustomer("name2");
     	dao.updateCustomer(1, "name1", "0123456789");
-    	assertFalse(dao.updateCustomer(2, "name2", "0123456789"));
+    	assertFalse(dao.bindCardToCustomer("0123456789",2));  
     	dao.deleteCustomer(1);
     	dao.deleteCustomer(2);
     }
@@ -642,7 +642,7 @@ public class DAOTest {
     	dao.insertCustomer("name1");
     	dao.insertCustomer("name2");
     	dao.updateCustomer(1, "name1", "0123456789");
-    	assertTrue(dao.updateCustomer(2, "name2", "9876543210"));
+    	assertTrue(dao.bindCardToCustomer("9876543210",2));
     	dao.deleteCustomer(1);
     	dao.deleteCustomer(2);
     }
