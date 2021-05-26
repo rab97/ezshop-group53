@@ -6,6 +6,8 @@ import org.junit.Test;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
+import scala.Array;
+
 import java.util.List;
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.model.*;
@@ -813,6 +815,7 @@ public class DAOTest {
 			fail();
 		}
 	}
+
     	
     public void testSearchUserValid() throws DAOException {
     	dao.insertUser("name", "password", Constants.ADMINISTRATOR);
@@ -820,5 +823,32 @@ public class DAOTest {
     	assertEquals(Integer.valueOf(1), dao.searchUser("name", "password").getId());
     	
     	dao.removeUser(1);
+    }
+    
+    @Test
+    public void testUpdateSaleTransactionEntries() {
+    	TicketEntry t1 = new ConcreteTicketEntry("123456789104","red bic", 25, 2.5, 2.5);
+		TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 2.5);
+		List<TicketEntry> tickets = new ArrayList<>();
+		tickets.add(t1);
+		tickets.add(t2);
+		SaleTransaction s = new ConcreteSaleTransaction(1, tickets, 25.0, 2.5);
+		try {
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "123456789104", "", 50, Double.valueOf(12.5), "1-A-24"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.storeSaleTransaction(s);
+			t1.setAmount(20);
+			t2.setAmount(1);
+			assertTrue(dao.updateSaleTransactionEntries(1, tickets, true));
+			assertEquals(5, dao.searchSaleTransaction(1).getEntries().get(0).getAmount());
+			assertTrue(0 == dao.searchSaleTransaction(1).getEntries().get(1).getAmount());
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }
