@@ -287,11 +287,10 @@ public class EZShop implements EZShopInterface {
         ProductType productType = null;
         try {
             productType = dao.getProductTypeByBarCode(barCode);
-            return productType;
         } catch (Exception e) {
             System.out.println("errror");
         }
-        return null;
+        return productType;
     }
 
     @Override
