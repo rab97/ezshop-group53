@@ -6,7 +6,7 @@ import org.junit.Test;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
-import scala.collection.immutable.List;
+import java.util.List;
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.model.*;
 
@@ -207,10 +207,13 @@ public class DAOTest {
     	dao.resetApplication();
     }
     
+    @Test
 	public void testInsertReturnTransactionTest() {
 		try {
 			assertEquals(Integer.valueOf(0), dao.insertReturnTransaction());
-			dao.storeReturnTransaction(new ConcreteReturnTransaction(1,1, new ArrayList<>(), 1.0, 2.5));			
+			ReturnTransaction r = new ConcreteReturnTransaction(1,1, new ArrayList<>(), 1.0, 2.5);
+			r.setPayed(true);
+			dao.storeReturnTransaction(r);			
 			System.out.println(dao.insertReturnTransaction());
 			assertEquals(Integer.valueOf(1), dao.insertReturnTransaction());
 			dao.storeReturnTransaction(new ConcreteReturnTransaction(2,1, new ArrayList<>(), 1.0, 2.5));
@@ -429,18 +432,16 @@ public class DAOTest {
 
 
     @Test
-    public void testInsertSaleTransaction(){
+    public void testInsertSaleTransaction() throws DAOException{
 
-        SaleTransaction stTest= new ConcreteSaleTransaction(1, null, 0.0, 0.0);
-
+        SaleTransaction stTest= new ConcreteSaleTransaction(1, new ArrayList(), 0.0, 0.0);
+        dao.storeSaleTransaction(stTest);
         try{
-            Integer stId= dao.insertSaleTransaction();
-            if(stId<=0){
-                fail();
-            }
-            SaleTransaction returnedTransaction = dao.searchSaleTransaction(stId);
-            assertEquals(stId, returnedTransaction.getTicketNumber());
-            //assertEquals(stTest.getEntries(), actual);
+        	
+            assertEquals(Integer.valueOf(1), dao.insertSaleTransaction());
+            dao.storeSaleTransaction(new ConcreteSaleTransaction(1, new ArrayList<>(), 1.2, 0));
+            assertEquals(Integer.valueOf(2), dao.insertSaleTransaction());
+
 
         }catch(DAOException e){
             fail();
@@ -681,11 +682,150 @@ public class DAOTest {
     }
     
     @Test
+<<<<<<< HEAD
+    public void testSetTransactionPaid() {
+    	try {
+			dao.storeSaleTransaction(new ConcreteSaleTransaction(1, new ArrayList(), 25.0, 2.5));
+			assertTrue(dao.setSaleTransactionPaid(1));
+    	} catch (DAOException e) {
+			e.printStackTrace();
+		}
+    	
+    }
+    
+    @Test
+    public void testSetTransactionPaidInvalid() throws DAOException {
+		assertFalse(dao.setSaleTransactionPaid(1));
+    }
+    
+    @Test
+    public void testRemoveSaleTransactionInvalid() {
+    	try {
+			dao.storeSaleTransaction(new ConcreteSaleTransaction(1, new ArrayList(), 25.0, 2.5));
+			assertFalse(dao.removeSaleTransaction(1));
+			assertFalse(dao.removeSaleTransaction(0));
+			assertFalse(dao.removeSaleTransaction(-1));
+    	} catch (DAOException e) {
+			e.printStackTrace();
+		}
+    	
+    }
+    
+    @Test
+    public void testRemoveSaleTransactionValid() {
+    	try {
+    		TicketEntry t1 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+    		TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+    		List<TicketEntry> tickets = new ArrayList<>();
+    		tickets.add(t1);
+    		tickets.add(t2);
+    		SaleTransaction s = new ConcreteSaleTransaction(1, tickets, 25.0, 2.5);
+    		dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+    		dao.storeSaleTransaction(s);
+			assertTrue(dao.removeSaleTransaction(1));
+    	} catch (DAOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    @Test
+    public void testGetAllUser() {
+    	try {
+			dao.insertUser("user1", "user1", Constants.ADMINISTRATOR);
+			dao.insertUser("user2", "user1", Constants.ADMINISTRATOR);
+			dao.insertUser("user3", "user1", Constants.ADMINISTRATOR);
+			List<User> users = dao.getAllUsers();
+			assertEquals(3, users.size());
+			assertEquals("user1", users.get(0).getUsername());
+			assertEquals("user2", users.get(1).getUsername());
+			assertEquals("user3", users.get(2).getUsername());
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    
+    @Test
+    public void testSearchTicketEntry() {
+    	try {
+    		TicketEntry t1 = new ConcreteTicketEntry("123456789104","red bic", 25, 0.5, 0.0);
+    		TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+    		List<TicketEntry> tickets = new ArrayList<>();
+    		tickets.add(t1);
+    		tickets.add(t2);
+    		SaleTransaction s = new ConcreteSaleTransaction(1, tickets, 25.0, 2.5);
+    		dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+    		dao.storeSaleTransaction(s);
+    		assertEquals("123456789104", dao.searchTicketEntry(1, 1).getBarCode());
+    		
+    		assertEquals(25, dao.searchTicketEntry(1, 1).getAmount());
+    		assertTrue(0.0 == dao.searchTicketEntry(1, 1).getDiscountRate());
+    		assertEquals("red bic", dao.searchTicketEntry(1, 1).getProductDescription());
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    @Test
+    public void testSearchTicketEntryEmpty() {
+    	try {
+    		assertEquals(null, dao.searchTicketEntry(1, 1));	
+    	} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    
+    @Test
+    public void testUpdateSaleTransactionPrice() {
+    	TicketEntry t1 = new ConcreteTicketEntry("123456789104","red bic", 25, 0.5, 0.0);
+		TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+		List<TicketEntry> tickets = new ArrayList<>();
+		tickets.add(t1);
+		tickets.add(t2);
+		SaleTransaction s = new ConcreteSaleTransaction(1, tickets, 25.0, 2.5);
+		
+		try {
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "123456789104", "", 50, Double.valueOf(12.5), "1-A-24"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.storeSaleTransaction(s);
+			assertTrue(dao.updateSaleTransactionPrice(1, 21, false));
+			assertTrue(23.5 == dao.searchSaleTransaction(1).getPrice());
+			assertTrue(dao.updateSaleTransactionPrice(1, 10, true));
+			assertTrue(13.5 == dao.searchSaleTransaction(1).getPrice());
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+    
+    
+    @Test
+    public void testGetEntries() {
+    	
+=======
     public void searchUserValid() throws DAOException {
     	dao.insertUser("name", "password", Constants.ADMINISTRATOR);
     	
     	assertEquals(Integer.valueOf(1), dao.searchUser("name", "password").getId());
     	
     	dao.removeUser(1);
+>>>>>>> 73731b8c9537d7a8a1b0949f2d6f09156680a813
     }
 }

@@ -3733,7 +3733,7 @@ public class EZShopTest {
 
 	
 	@Test
-	public void testReceveCashPaymentTransactionAlreadyPayed() {
+	public void testReceiveCashPaymentTransactionAlreadyPayed() {
 		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(user);
 		ReturnTransaction r = new ConcreteReturnTransaction();
@@ -4013,14 +4013,6 @@ public class EZShopTest {
 			System.out.println(e);
 		}
 	}
-
-<<<<<<< HEAD
-	@Test
-	public void testDeleteProductFromSaleValid() {
-		
-	}
-=======
->>>>>>> e73e96f6973bf05e7a9ed160188bfd6c5fc3aee4
 }
 
 
