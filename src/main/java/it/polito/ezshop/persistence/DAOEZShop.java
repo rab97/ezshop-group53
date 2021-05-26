@@ -777,6 +777,8 @@ public class DAOEZShop implements IDAOEZshop {
             resultSet = statement.executeQuery(query);
 
             id = resultSet.next() ? resultSet.getInt(1) : 1;
+            
+            System.out.println(id);
 
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());

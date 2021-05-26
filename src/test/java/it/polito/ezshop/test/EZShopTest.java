@@ -877,7 +877,7 @@ public class EZShopTest {
 		assertThrows(InvalidTransactionIdException.class, ()->{ezShop.getSaleTransaction(null);});
 	}
 
-	@Test //Questo test fallisce sui null value perchè vuole che sia lanciata NullPointerException
+	@Test
 	public void testSaleTransactionInvalidProductCode(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
@@ -1031,6 +1031,26 @@ public class EZShopTest {
 
 		}catch(InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException|
 				UnauthorizedException|InvalidDiscountRateException e){
+			fail();
+		}
+	}
+
+	@Test
+	public void testStartSaleTransactionWithSuccess(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+
+		try{
+			Integer idNewTransaction= ezShop.startSaleTransaction();
+			if(idNewTransaction<=0){
+				fail();
+			}
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException e){
 			fail();
 		}
 	}
