@@ -695,7 +695,6 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean attachCardToCustomer(String customerCard, Integer customerId)
             throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
-
         if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
@@ -1319,7 +1318,7 @@ public class EZShop implements EZShopInterface {
         try {
             dao.updateSaleTransactionPrice(returnTransaction.getTransactionId(), rt.getPrice(), Constants.NOT_COMMITTED);		
         } catch (DAOException e) {
-            System.out.println(e);
+            System.out.println(e);   
         }
         
         // 2. update ticket entries

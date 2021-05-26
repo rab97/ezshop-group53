@@ -627,12 +627,14 @@ public class DAOEZShop implements IDAOEZshop {
             prstm.setInt(1, id);
 
             int del = prstm.executeUpdate();
-
+            
+            System.out.println(del);
+            
             if (del != 1) { // Something goes wrong
                 result = false;
             } else {
                 result = true;
-            }
+            }            
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -775,6 +777,8 @@ public class DAOEZShop implements IDAOEZshop {
             resultSet = statement.executeQuery(query);
 
             id = resultSet.next() ? resultSet.getInt(1) : 1;
+            
+            System.out.println(id);
 
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
@@ -903,14 +907,14 @@ public class DAOEZShop implements IDAOEZshop {
                 if (rs.getInt("id") == customerId) {
                     customerExistance = true;
                 }
-                if (rs.getString("card") == card) {
+                if (rs.getString("card")!=null && rs.getString("card").equals(card)) {
                     System.out.println("This card is already attached to a customer");
                     return false;
                 }
             }
 
             if (customerExistance != true) {
-                System.out.println("The given customer doesn't exist");
+                System.out.println("The given customer doesn't exist");   
                 return false;
             }
 
@@ -919,6 +923,8 @@ public class DAOEZShop implements IDAOEZshop {
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
         }
 
         return true;
