@@ -40,24 +40,39 @@ Version: 1.0.0
      JUnit test cases applied to them> JUnit test classes should be here src/test/java/it/polito/ezshop
 
 ## Step 1
-| Classes  | JUnit test cases |
+| Classes           | JUnit test cases |
 |--|--|
-|||
+|User|--|
+|ProductType||
+|ReturnTransaction||
+|BalanceOperation||
 
 
 ## Step 2
-| Classes  | JUnit test cases |
+| Classes                      | JUnit test cases                                             |
 |--|--|
-|||
+|User + DAOEZShop|testInsertAndRemoveUser, testGetAllUsers, testSearchUserById, testUpdateRights, testSearchUserInvalid, testSearchUserNull, testGetAllUser, testSearchUserValid|
+|ProductType+ DAOEZShop|testCreateProductTypeValid, testGetProductTypeByBarCodeInvalid, testGetProductTypeByBarCodeValid, testGetProductTypeByBarCodeNullProduct, testGetProductTypeByDescriptionInvalid, testGetProductTypeByDescriptionValid, testUpdateQuantityInvalidQuantity, testUpdateQuantityValid, testUpdatePositionValid, testSearchPositionInvalid, testSearchPositionAlreadyExist, testSearchPositionValid, testUpdateProductInvalid, testUpdateProductUnsuccess, testUpdateProductSuccess, testDeleteProductTypeUnsucess, testDeleteProductTypeSuccess, testSearchProductByIdUnsuccess, testSearchProductByIdSuccess, testGetAllProductTypetValid|
+|TicketEntry+ DAOEZShop|testSearchTicketEntry, testSearchTicketEntryEmpty|
+|Order + DAOEZShop|testInsertNewOrderProductNotExists, testInsertNewOrderValid, testPayOrderDirectlyProductNotExists, testPayOrderDirectlyValid, testPayOrderOrderNotExists, testPayOrderIssued, testPayOrderPayed, testPayOrderCompleted, testRecordArrivalOrderNotExists, testRecordArrivalValid, testGetOrderOrderNotExists, testGetOrderValid, testGetAllOrdersValid,|
+|Customer+ DAOEZShop|testInsertCustomerButAlreadyExists, testInsertCustomerValid, testUpdateCustomerInvalidCard, testUpdateCustomerCardAlreadyExists, testUpdateCustomerValid, testDeleteCustomerButNotExists, testDeleteCustomerValid, testGetCustomerButNotExists, testGetCustomerValid, testGetAllCustomers, testBindCardToCustomerButNotExists, testBindCardToCustomerCardAlreadyExists, testBindCardToCustomerValid, testUpdatePointsCustomerNotExists, testUpdatePointsButNotEnough, testUpdatePointsValid,|
+|SaleTransaction + DAOEZShop|testInsertSaleTransaction, testSetTransactionPaid, testSetTransactionPaidInvalid, testRemoveSaleTransactionInvalid, testRemoveSaleTransactionValid, testUpdateSaleTransactionPrice,|
+|ReturnTransaction+ DAOEZShop|testInsertReturnTransactionTest, testDeleteReturnTransaction, testDeleteReturnTransactionFailed, testSearchReturnTransaction, testSearchReturnTransactionNull, testStoreReturnTransaction, testSetReturnTransactionPaid,|
+|BalanceOperation+ DAOEZShop|testInsertBalanceOperation, testGetBalanceOperations|
 
 
-## Step n 
+## Step 3
 
-   
-
-| Classes  | JUnit test cases |
+| Classes                              | JUnit test cases                                             |
 |--|--|
-|||
+|User + DAOEZShop +EZShop|testUserInvalidUsername, testUserInvalidPassword, testCreateUserCheckRole, testUserAlreadyExists, testUserNotExists, testGetAllUsers,testUserInvalidId,  testUserUnauthorizedUser, testCreateUserWithSuccess, testDeleteUserWithSuccess,testGetUserWithSuccess , testUpdateUserRightsWithSuccess,testLoginWithSuccess, testLogoutWithSuccess|
+|ProductType+ DAOEZShop+ EZShop|testCreateProductTypeInvalidDescription, testCreateProductTypeInvalidProductCode, testCreateProductTypeInvalidPricePerUnit, testCreateProductTypeUnauthorizedUser, testCreateProductTypeExistingProduct, testCreateProductTypeValidProduct, testUpdateProductInvalidId, testUpdateProductInvalidDescription, testUpdateProductInvalidProductCode, testUpdateProductInvalidPricePerUnit, testUpdateProductUnauthorizedException, testProductUpdateNotAvailableId, testProductUpdateExistingBarCode, testProductUpdateValid, testDeleteProductTypeInvalidId, testDeleteProductTypeUnauthorizedException, testDeleteProductNotExisting, testDeleteProductValidProduct, testGetAllProductTypeUnauthorizedException, testGetAllProductTypeValid, testGetProductTypeByBarCodeUnauthorizedException, testGetProductTypeByBarCodeInvalidBarCode, testGetProductTypeByBarCodeProductNotExists, testGetProductTypeByBarCodeValidProduct, testGetProductTypeByDescriptionUnauthorizedException, testGetProductTypeByDescriptionProductsNotExist, testGetProductTypeByDescriptionValid, testUpdateQuantityUnauthorizedUser, testUpdateQuantityInvalidProductId, testUpdateQuantityProductLocationNull, testUpdateQuantityProductLocationEmpty, testUpdateQuantityProductInvalidQuantity, testUpdateQuantityProductNotExists, testUpdateQuantityProductValidPositive, testUpdateQuantityProductValidNegative, testUpdatePositionUnauthorizedException, testUpdatePositionInvalidLocation, testUpdatePositionInvalidId, testUpdatePositionProductNotExist, testUpdatePositionAlreadyAssigned, testUpdatePositionValid, testUpdatePositionNull, testUpdatePositionEmpty,|
+|Order+ DAOEZShop+ EZShop|testOrderUnauthorizedUser, testOrderInvalidProductCode, testOrderInvalidQUantity, testOrderInvalidPricePerQty, testOrderInvalidOrderId, testRecordOrderArrivalInvalidLocation, testOrderProductNotExists, testIssueOrderValidData, testPayOrderForBalanceNotEnough, testPayOrderForValidData, testOrderOrderNotExists, testPayOrderOrderNotIssuedOrOrdered, testPayOrderValidData, testRecordOrderArrivalOrderNotOrderedOrCompleted, testRecordOrderArrivalValidData, testGetAllOrdersValidData|
+|Customer+ DAOEZShop+ EZShop|testCustomerUnauthorizedUser, testCustomerInvalidCustomerName, testCustomerInvalidCustomerCard, testCustomerInvalidCustomerId, testDefineCustomerNameAlreadyInUse, testCustomerCardAlreadyInUse, testCustomerCustomerNotExists, testModifyPointsOnCardInexistentCard, testModifyPointsOnCardNotEnoughPoints, testDefineCustomerValidData, testModifyCustomerValidData, testDeleteCustomerValidData, testGetCustomerValidData, testGetAllCustomersValidData, testCreateCardValidData, testAttachCardToCustomerValidData, testModifyPointsOnCardValidData, testCustomerDetachCard,|
+|SaleTransaction+ DAOEZShop+ EZShop|testSaleTransactionUnauthorizedUser, testSaleTransactionInvalidTransactionId, testSaleTransactionInvalidProductCode, testSaleTransactionInvalidQuantity, testSaleTransactionInvalidDiscountRate, testSaleTransactionProductNotExists, testSaleTransactionNotExist, testStartSaleTransactionWithSuccess, testAddProductToSaleWithSuccess, testDeleteProductFromSaleWithSuccess, testEndSaleTransactionWithSuccess, testApplyDiscountRateToProductWithSuccess, testApplyDiscountRateToSaleWithSuccess, testdeleteSaleTransactionWithSuccess, testSaleTransactionWrongTransactionStatus, testGetSaleTransaction|
+|ReturnTransaction+ DAOEZShop+ EZShop|testStartReturnTransactionNotFoundSale, testStartReturnTransactionInvalidId, testStartReturnTransactionClosedSale, testStartReturnTransactionNotClosedSale, testStartReturnTransactionNullRole, testReturnProductExceedAmount, testReturnProductTransactioNotExists, testReturnProductReturnNotExists, testReturnProductProductNotExists, testReturnProductAmountTooBig, testReturnProductCodeInvalid, testReturnProductNullUser, testReturnProductNegativeQuanitity, testReturnProductTransactionIdError, testReturnProductValidData, testEndReturnTransactionInvalidTransactionId, testEndReturnTransactionUserNull, testEndReturnTransactionInactiveReturnTransaction, testEndReturnTransactionCommitReturn, testEndReturnTransactionCommitReturnFalse, testDeleteReturnTransactionInvalidTransaction, testDeleteReturnTransactionInvalidUser, testDeleteReturnTransactionInvalid, testDeleteReturnTransactionValid,|
+||testReturnCashPaymentInvalidReutrnId, testReturnCashPaymentInvalidUser, testReturnCashPaymentReturnTransactionInexistent, testReturnCashPaymentReturnTransactionNotEnded, testReturnCashPaymentReturnTransactionEndedAndNotPayed, testReturnCashPaymentReturnTransactionAlreadyPayed, testReturnCreditCardPaymentInvalidReuturnId, testReturnCreditCardPaymentInvalidUser, testReturnCreditCardPaymentInvalidCard, testReturnCreditCardPaymentReturnTransactionInexistent, testReturnCreditCardPaymentReturnTransactionNotEnded, testReturnCreditCardPaymentReturnTransactionEndedAndNotPayed, testReturnCreditCardPaymentReturnCardNotRegistered, testReturnCreditCardPaymentReturnTransactionAlreadyPayed, testReceiveCashPaymentInvalidTransactionId, testReceiveCashPaymentInvalidUser, testReceiveCashPaymentInvalidCash, testReceiveCashPaymentReturnTransactionInexistent, testReceiveCashPaymentReturnTransactionNotEnded, testReceveCashPaymentReturnTransactionEndedAndNotPayed, testReceiveCashPaymentTransactionAlreadyPayed, testReceivenCreditCardPaymentInvalidReuturnId, testReceiveCreditCardPaymentInvalidUser, testReceiveCreditCardPaymentInvalidCard, testReceiveCreditCardPaymentTransactionInexistent, testReceiveCreditCardPaymentTransactionNotEnded, testReceiveCreditCardPaymentTransactionNotEnoughMoney, testReceiveCreditCardPaymentSaleTransactionEndedAndNotPayed, testReceiveCreditCardPaymentCardNotRegistered, testReceievCreditCardPaymentReturnTransactionAlreadyPayed,|
+|BalanceOperation+ DAOEZShop+ EZShop|testRecordBalanceUpdateCashierUser, testRecordBalanceUpdateNullUser, testRecordBalanceUpdateAddCredit, testRecordBalanceUpdateAddDebit, testRecordBalanceUpdateNegativeTotal, testGetCreditsAndDebitInvalidUser, testGetCreditsAndDebitNullList, testzGetCreditsAndDebitCorrectValue, testGetCreditsAndDebitWithDateExchanged, testGetCreditsAndDebitFromDateNull, testGetCreditsAndDebitFromToNull, testGetCreditsAndDebitFromAndToNull, testComputeBalanceUserNull, testComputeBalance,|
 
 
 
