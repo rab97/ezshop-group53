@@ -1118,7 +1118,6 @@ public class DAOEZShop implements IDAOEZshop {
     @Override
     public boolean storeSaleTransaction(SaleTransaction saleTransaction) throws DAOException {
         Connection connection = null;
-
         try {
             connection = dataSource.getConnection();
 
@@ -1268,6 +1267,7 @@ public class DAOEZShop implements IDAOEZshop {
             resultSet = statement.executeQuery(query);
            
             if (!resultSet.next()) {
+                System.out.print("Sono nella searchSaleTransaction che ritorna null");
                 return null;
             }
             List<TicketEntry> entries = getEntries(transactionId);
