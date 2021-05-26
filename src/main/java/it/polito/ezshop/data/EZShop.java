@@ -583,7 +583,7 @@ public class EZShop implements EZShopInterface {
         if (newCustomerName == null | newCustomerName.isEmpty()) {
             throw new InvalidCustomerNameException();
         }
-        if (newCustomerCard == null | newCustomerCard.isEmpty() | newCustomerCard.length() != 10) {
+        if (newCustomerCard != null && !newCustomerCard.isEmpty() && newCustomerCard.length() != 10) {
             throw new InvalidCustomerCardException("Invalid Customer Card");
         }
         if (id == null | id <= 0) {
