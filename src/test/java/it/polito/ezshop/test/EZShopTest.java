@@ -1112,6 +1112,45 @@ public class EZShopTest {
 	}
 
 	@Test
+	public void testDeleteProductFromSaleWithSuccess(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+
+		ProductType pt= new ConcreteProductType(1, "product1", "123456789104", null, 5, 1.0, null);
+		try{
+			ezShop.getDAO().createProductType(pt);
+			ezShop.getDAO().updatePosition(1, "1-A-23");
+			ezShop.getDAO().updateQuantity(1, 50);
+			
+			Integer  stId= ezShop.getDAO().insertSaleTransaction();
+			if(stId<0){
+				fail();
+			}
+			SaleTransaction saleTransaction = new ConcreteSaleTransaction(stId + 1, new ArrayList<TicketEntry>(), 0, 0);
+			boolean inserted= ezShop.getDAO().storeSaleTransaction(saleTransaction);
+			if(inserted==false){
+				fail();
+			}
+
+			ezShop.setSaleTransaction(saleTransaction);
+			ezShop.setSaleTransactionState(Constants.OPENED);
+
+			ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1);
+			ezShop.addProductToSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1);
+
+			assertTrue(ezShop.deleteProductFromSale(saleTransaction.getTicketNumber(), pt.getBarCode(), 1));
+			ezShop.getDAO().resetApplication();
+
+		}catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException|InvalidTransactionIdException|InvalidProductCodeException|InvalidQuantityException e){
+			System.out.println("addProductToSale"+e);
+			fail();
+		}
+	}
+
+	@Test
 	public void testEndSaleTransactionWithSuccess(){
 
 		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
