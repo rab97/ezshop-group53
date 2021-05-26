@@ -3116,7 +3116,6 @@ public class EZShopTest {
 		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(u);
 		
-		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyCustomer(1,"name","");});
 		//assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyCustomer(1,"name",null);});
 		assertThrows(InvalidCustomerCardException.class, ()->{ezShop.modifyCustomer(1,"name","corta");});
 		
@@ -3189,7 +3188,6 @@ public class EZShopTest {
 			fail();
 		}catch(UnauthorizedException|InvalidCustomerNameException|InvalidCustomerCardException|InvalidCustomerIdException e) {
 			System.out.println("Error message: " + e);
-			fail();  
 		}
 		try {
 			ezShop.getDAO().deleteCustomer(1);
@@ -3762,7 +3760,6 @@ public class EZShopTest {
 		}
 	}
 	
-	
 	@Test
 	public void testReceievCreditCardPaymentReturnTransactionAlreadyPayed() {
 		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
@@ -3802,6 +3799,27 @@ public class EZShopTest {
 		}
 	}
 	
+	@Test
+	public void testCustomerDetachCard() throws InvalidCustomerNameException {
+		User u= new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+		ezShop.setRunningUser(u);
+		
+		try {		
+			ezShop.getDAO().insertCustomer("name1");
+			ezShop.getDAO().bindCardToCustomer("0123456789", 1);
+			assertTrue(ezShop.modifyCustomer(1, "name1", ""));
+		} catch(DAOException e){
+			fail();
+		}catch(UnauthorizedException | InvalidCustomerIdException | InvalidCustomerCardException e) {
+			System.out.println("Error message: " + e);
+			fail();
+		}
+		try {
+			ezShop.getDAO().deleteCustomer(1);
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
 }
 
 

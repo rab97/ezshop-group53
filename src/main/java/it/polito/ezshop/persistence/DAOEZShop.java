@@ -1273,11 +1273,9 @@ public class DAOEZShop implements IDAOEZshop {
             List<TicketEntry> entries = getEntries(transactionId);
             saleTransaction = new ConcreteSaleTransaction(transactionId, entries, resultSet.getDouble("discountRate"),
             		resultSet.getDouble("price"));
-            System.out.println("true");
+            
             if(resultSet.getInt("payed") == 1) {
             	saleTransaction.setPayed(true);
-            } else {
-            	System.out.println("true");
             }
 
         } catch (SQLException ex) {
