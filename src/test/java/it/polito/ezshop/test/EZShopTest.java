@@ -22,7 +22,13 @@ import it.polito.ezshop.Constants;
 
 import it.polito.ezshop.data.*;
 import it.polito.ezshop.exceptions.*;
-import it.polito.ezshop.model.*;
+import it.polito.ezshop.model.ConcreteUser;
+import it.polito.ezshop.model.ConcreteCustomer;
+import it.polito.ezshop.model.ConcreteProductType;
+import it.polito.ezshop.model.ConcreteReturnTransaction;
+import it.polito.ezshop.model.ConcreteSaleTransaction;
+import it.polito.ezshop.model.ConcreteTicketEntry;
+import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
@@ -76,19 +82,19 @@ public class EZShopTest {
 	@Test
 	public void testUserAlreadyExists(){
 
+		User running= new ConcreteUser("Admin", 20, "pw", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(running);
+
 		User u= new ConcreteUser("validUsername", null, "validPassword", Constants.SHOP_MANAGER);
 
 		try{
 			Integer uId= ezShop.getDAO().insertUser(u.getUsername(), u.getPassword(), u.getRole());
-			System.out.print("uId= "+ uId);
 			if(uId<=0){
 				fail();
 			}
 
 			assertEquals(Integer.valueOf(-1), ezShop.createUser(u.getUsername(), u.getPassword(), u.getRole()));
-			assertFalse(ezShop.deleteUser(uId));
-
-			dao.resetApplication();
+			assertTrue(ezShop.deleteUser(uId));
 
 		}catch(DAOException e){
 			fail();
@@ -99,7 +105,42 @@ public class EZShopTest {
 			System.out.print(e);
 			fail();
 		}
-		
+	}
+
+	@Test
+	public void testUserNotExists(){
+
+		User running= new ConcreteUser("Admin", 20, "pw", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(running);
+
+		User wrongUser= new ConcreteUser("wrongName", 19, "wrongPw", Constants.CASHIER);
+
+		try{
+			assertFalse(ezShop.deleteUser(wrongUser.getId()));
+			assertEquals(null, ezShop.getUser(wrongUser.getId()));
+			assertFalse(ezShop.updateUserRights(wrongUser.getId(), Constants.SHOP_MANAGER));
+			assertEquals(null, ezShop.login(wrongUser.getUsername(), wrongUser.getPassword()));
+
+		}catch(InvalidUsernameException|InvalidPasswordException|InvalidUserIdException|
+				InvalidRoleException|UnauthorizedException e){
+			System.out.print(e);
+			fail();
+		}
+
+	}
+
+	@Test
+	public void testGetAllUsers(){
+
+		User u= new ConcreteUser("admin", 1, "adminPassword", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);
+
+		try{
+			assertTrue(ezShop.getAllUsers().isEmpty());
+
+		}catch(UnauthorizedException e){
+			fail();
+		}
 	}
 
 	@Test
