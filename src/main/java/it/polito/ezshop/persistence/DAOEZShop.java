@@ -192,12 +192,12 @@ public class DAOEZShop implements IDAOEZshop {
         Connection connection = null;
         Statement statment = null;
         ResultSet resultSet = null;
+        ConcreteProductType pt = null;
         try {
             connection = dataSource.getConnection();
             statment = connection.createStatement();
             String query = "select * from product_type where bar_code = '" + barCode + "';";
             resultSet = statment.executeQuery(query);
-            ConcreteProductType productType = null;
             while (resultSet.next()) {
                 Integer id = resultSet.getInt("id");
                 Integer quantity = resultSet.getInt("quantity");
@@ -206,17 +206,15 @@ public class DAOEZShop implements IDAOEZshop {
                 String description = resultSet.getString("description");
                 String bar_code = resultSet.getString("bar_code");
                 Double pricePerUnit = resultSet.getDouble("price_per_unit");
-                productType = new ConcreteProductType(id, description, bar_code, notes, quantity, pricePerUnit,
+                pt = new ConcreteProductType(id, description, bar_code, notes, quantity, pricePerUnit,
                         location);
             }
-            return productType;
-        } catch (SQLException e) {
-            // TODO: handle exception
-            System.out.println(e);
+        } catch (SQLException ex) {
+        	throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-        return null;
+        return pt;
     }
 
     @Override
@@ -253,8 +251,11 @@ public class DAOEZShop implements IDAOEZshop {
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setString(1, role);
             preparedStatement.setInt(2, id);
-            if(preparedStatement.executeUpdate() > 0);
+            if(preparedStatement.executeUpdate() > 0){
             	state = true;
+            }else{
+                return false;
+            }
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
@@ -419,7 +420,7 @@ public class DAOEZShop implements IDAOEZshop {
             prstm.setInt(2, orderId);
 
             int update = prstm.executeUpdate();
-            System.out.println("update= "+ update);
+            //System.out.println("update= "+ update);
             if (update!=1) {
                 return false;
             }
@@ -581,6 +582,15 @@ public class DAOEZShop implements IDAOEZshop {
                 if(newCustomerCard.length()!=10){
                     return false;
                 }
+                
+              //Check if the card already exists
+                String query2= "SELECT * FROM customer WHERE card= '" + newCustomerCard + "';";
+                ResultSet resultSet= statement.executeQuery(query2);
+
+                if(resultSet.next()){
+                    return false; 
+                }
+                
                 query = query + ", card= '" + newCustomerCard + "', points= '" + 0 + "'";
             }
 
@@ -617,12 +627,14 @@ public class DAOEZShop implements IDAOEZshop {
             prstm.setInt(1, id);
 
             int del = prstm.executeUpdate();
-
+            
+            System.out.println(del);
+            
             if (del != 1) { // Something goes wrong
                 result = false;
             } else {
                 result = true;
-            }
+            }            
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -695,12 +707,12 @@ public class DAOEZShop implements IDAOEZshop {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
+        List<ProductType> productTypeList = new ArrayList<>();
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "select * from product_type where description LIKE '%" + description + "%';";
             resultSet = statement.executeQuery(query);
-            List<ProductType> productTypeList = new ArrayList<>();
             while (resultSet.next()) {
                 Integer id = resultSet.getInt("id");
                 Integer quantity = resultSet.getInt("quantity");
@@ -713,19 +725,16 @@ public class DAOEZShop implements IDAOEZshop {
                         location);
                 productTypeList.add(productType);
             }
-            return productTypeList;
-        } catch (SQLException e) {
-            // TODO: handle exception
-            System.out.println(e);
+        } catch (SQLException ex) {
+        	throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-        return null;
+        return productTypeList;
     }
 
     @Override
     public boolean updateQuantity(Integer productId, int toBeAdded) throws DAOException {
-        // TODO Auto-generated method stub
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
@@ -748,9 +757,8 @@ public class DAOEZShop implements IDAOEZshop {
             query = "update product_type  set quantity = " + value + " where id = " + productId;
             statement.executeUpdate(query.toString());
             return true;
-        } catch (Exception e) {
-            System.out.println(e);
-            return false;
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
@@ -769,6 +777,8 @@ public class DAOEZShop implements IDAOEZshop {
             resultSet = statement.executeQuery(query);
 
             id = resultSet.next() ? resultSet.getInt(1) : 1;
+            
+            System.out.println(id);
 
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
@@ -790,11 +800,12 @@ public class DAOEZShop implements IDAOEZshop {
             statement = connection.createStatement();
             resultSet = statement.executeQuery(query);
             
-            System.out.println("query ok and return_transaction created with id: " + id);
+            //System.out.println("query ok and return_transaction created with id: " + id);
 
             id = resultSet.next() ? resultSet.getInt(1) : 1;
             
-            System.out.println("query ok and return_transaction created with id: " + id);
+            System.out.println("id" + id);
+            //System.out.println("query ok and return_transaction created with id: " + id);
             
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
@@ -816,15 +827,19 @@ public class DAOEZShop implements IDAOEZshop {
             String query = "DELETE FROM return_transaction WHERE id=?";
             PreparedStatement pstm = connection.prepareStatement(query);
             pstm.setDouble(1, returnId);
-            if (pstm.executeUpdate() == -1)
+            if (pstm.executeUpdate() == 0) {
+            	System.out.println("TRANSACTION NOT FOUND");
                 return false;
+            }
             
             // Delete product entry from return_ticket_entry
             query = "DELETE FROM return_ticket_entry WHERE returnId=?";
             pstm = connection.prepareStatement(query);
             pstm.setInt(1, returnId);
-            if(pstm.executeUpdate() <= 0) 
+            if(pstm.executeUpdate() <= 0) {
+            	System.out.println("ENTRIES NOT FOUND");
             	return false;
+            }
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -847,15 +862,21 @@ public class DAOEZShop implements IDAOEZshop {
             String query = "select * from return_transaction where id = '" + returnId + "';";
             resultSet = statment.executeQuery(query);
             
-            if (!resultSet.next())
-                return null;
+            if (!resultSet.next()) {
+            	return null;
+            }
 
             List<TicketEntry> entries = getReturnEntries(returnId);         
-
             returnTransaction = new ConcreteReturnTransaction(returnId, -1, entries, resultSet.getDouble("amount"), resultSet.getDouble("discountRate"));
             
-            if(resultSet.getInt("payed")==1)
+            
+            System.out.println(returnId);
+            System.out.println(resultSet.getInt("payed"));
+            if(resultSet.getInt("payed") == 1) {
             	returnTransaction.setPayed(true);
+            } else {
+            	returnTransaction.setPayed(false);
+            }
 
             
         } catch (SQLException ex) {
@@ -877,7 +898,7 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
 
-            String query = "SELECT * FROM customer WHERE customerId= '" + customerId + "' OR card= '" + card + "';";
+            String query = "SELECT * FROM customer WHERE id= '" + customerId + "' OR card= '" + card + "';";
             ResultSet rs = statement.executeQuery(query);
 
             boolean customerExistance = false;
@@ -886,14 +907,14 @@ public class DAOEZShop implements IDAOEZshop {
                 if (rs.getInt("id") == customerId) {
                     customerExistance = true;
                 }
-                if (rs.getString("card") == card) {
+                if (rs.getString("card")!=null && rs.getString("card").equals(card)) {
                     System.out.println("This card is already attached to a customer");
                     return false;
                 }
             }
 
             if (customerExistance != true) {
-                System.out.println("The given customer doesn't exist");
+                System.out.println("The given customer doesn't exist");   
                 return false;
             }
 
@@ -902,6 +923,8 @@ public class DAOEZShop implements IDAOEZshop {
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
         }
 
         return true;
@@ -909,7 +932,6 @@ public class DAOEZShop implements IDAOEZshop {
 
     @Override
     public void updatePosition(Integer productId, String position) throws DAOException {
-        // TODO Auto-generated method stub
         Connection connection = null;
         Statement statement = null;
         try {
@@ -917,8 +939,8 @@ public class DAOEZShop implements IDAOEZshop {
             statement = connection.createStatement();
             String query = "update product_type set location = '" + position + "' where id = '" + productId + "'";
             statement.executeUpdate(query);
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (SQLException ex) {
+        	throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
@@ -929,25 +951,26 @@ public class DAOEZShop implements IDAOEZshop {
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
+        boolean state = false;
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "select * from product_type where location = '" + position + "'";
             resultSet = statement.executeQuery(query);
-            return (resultSet.next() ? true : false);
-        } catch (Exception e) {
-            System.out.println(e);
+            if(resultSet.next())
+            	state = true;
+        } catch (SQLException ex) {
+        	throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-        return false;
+        return state;
     }
 
     @Override
     public boolean updateProduct(ProductType productType) throws DAOException {
         Connection connection = null;
         Statement statement = null;
-        ResultSet resultSet = null;
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
@@ -958,7 +981,7 @@ public class DAOEZShop implements IDAOEZshop {
             query.append("bar_code = '" + productType.getBarCode() + "', ");
             query.append("price_per_unit = '" + productType.getPricePerUnit() + "' ");
             query.append("where id = '").append(productType.getId() + "'");
-            System.out.println(query.toString());
+            
             int i = statement.executeUpdate(query.toString());
             return (i == 0 ? false : true);
         } catch (SQLException ex) {
@@ -972,7 +995,6 @@ public class DAOEZShop implements IDAOEZshop {
     public boolean deleteProductType(Integer id) throws DAOException {
         Connection connection = null;
         Statement statement = null;
-        ResultSet resultSet = null;
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
@@ -980,7 +1002,6 @@ public class DAOEZShop implements IDAOEZshop {
             int i = statement.executeUpdate(query.toString());
             return (i == 0 ? false : true);
         } catch (SQLException e) {
-            System.out.println(e);
             throw new DAOException("Impossibile to execute query: " + e.getMessage());
         } finally {
             dataSource.close(connection);
@@ -1036,12 +1057,17 @@ public class DAOEZShop implements IDAOEZshop {
     }
 
     @Override
-    public boolean insertBalanceOperation(double amount, String type) throws DAOException {
+    public boolean insertBalanceOperation(double amount, String type, LocalDate date) throws DAOException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         Integer id = -1;
-        String now = LocalDate.now().toString();
+        String now;
+        if(date == null) {        	
+        	now = LocalDate.now().toString();
+        } else {
+        	now = date.toString();
+        }
         try {
             connection = dataSource.getConnection();
             String query = "INSERT INTO balance_operation(id,date,money,type) VALUES(null, ?, ?, ?)";
@@ -1054,7 +1080,6 @@ public class DAOEZShop implements IDAOEZshop {
             if (resultSet.next()) {
                 id = resultSet.getInt(1);
             }
-            System.out.println("id: " + id);
         } catch (SQLException ex) {
             throw new DAOException("Impossible to execute query: " + ex.getMessage());
         } finally {
@@ -1093,21 +1118,27 @@ public class DAOEZShop implements IDAOEZshop {
     @Override
     public boolean storeSaleTransaction(SaleTransaction saleTransaction) throws DAOException {
         Connection connection = null;
-
         try {
             connection = dataSource.getConnection();
 
             // Update sale_transaction entry
-            String query = "INSERT INTO sale_transaction(discountRate, price, payed) VALUES(?, ?, 0)";
+            String query = "INSERT INTO sale_transaction(discountRate, price, payed) VALUES(?, ?, ?)";
             PreparedStatement pstm = connection.prepareStatement(query);
             pstm.setDouble(1, saleTransaction.getDiscountRate());
             pstm.setDouble(2, saleTransaction.getPrice());
-            pstm.executeUpdate();
-
+            if(saleTransaction.getPayed()) {            	
+            	pstm.setInt(3, 1);
+            } else {
+            	pstm.setInt(3, 0);
+            }
+            int v = pstm.executeUpdate();
+            if(v == 0) {
+            	return false;
+            }
             // Update ticket_entry entries
             query = "INSERT INTO ticket_entry(transactionId, productId, bar_code, price_per_unit, amount, discount_rate, product_description) VALUES(?, ?, ?, ?, ?, ?, ?)";
             for (TicketEntry te : saleTransaction.getEntries()) {
-                pstm = connection.prepareStatement(query);
+            	pstm = connection.prepareStatement(query);
                 pstm.setInt(1, saleTransaction.getTicketNumber());
                 pstm.setInt(2, getProductTypeByBarCode(te.getBarCode()).getId());
                 pstm.setString(3, te.getBarCode());
@@ -1117,8 +1148,9 @@ public class DAOEZShop implements IDAOEZshop {
                 pstm.setString(7, te.getProductDescription());
                 pstm.executeUpdate();
             }
-
+            
         } catch (SQLException ex) {
+        	System.out.println(ex);
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
@@ -1135,10 +1167,15 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
 
             // Update sale_transaction entry
-            String query = "INSERT INTO return_transaction(amount, payed, discountRate) VALUES(?, 0, ?)";
+            String query = "INSERT INTO return_transaction(amount, payed, discountRate) VALUES(?, ?, ?)";
             PreparedStatement pstm = connection.prepareStatement(query);
             pstm.setDouble(1, returnTransaction.getPrice());
-            pstm.setDouble(2, returnTransaction.getDiscountRate());
+            pstm.setDouble(3, returnTransaction.getDiscountRate());
+            if(returnTransaction.getPayed()){
+            	pstm.setInt(2, 1);
+            } else {
+            	pstm.setInt(2, 0);
+            }
             pstm.executeUpdate();
 
             // Update ticket_entry entries
@@ -1170,10 +1207,10 @@ public class DAOEZShop implements IDAOEZshop {
         Statement statement = null;
         ResultSet resultSet = null;
         List<TicketEntry> entries = new ArrayList<TicketEntry>();
-
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
+            System.out.println(transactionId);
             String query = "SELECT * FROM ticket_entry WHERE transactionId= '" + transactionId + "'";
             resultSet = statement.executeQuery(query);
             while (resultSet.next()) {
@@ -1181,8 +1218,8 @@ public class DAOEZShop implements IDAOEZshop {
                         resultSet.getString("product_description"), resultSet.getInt("amount"),
                         resultSet.getDouble("price_per_unit"), resultSet.getDouble("discount_rate"));
                 entries.add(te);
+                //System.out.println("add");
             }
-
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
@@ -1224,22 +1261,26 @@ public class DAOEZShop implements IDAOEZshop {
         Statement statement = null;
         ResultSet resultSet = null;
         SaleTransaction saleTransaction;
+        
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             String query = "SELECT * FROM sale_transaction WHERE id= '" + transactionId + "'";
             resultSet = statement.executeQuery(query);
-
-            if (!resultSet.next())
+           
+            if (!resultSet.next()) {
+                System.out.print("Sono nella searchSaleTransaction che ritorna null");
                 return null;
-
+            }
             List<TicketEntry> entries = getEntries(transactionId);
-
             saleTransaction = new ConcreteSaleTransaction(transactionId, entries, resultSet.getDouble("discountRate"),
-                    resultSet.getDouble("price"));
-            
-            if(resultSet.getInt("payed")==1)
+            		resultSet.getDouble("price"));
+
+            if(resultSet.getInt("payed") == 1) {
             	saleTransaction.setPayed(true);
+            } else {
+            	saleTransaction.setPayed(false);
+            }
 
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -1268,16 +1309,13 @@ public class DAOEZShop implements IDAOEZshop {
             query = "DELETE FROM ticket_entry WHERE transactionId=?";
             pstm = connection.prepareStatement(query);
             pstm.setInt(1, saleNumber);
-            if(pstm.executeUpdate() <= 0) 
-            	return false;
-
+            
+            return true;
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
             dataSource.close(connection);
         }
-
-        return true;
     }
     
     @Override
@@ -1337,23 +1375,17 @@ public class DAOEZShop implements IDAOEZshop {
         int update;
         double finalPrice;
         
-        System.out.println("prezzo return: " + price);
-        
         SaleTransaction s = this.searchSaleTransaction(transactionId);
-        System.out.println("prezzo iniziale: " + s.getPrice());
         if(committed)
         	finalPrice= s.getPrice()-price;
         else
         	finalPrice = s.getPrice()+price;
-        System.out.println("finale: " + finalPrice);
         try {
             connection = dataSource.getConnection();
             String query = "UPDATE sale_transaction SET price=? WHERE id= '" + transactionId + "';";
             preparedStatement = connection.prepareStatement(query);
             preparedStatement.setDouble(1, finalPrice);
             update = preparedStatement.executeUpdate();
-            System.out.println("Update query executed succesfully?--> update= " + update);
-
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
@@ -1381,14 +1413,14 @@ public class DAOEZShop implements IDAOEZshop {
         
         TicketEntry saleTe;
         for (TicketEntry te : returnEntries) {
-        	System.out.println("quantita' da ritornare:" + te.getAmount());
+
         	saleTe = this.searchTicketEntry(transactionId, this.getProductTypeByBarCode(te.getBarCode()).getId());
-        	System.out.println("quantita' originaria:" + saleTe.getAmount());
+
         	if(committed) //confirm return transaction -> decrease products sold
         		final_qty = saleTe.getAmount() - te.getAmount();
         	else 
         		final_qty = saleTe.getAmount() + te.getAmount();
-        	System.out.println("quantita' finale:" + final_qty);
+        	//System.out.println("quantita' finale:" + final_qty);
 	        try {
 	            connection = dataSource.getConnection();
 	            String query = "UPDATE ticket_entry SET amount=? WHERE transactionId=? AND productId=?";
@@ -1397,7 +1429,7 @@ public class DAOEZShop implements IDAOEZshop {
 	            preparedStatement.setInt(2, transactionId);
 	            preparedStatement.setInt(3, this.getProductTypeByBarCode(te.getBarCode()).getId());
 	            update = preparedStatement.executeUpdate();
-	            System.out.println("Update query executed succesfully?--> update= " + update);
+	            //System.out.println("Update query executed succesfully?--> update= " + update);
 	            
 	            if (update != 1) {
 	                return false;
@@ -1447,9 +1479,9 @@ public class DAOEZShop implements IDAOEZshop {
 		
 		try {
 			String query = "DELETE FROM ";
-			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'"};
+			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'", "user", "customer"};
 			connection = dataSource.getConnection();
-			for(int i = 0; i < 7; i++) {
+			for(int i = 0; i < 9; i++) {
 				pstm = connection.prepareStatement(query + table[i]);
 				pstm.executeUpdate();
 			}
@@ -1461,5 +1493,31 @@ public class DAOEZShop implements IDAOEZshop {
 			dataSource.close(connection);
 		}
 		
+	}
+
+	@Override
+	public boolean searchProductById(Integer productId) throws DAOException {
+		Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        boolean state = false;
+        try {
+        	connection = dataSource.getConnection();
+        	statement = connection.createStatement();
+        	String query = "SELECT * FROM product_type WHERE id = '" + productId + "';";
+			
+        	resultSet = statement.executeQuery(query);
+        	if(resultSet.next())
+        		state = true;
+        	
+			
+		} catch(SQLException ex) {
+			throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+			
+		} finally {
+			dataSource.close(connection);
+		}
+		
+		return state;
 	}
 }

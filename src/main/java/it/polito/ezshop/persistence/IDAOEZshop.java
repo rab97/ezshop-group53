@@ -60,10 +60,11 @@ public interface IDAOEZshop {
     public List<TicketEntry> getReturnEntries(Integer returnId) throws DAOException;
     public boolean storeReturnTransaction(ReturnTransaction returnTransaction) throws DAOException;
     
-    public boolean insertBalanceOperation(double amount, String type) throws DAOException;    
+    public boolean insertBalanceOperation(double amount, String type, LocalDate date) throws DAOException;    
     public List<BalanceOperation> getBalanceOperations(LocalDate from, LocalDate to) throws DAOException;
 
     public Integer insertSaleTransaction() throws DAOException;
+    //public Integer insertSaleTransactionIntoDb() throws DAOException;
     public boolean storeSaleTransaction(SaleTransaction saleTransaction) throws DAOException;
     public SaleTransaction searchSaleTransaction(Integer transactionId) throws DAOException;
     public List<TicketEntry> getEntries(Integer transactionId) throws DAOException;
@@ -74,5 +75,7 @@ public interface IDAOEZshop {
     public TicketEntry searchTicketEntry (Integer transactionId, Integer productId) throws DAOException;
 
 	public void resetApplication() throws DAOException;
+
+	public boolean searchProductById(Integer productId) throws DAOException;
 
 }

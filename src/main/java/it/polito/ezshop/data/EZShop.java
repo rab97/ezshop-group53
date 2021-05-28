@@ -27,7 +27,8 @@ public class EZShop implements EZShopInterface {
     boolean saleTransaction_state;
     boolean returnTransaction_state;
     private Operator o = new Operator();
-
+    
+    
     @Override
     public void reset() {
     	try {
@@ -42,14 +43,14 @@ public class EZShop implements EZShopInterface {
             throws InvalidUsernameException, InvalidPasswordException, InvalidRoleException {
         Integer user_id = -1;
         if (username == null || username.isEmpty()) {
-            throw new InvalidUsernameException();
+            throw new InvalidUsernameException("Invalid Username");
         }
         if (password == null || password.isEmpty()) {
-            throw new InvalidPasswordException();
+            throw new InvalidPasswordException("Invalid Password");
         }
         if (role == null || role.isEmpty() || (!role.equals(Constants.ADMINISTRATOR) && !role.equals(Constants.CASHIER)
                 && !role.equals(Constants.SHOP_MANAGER))) {
-            throw new InvalidRoleException();
+            throw new InvalidRoleException("Invalid Role");
         }
         try {
             user_id = dao.insertUser(username, password, role);
@@ -100,7 +101,7 @@ public class EZShop implements EZShopInterface {
         if (runningUser == null || !runningUser.getRole().equals(Constants.ADMINISTRATOR)) {
             throw new UnauthorizedException();
         }
-        if (id <= 0 || id == null) {
+        if (id == null||(id <= 0)) {
             throw new InvalidUserIdException();
         }
         try {
@@ -119,8 +120,8 @@ public class EZShop implements EZShopInterface {
         if (runningUser == null || !runningUser.getRole().equals(Constants.ADMINISTRATOR)) {
             throw new UnauthorizedException();
         }
-        if (id <= 0 || id == null) {
-            throw new InvalidUserIdException();
+        if (id == null||id <= 0) {
+            throw new InvalidUserIdException("Invalid User Id");
         }
         if (role == null || role.isEmpty() || (!role.equals(Constants.ADMINISTRATOR) && !role.equals(Constants.CASHIER)
                 && !role.equals(Constants.SHOP_MANAGER))) {
@@ -179,15 +180,14 @@ public class EZShop implements EZShopInterface {
             Long.parseLong(productCode);
 
         } catch (Exception e) {
-            System.out.println("throw");
-            System.out.println(productCode);
+            
             throw new InvalidProductCodeException();
         }
         if (pricePerUnit <= 0) {
         	System.out.println("throw invalid price");
-            throw new InvalidPricePerUnitException();
+            throw new InvalidPricePerUnitException("Invalid PricePerUnit");
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
 
@@ -207,8 +207,13 @@ public class EZShop implements EZShopInterface {
     public boolean updateProduct(Integer id, String newDescription, String newCode, double newPrice, String newNote)
             throws InvalidProductIdException, InvalidProductDescriptionException, InvalidProductCodeException,
             InvalidPricePerUnitException, UnauthorizedException {
+    	
+    	if(id == null || id <= 0) {
+    		throw new InvalidProductIdException();
+    	}
+    	
         if (newDescription == null || newDescription.isEmpty()) {
-            throw new InvalidProductDescriptionException();
+            throw new InvalidProductDescriptionException("Invalid Product Description");
         }
         try {
             Long.parseLong(newCode);
@@ -223,7 +228,7 @@ public class EZShop implements EZShopInterface {
         if (newPrice <= 0) {
             throw new InvalidPricePerUnitException();
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         try {
@@ -238,15 +243,14 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean deleteProductType(Integer id) throws InvalidProductIdException, UnauthorizedException {
         if (id == null || id <= 0) {
-            throw new InvalidProductIdException();
+            throw new InvalidProductIdException("Invalid Product Id");
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         boolean delete = false;
         try {
             delete = dao.deleteProductType(id);
-            delete = true;
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -255,15 +259,17 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<ProductType> getAllProductTypes() throws UnauthorizedException {
+    	 if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)) && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+             throw new UnauthorizedException();
+         }
+    	
         List<ProductType> productTypeList = new ArrayList<>();
         try {
             productTypeList = dao.getAllProducTypet();
         } catch (DAOException e) {
             System.out.println("getAllProductType exception");
         }
-        if (runningUser == null) {
-            throw new UnauthorizedException();
-        }
+       
         return productTypeList;
     }
 
@@ -274,28 +280,30 @@ public class EZShop implements EZShopInterface {
         	System.out.println("invalid barcode");
             throw new InvalidProductCodeException();
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         ProductType productType = null;
         try {
             productType = dao.getProductTypeByBarCode(barCode);
-            return productType;
         } catch (Exception e) {
-            // TODO: handle exception
             System.out.println("errror");
         }
-        return null;
+        return productType;
     }
 
     @Override
     public List<ProductType> getProductTypesByDescription(String description) throws UnauthorizedException {
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         List<ProductType> productTypeList = new ArrayList<>();
+        
+        if(description == null)
+        	description = "";
+        
         try {
             productTypeList = dao.getProductTypeByDescription(description);
         } catch (Exception e) {
@@ -311,7 +319,7 @@ public class EZShop implements EZShopInterface {
             throw new InvalidProductIdException();
         }
         if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.equals(Constants.SHOP_MANAGER))) {
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         boolean result = false;
@@ -339,7 +347,9 @@ public class EZShop implements EZShopInterface {
         }
         
         String position[] = newPos.split("-");
-        System.out.println("posizione: " + position[0] + " - " + position[1] + " - " + position[2]);
+        if(position == null || position.length == 0)
+        	throw new InvalidLocationException();
+        
         if (position.length != 3 || position[0].isEmpty() || position[1].isEmpty() || position[2].isEmpty()) {
             throw new InvalidLocationException(
                     "location wrong: assure that you use this pattern: number-string-number");
@@ -358,11 +368,11 @@ public class EZShop implements EZShopInterface {
         if (productId == null || productId <= 0) {
             throw new InvalidProductIdException();
         }
-        if (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.equals(Constants.SHOP_MANAGER)) {
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
             throw new UnauthorizedException();
         }
         try {
-            if (!dao.searchPosition(newPos)) {
+            if (!dao.searchPosition(newPos)  && dao.searchProductById(productId)) {
                 dao.updatePosition(productId, newPos);
                 return true;
             }
@@ -386,7 +396,7 @@ public class EZShop implements EZShopInterface {
             throw new InvalidProductCodeException();
         }
         if (quantity <= 0) {
-            throw new InvalidQuantityException();
+            throw new InvalidQuantityException("Invalid Quantity");
         }
         if (pricePerUnit <= 0) {
             throw new InvalidPricePerUnitException();
@@ -442,10 +452,10 @@ public class EZShop implements EZShopInterface {
 
         if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException("Invalid User Role");
         }
         if (orderId == null | orderId <= 0) {
-            throw new InvalidOrderIdException();
+            throw new InvalidOrderIdException("Invalid Order Id");
         }
 
         boolean payment = false;
@@ -461,7 +471,6 @@ public class EZShop implements EZShopInterface {
         System.out.println("payment ultimo= " + payment);
         return payment;
     }
-
 
     @Override
     public boolean recordOrderArrival(Integer orderId) throws InvalidOrderIdException, UnauthorizedException, InvalidLocationException {
@@ -513,7 +522,6 @@ public class EZShop implements EZShopInterface {
         return recordArrival;
     }
 
-
     @Override
     public List<Order> getAllOrders() throws UnauthorizedException {
 
@@ -542,7 +550,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
         if (customerName == null | customerName.isEmpty()) {
-            throw new InvalidCustomerNameException();
+            throw new InvalidCustomerNameException("Invalid Customer Name");
         }
 
         Integer newCustomerId = -1;
@@ -573,6 +581,12 @@ public class EZShop implements EZShopInterface {
         }
         if (newCustomerName == null | newCustomerName.isEmpty()) {
             throw new InvalidCustomerNameException();
+        }
+        if (newCustomerCard != null && !newCustomerCard.isEmpty() && newCustomerCard.length() != 10) {
+            throw new InvalidCustomerCardException("Invalid Customer Card");
+        }
+        if (id == null | id <= 0) {
+            throw new InvalidCustomerIdException("Invalid Customer Id");
         }
 
         boolean modification = false;
@@ -680,7 +694,6 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean attachCardToCustomer(String customerCard, Integer customerId)
             throws InvalidCustomerIdException, InvalidCustomerCardException, UnauthorizedException {
-
         if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
                 && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
@@ -692,13 +705,12 @@ public class EZShop implements EZShopInterface {
         if (customerCard == null | customerCard.isEmpty() | customerCard.length() != 10) {
             throw new InvalidCustomerCardException();
         }
-
+  
         boolean result = false;
         try {
             result = dao.bindCardToCustomer(customerCard, customerId);
-
         } catch (DAOException e) {
-            System.out.println("db excepiton");
+            System.out.println("db excepiton" + e);
         }
 
         return result;
@@ -766,7 +778,7 @@ public class EZShop implements EZShopInterface {
         if (amount < 0) {
             throw new InvalidQuantityException();
         }
-        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (saleTransaction.getTicketNumber() != transactionId)
@@ -839,7 +851,7 @@ public class EZShop implements EZShopInterface {
         if (amount < 0) {
             throw new InvalidQuantityException();
         }
-        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) { // manca invalid
             throw new InvalidProductCodeException();
         }
         if (saleTransaction.getTicketNumber() != transactionId)
@@ -882,14 +894,7 @@ public class EZShop implements EZShopInterface {
             System.out.println(e);
             return false;
         }
-
-        // print log
-        System.out.println("Removed product from sale:");
-        for (TicketEntry td : saleTransaction.getEntries()) {
-            System.out.println(td.getProductDescription() + td.getAmount());
-        }
-
-        return false;
+        return true;
     }
 
     @Override
@@ -904,11 +909,11 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-        if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid
-            throw new InvalidProductCodeException();
+        if (productCode == null || productCode.isEmpty() || !o.isValidCode(productCode)) { // manca invalid
+            throw new InvalidProductCodeException("Invalid Product Code");
         }
         if (discountRate < 0 || discountRate >= 1.00) {
-            throw new InvalidDiscountRateException();
+            throw new InvalidDiscountRateException("Invalid Discount Rate");
         }
         if (saleTransaction.getTicketNumber() != transactionId)
             return false;
@@ -945,7 +950,7 @@ public class EZShop implements EZShopInterface {
             return false;
 
         saleTransaction.setDiscountRate(discountRate);
-
+        
         return true;
     }
 
@@ -961,6 +966,16 @@ public class EZShop implements EZShopInterface {
         }
         if (saleTransaction.getTicketNumber() != transactionId)
             return -1;
+
+        try{
+            SaleTransaction checkTransaction= dao.searchSaleTransaction(transactionId);
+    
+            if(checkTransaction==null){
+                return -1;
+            }
+        }catch(DAOException e){
+            System.out.println(e);
+        }
 
         return (int) saleTransaction.getPrice() / 10;
     }
@@ -980,9 +995,7 @@ public class EZShop implements EZShopInterface {
             return false;
         if (saleTransaction_state == Constants.CLOSED)
             return false;
-        // if(saleTransaction.getEntries().isEmpty())
-        //	return false;
-        // calculate price for sale transaction
+
         double price = 0;
         for (TicketEntry te : saleTransaction.getEntries())
             price += ((1 - te.getDiscountRate()) * te.getPricePerUnit()) * te.getAmount();
@@ -1016,6 +1029,7 @@ public class EZShop implements EZShopInterface {
         SaleTransaction st = null;
         try {
             st = dao.searchSaleTransaction(saleNumber);
+            System.out.println("dopo ricerca " + st == null);
         } catch (DAOException e) {
             System.out.println(e);
         }
@@ -1076,50 +1090,57 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-    	if(transactionId<=0 || transactionId==null) {
+    	if(transactionId == null || transactionId <= 0) {
     		throw new InvalidTransactionIdException();
     	}
     	
-    	System.out.println("checks transaction id ok");
+    	//System.out.println("checks transaction id ok");
     	
         Integer return_transaction_id = -1;
         
         SaleTransaction s = this.getSaleTransaction(transactionId);
-        if(s!=null) {
+        
+        if(s != null) {
+        	if(!s.getPayed()) {
+        		return -1;
+        	}
 	        try {
 	            return_transaction_id = dao.insertReturnTransaction();
+	            
 	        } catch (DAOException e) {
 	            System.out.println(e);
 	        }
+	        
 	        returnTransaction = new ConcreteReturnTransaction(return_transaction_id+1, transactionId, new ArrayList<TicketEntry>(), 0.0, s.getDiscountRate());
-	        System.out.println("returnTransaction created, number: " + return_transaction_id);
+	        //System.out.println("returnTransaction created, number: " + return_transaction_id + " " + returnTransaction.getReturnId());
+	        return returnTransaction.getReturnId();
         }
-        return returnTransaction.getReturnId();
-
+        return -1;
+       
     }
 
     @Override
     public boolean returnProduct(Integer returnId, String productCode, int amount) throws InvalidTransactionIdException,
             InvalidProductCodeException, InvalidQuantityException, UnauthorizedException {
     	
-    	if (runningUser==null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+    	if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR) && 
+    			!runningUser.getRole().equals(Constants.SHOP_MANAGER)
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-    	if(returnId<=0 || returnId==null) {
+    	if(returnId==null || returnId<=0) {
     		throw new InvalidTransactionIdException();
     	}
     	if(amount<=0) {
     		throw new InvalidQuantityException();
     	}
-    	if (productCode.isEmpty() || productCode == null || !o.isValidCode(productCode)) { // manca invalid 
+    	if (productCode == null || productCode.isEmpty()  || !o.isValidCode(productCode)) { // manca invalid 
     		throw new InvalidProductCodeException();
         }
     	
-    	if (returnTransaction==null || returnTransaction.getReturnId()!=returnId) 
+    	if (returnTransaction == null || !returnTransaction.getReturnId().equals(returnId)) {
     		return false;
-    	
+    	}
     	List<TicketEntry> soldProducts = new ArrayList<TicketEntry>();
         try {
         	soldProducts = dao.getEntries(returnTransaction.getTransactionId());
@@ -1129,32 +1150,30 @@ public class EZShop implements EZShopInterface {
     	
     	TicketEntry prodToReturn=null;
     	for (TicketEntry prod : soldProducts) {
-    		if(prod.getBarCode().equals(productCode))
+    		if(prod.getBarCode().equals(productCode)) {
     			prodToReturn=prod;
+    		}
     	}
-    	if(prodToReturn==null || prodToReturn.getAmount()<amount)
+    	if(prodToReturn == null || prodToReturn.getAmount()<amount) {
     		return false;
+    	}
     	
     	// add to list
         boolean toAdd = true;
         for (TicketEntry t : returnTransaction.getEntries()) {
-        	System.out.println("barcode prod da aggiungere: " + productCode);
-        	System.out.println("t attuale: " + t.getBarCode());
+        	//System.out.println("barcode prod da aggiungere: " + productCode);
+        	//System.out.println("t attuale: " + t.getBarCode());
             if (t.getBarCode().equals(productCode)) {
                 t.setAmount(t.getAmount() + amount);
                 toAdd = false;
                 break;
             }
         }
-        System.out.println("toAdd: " + toAdd);
+        //System.out.println("toAdd: " + toAdd);
         if (toAdd) {
         	prodToReturn.setAmount(amount);
             returnTransaction.getEntries().add(prodToReturn);
         }
-        
-        for (TicketEntry t : returnTransaction.getEntries())
-        	System.out.println("t finale: " + t.getBarCode());
-        	
     	return true;
     }
 
@@ -1167,7 +1186,7 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-    	if(returnId<=0 || returnId==null) {
+    	if(returnId==null || returnId <= 0) {
     		throw new InvalidTransactionIdException();
     	}
     	
@@ -1234,7 +1253,7 @@ public class EZShop implements EZShopInterface {
                 && !runningUser.getRole().equals(Constants.CASHIER))) {
             throw new UnauthorizedException();
         }
-    	if(returnId<=0 || returnId==null) {
+    	if(returnId==null || returnId<=0 ) {
     		throw new InvalidTransactionIdException();
     	}
     	
@@ -1248,32 +1267,45 @@ public class EZShop implements EZShopInterface {
     		return false;
     	
     	boolean state = false;
-        try {
+        System.out.println("entro qui");
+        System.out.println(returnId);
+    	try {
             state = dao.deleteReturnTransaction(returnId);						//deletes entry in return_transaction + all related entries in return_ticket_entry
+    		
         } catch (DAOException e) {
             System.out.println(e);
         }
         
         //update sale transaction (product sold + final price)
         // 1. update final price
+
+    	System.out.println("value: " + rt.getReturnId());
+        System.out.println("state returned: " + state);
+        System.out.println("pric: " + rt.getPrice());
+        System.out.println("id: " + returnTransaction.getTransactionId());
+        System.out.println("done");
         try {
             dao.updateSaleTransactionPrice(returnTransaction.getTransactionId(), rt.getPrice(), Constants.NOT_COMMITTED);		
         } catch (DAOException e) {
-            System.out.println(e);
+            System.out.println(e);   
         }
+        
         // 2. update ticket entries
+        //System.out.println(returnTransaction.getTransactionId());
         try {
-            dao.updateSaleTransactionEntries(rt.getTransactionId(), rt.getEntries(), Constants.NOT_COMMITTED);		
+            dao.updateSaleTransactionEntries(returnTransaction.getTransactionId(), rt.getEntries(), Constants.NOT_COMMITTED);		
         } catch (DAOException e) {
-            System.out.println(e);
+        	System.out.println(e);
         }
         
         //decrease product availability
+        System.out.println("updating");
 		for (TicketEntry te : returnTransaction.getEntries()) {
 			try {
 				ProductType pt = dao.getProductTypeByBarCode(te.getBarCode());
                 dao.updateQuantity(pt.getId(), -te.getAmount());
-            } catch (DAOException e) {
+                System.out.println("updated");
+			} catch (DAOException e) {
                 System.out.println(e);
                 return false;
             }
@@ -1292,11 +1324,11 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
     	
-    	if(transactionId<=0 || transactionId==null) {
-    		throw new InvalidTransactionIdException();
+    	if(transactionId==null || transactionId<=0) {
+    		throw new InvalidTransactionIdException("Invalid TransactionId");
     	}
     	if(cash<=0) {
-    		throw new InvalidPaymentException();
+    		throw new InvalidPaymentException("Invalid Payment");
     	}
     	
     	SaleTransaction s=null;
@@ -1308,7 +1340,9 @@ public class EZShop implements EZShopInterface {
     	
     	if(s==null || s.getPrice()>cash)
     		return -1;
-    	
+    	if(s.getPayed()) {
+    		return -1;
+    	}
     	//update the db: the sale transaction is payed
     	try {
     		dao.setSaleTransactionPaid(transactionId);
@@ -1318,7 +1352,7 @@ public class EZShop implements EZShopInterface {
     	
     	//add balanceOperation
     	try {
-    		dao.insertBalanceOperation(s.getPrice(), Constants.SALE);
+    		dao.insertBalanceOperation(s.getPrice(), Constants.SALE, null);
     	} catch (DAOException e) {
             System.out.println(e);
         }
@@ -1340,8 +1374,8 @@ public class EZShop implements EZShopInterface {
     		throw new InvalidTransactionIdException();
     	}
     	
-    	if(creditCard.isEmpty() || creditCard==null || !o.luhnCheck(creditCard)) {			
-    		throw new InvalidCreditCardException();
+    	if(creditCard==null || creditCard.isEmpty() || !o.luhnCheck(creditCard)) {			
+    		throw new InvalidCreditCardException("");
     	}
     	
     	SaleTransaction s=null;
@@ -1353,7 +1387,9 @@ public class EZShop implements EZShopInterface {
     	
     	if(s==null)
     		return false;
-    	
+    	if(s.getPayed()) {
+    		return false;
+    	}
     	//check existence of credit card and if it has enough money and update amount of money on credit card 
     	if(o.checkCreditCardAmount(creditCard, s.getPrice(), true)) {
     		if(!o.updateCreditCardAmount(creditCard, s.getPrice(), true))
@@ -1372,7 +1408,7 @@ public class EZShop implements EZShopInterface {
     	
     	//add balanceOperation
     	try {
-    		dao.insertBalanceOperation(s.getPrice(), Constants.SALE);
+    		dao.insertBalanceOperation(s.getPrice(), Constants.SALE, null);
     	} catch (DAOException e) {
             System.out.println(e);
         }
@@ -1388,7 +1424,7 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
     	
-    	if(returnId<=0 || returnId==null) {
+    	if(returnId==null || returnId<=0) {
     		throw new InvalidTransactionIdException();
     	}
     	
@@ -1398,10 +1434,15 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println(e);
         }
-    	
-    	if(r==null)
+
+    	if(r==null) {
     		return -1;
+    	}
     	
+    	if(r.getPayed()) {
+
+        	return -1;
+        }
     	//update the db: the return transaction is payed
     	try {
     		dao.setReturnTransactionPaid(returnId);
@@ -1411,7 +1452,7 @@ public class EZShop implements EZShopInterface {
     	
     	//add balanceOperation
     	try {
-    		dao.insertBalanceOperation(r.getPrice(), Constants.RETURN);
+    		dao.insertBalanceOperation(r.getPrice(), Constants.RETURN, null);
     	} catch (DAOException e) {
             System.out.println(e);
         }
@@ -1428,12 +1469,12 @@ public class EZShop implements EZShopInterface {
             throw new UnauthorizedException();
         }
     	
-    	if(returnId<=0 || returnId==null) {
-    		throw new InvalidTransactionIdException();
+    	if(returnId==null || returnId<=0 ) {
+    		throw new InvalidTransactionIdException("Invalid Transaction Id");
     	}
     	
-    	if(creditCard.isEmpty() || creditCard==null || !o.luhnCheck(creditCard)) {			
-    		throw new InvalidCreditCardException();
+    	if(creditCard==null || creditCard.isEmpty() || !o.luhnCheck(creditCard)) {			
+    		throw new InvalidCreditCardException("Invalid Credit Card");
     	}
     	
     	ReturnTransaction r=null;
@@ -1446,6 +1487,9 @@ public class EZShop implements EZShopInterface {
     	if(r==null)
     		return -1;
     	
+    	if(r.getPayed()) {
+        	return -1;
+        }
     	//check existence of credit card and update balance of credit card
     	if(o.checkCreditCardAmount(creditCard, r.getPrice(), false)) {
     		if(!o.updateCreditCardAmount(creditCard, r.getPrice(), false))
@@ -1463,7 +1507,7 @@ public class EZShop implements EZShopInterface {
     	
     	//add balanceOperation
     	try {
-    		dao.insertBalanceOperation(r.getPrice(), Constants.RETURN);
+    		dao.insertBalanceOperation(r.getPrice(), Constants.RETURN, null);
     	} catch (DAOException e) {
             System.out.println(e);
         }
@@ -1489,7 +1533,7 @@ public class EZShop implements EZShopInterface {
             type = "DEBIT";
         boolean state = false;
         try {
-            state = dao.insertBalanceOperation(Math.abs(toBeAdded), type);
+            state = dao.insertBalanceOperation(Math.abs(toBeAdded), type, null);
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -1498,6 +1542,11 @@ public class EZShop implements EZShopInterface {
 
     @Override
     public List<BalanceOperation> getCreditsAndDebits(LocalDate from, LocalDate to) throws UnauthorizedException {
+    	if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER) && !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
     	if(from == null)
     		from = LocalDate.of(1900, 1, 1);
     	if(to == null)
@@ -1514,10 +1563,7 @@ public class EZShop implements EZShopInterface {
         } catch (DAOException e) {
             System.out.println("getBalanceOperations exception");
         }
-        if ((runningUser == null) || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-                && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
-            throw new UnauthorizedException();
-        }
+        
         return balanceOperationList;
     }
 
@@ -1538,4 +1584,46 @@ public class EZShop implements EZShopInterface {
     	}
     	return balance;
     }   
+    
+    public User getRunningUser() {
+    	return this.runningUser;
+    }
+    
+    public void setRunningUser(User user) {
+    	this.runningUser = user;
+    }
+
+    public SaleTransaction getSaleTransaction(){
+        return this.saleTransaction;
+    }
+
+    public void setSaleTransaction(SaleTransaction st){
+        this.saleTransaction= st;
+    }
+    
+    public boolean getSaleTransactionState(){
+        return this.saleTransaction_state;
+    }
+
+    public void setSaleTransactionState(boolean state){
+        this.saleTransaction_state= state;
+    }
+
+    public ReturnTransaction getReturnTransaction() {
+    	return this.returnTransaction;
+    }
+    
+    public void setReturnTransaction(ReturnTransaction r) {
+    	this.returnTransaction = r;
+    }
+
+    public IDAOEZshop getDAO(){
+        return this.dao;
+    }
+
+    public void setDAO(IDAOEZshop dao){
+        this.dao= dao;
+    }
+
+    
 }
