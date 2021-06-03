@@ -2771,7 +2771,7 @@ public class EZShopTest {
 	
 	@Test
 	public void testGetCreditsAndDebitNullList() {
-		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(user);
 		try {
 			assertTrue(ezShop.getCreditsAndDebits(LocalDate.of(2021, 10, 1), LocalDate.of(2021, 10, 29)).isEmpty());
@@ -2783,7 +2783,7 @@ public class EZShopTest {
 	
 	@Test
 	public void testzGetCreditsAndDebitCorrectValue() {
-		User user = new ConcreteUser("name", 1, "123", Constants.CASHIER);
+		User user = new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
 		ezShop.setRunningUser(user);
 		ezShop.reset();
 		try {

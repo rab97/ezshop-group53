@@ -372,7 +372,7 @@ public class DAOEZShop implements IDAOEZshop {
     }
 
     @Override
-    public boolean payOrder(Integer orderId) throws DAOException {
+    public boolean payOrder(Integer orderId, double money) throws DAOException {
 
         Connection connection = null;
         Statement statement = null;
@@ -401,6 +401,8 @@ public class DAOEZShop implements IDAOEZshop {
 
             ConcreteOrder order = new ConcreteOrder(rs.getInt("balance_id"), rs.getString("product_code"),
                     rs.getDouble("price_per_unit"), rs.getInt("quantity"), orderStatus, rs.getInt("id"));
+            if(money <= order.getPricePerUnit() * order.getQuantity())
+            	return false;
 
             // Insert BalanceOperation
             PreparedStatement prstm = connection.prepareStatement("INSERT INTO balance_operation (date, money, type) VALUES (?,?,?);");
