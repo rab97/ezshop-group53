@@ -64,10 +64,6 @@ with all elements explosed, all dependencies, NO tangles; and report it here as 
 (double click on the tangle from the Views->Complexity page)>
 ```
 ![](structure161Images/tangles.png)
-![](structure161Images/data_tangles.png)
-![](structure161Images/exceptions_tangles.png)
-![](structure161Images/model_tangles.png)
-![](structure161Images/persistence_tangles.png)
 
 
 # Summary analysis
