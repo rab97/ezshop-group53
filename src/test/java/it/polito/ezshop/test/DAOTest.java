@@ -480,7 +480,7 @@ public class DAOTest {
     
     @Test 
     public void testPayOrderOrderNotExists() throws DAOException {
-    	assertFalse(dao.payOrder(5));
+    	assertFalse(dao.payOrder(5, 10.0));
     	dao.resetApplication();
     }
     
@@ -488,7 +488,7 @@ public class DAOTest {
     public void testPayOrderIssued() throws DAOException {
     	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
     	dao.insertNewOrder("1234567891231", 1, 1.0);
-    	assertTrue(dao.payOrder(1));
+    	assertTrue(dao.payOrder(1, 5.0));
     	dao.resetApplication();
     }
     
@@ -496,7 +496,7 @@ public class DAOTest {
     public void testPayOrderPayed() throws DAOException {
     	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
     	dao.payOrderDirectly("1234567891231", 1, 1.0);
-    	assertTrue(dao.payOrder(1));
+    	assertTrue(dao.payOrder(1, 5.0));
     	dao.resetApplication();
     }
     
@@ -505,7 +505,7 @@ public class DAOTest {
     	dao.createProductType(new ConcreteProductType(1, "description", "1234567891231", "note", 5, 5.0, "1-A-23"));
     	dao.payOrderDirectly("1234567891231", 1, 1.0);
     	dao.recordArrival(1);
-    	assertFalse(dao.payOrder(1));
+    	assertFalse(dao.payOrder(1, 5.0));
     	dao.resetApplication();
     }
     
