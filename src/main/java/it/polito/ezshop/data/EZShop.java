@@ -524,11 +524,6 @@ public class EZShop implements EZShopInterface {
         return recordArrival;
     }
 
-
-    /**
-     * @throws InvalidRFIDException if the RFID has invalid format or is not unique 
-     */
-
     @Override
     public boolean recordOrderArrivalRFID(Integer orderId, String RFIDfrom) throws InvalidOrderIdException, UnauthorizedException, 
 InvalidLocationException, InvalidRFIDException {
@@ -551,8 +546,10 @@ InvalidLocationException, InvalidRFIDException {
 
         Order myOrder;
         boolean recordArrival= false;
+        boolean rfidAlreadyExist= true;
 
         try {
+
             myOrder= dao.getOrder(orderId);
 
             if(myOrder==null){ //the order doesn't exist
@@ -571,6 +568,14 @@ InvalidLocationException, InvalidRFIDException {
             if(orderProduct.getLocation()==null){
                 throw new InvalidLocationException();
             }
+
+            
+            rfidAlreadyExist= dao.check_RFID_existance(RFIDfrom, myOrder.getQuantity());
+            if(rfidAlreadyExist){ //If true, throw exception
+                throw new InvalidRFIDException();
+            }
+
+            //Record Arrival
 
             recordArrival= dao.recordArrival(orderId);
 
