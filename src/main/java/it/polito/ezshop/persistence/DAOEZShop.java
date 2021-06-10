@@ -1559,6 +1559,41 @@ public class DAOEZShop implements IDAOEZshop {
 		return state;
 	}
 
+    @Override
+    public boolean check_RFID_existance(String RFIDFrom, Integer interval) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        try{
+            connection = dataSource.getConnection();
+        	statement = connection.createStatement();
+
+            Integer parsedRFID= Integer.parseInt(RFIDFrom);
+            for(Integer i=parsedRFID; i<(parsedRFID+interval); i++){
+
+                String actualRFID= ""+i;
+        	    String query = "SELECT * FROM product WHERE rfid ='" + actualRFID + "';";
+			
+        	    resultSet = statement.executeQuery(query);
+                if(resultSet.next()){
+                    return true;
+                }
+                           
+            }
+			
+		} catch(SQLException ex) {
+			throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+			
+		} finally {
+			dataSource.close(connection);
+		}
+
+        return false;
+
+    }
+
 	@Override
 	public Product getProductByRFID(String RFID) throws DAOException {
 		 Connection connection = null;
