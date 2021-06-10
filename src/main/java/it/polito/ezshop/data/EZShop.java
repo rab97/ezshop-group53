@@ -935,7 +935,71 @@ InvalidLocationException, InvalidRFIDException {
 
     @Override
     public boolean addProductToSaleRFID(Integer transactionId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, InvalidQuantityException, UnauthorizedException{
-        return false;
+    	if (transactionId == null || transactionId <= 0) {
+            throw new InvalidTransactionIdException();
+        }
+    	
+    	if(RFID == null || RFID.isEmpty() || RFID.length() != 10) {
+    		throw new InvalidRFIDException();
+    	}
+    	
+    	if(RFID != null && !RFID.isEmpty()) {
+    		try {
+    			Integer.parseInt(RFID);
+    		} catch(Exception e) {
+    			throw new InvalidRFIDException();
+    		}
+    	}
+    	
+    	if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if (saleTransaction.getTicketNumber() != transactionId)
+            return false;
+    	
+    	// check on product
+        ProductType pt = null;
+        try {
+        	pt = dao.getProductTypeByBarRFID(RFID);
+        } catch (DAOException e) {
+			System.out.println(e);
+		} 
+        if (pt == null)
+            return false;
+        
+     // check sale transaction state
+        if (saleTransaction_state != Constants.OPENED)
+            return false;
+        
+        TicketEntry te = new ConcreteTicketEntry(pt.getBarCode(), pt.getProductDescription(), 1, pt.getPricePerUnit(),
+                0);
+        
+     // decrement product availability
+        try {
+            dao.updateQuantity(pt.getId(), -1);
+        } catch (DAOException e) {
+            System.out.println(e);
+            return false;
+        }
+        
+     // add to list
+        boolean toAdd = true;
+        for (TicketEntry t : saleTransaction.getEntries()) {
+            if (t.getBarCode().equals(pt.getBarCode())) {
+                t.setAmount(t.getAmount() + 1);
+                toAdd = false;
+                break;
+            }
+        }
+        
+        if (toAdd)
+            saleTransaction.getEntries().add(te);
+        
+    
+    	return true;
     }
     
 

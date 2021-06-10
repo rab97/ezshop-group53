@@ -1561,6 +1561,7 @@ public class DAOEZShop implements IDAOEZshop {
     @Override
     public boolean check_RFID_existance(String RFIDFrom, Integer interval) throws DAOException{
 
+<<<<<<< HEAD
         Connection connection = null;
         Statement statement = null;
         ResultSet resultSet = null;
@@ -1592,5 +1593,34 @@ public class DAOEZShop implements IDAOEZshop {
         return false;
 
     }
+=======
+	@Override
+	public ProductType getProductTypeByBarRFID(String RFID) throws DAOException {
+		 Connection connection = null;
+	        Statement statment = null;
+	        ResultSet resultSet = null;
+	        ConcreteProductType pt = null;
+	        try {
+	            connection = dataSource.getConnection();
+	            statment = connection.createStatement();
+	            String query = "select * from product where rfid = '" + RFID + "';";
+	            resultSet = statment.executeQuery(query);
+	            if(!resultSet.next())
+	            	return null;
+	           	query = "select * from product_type where id = '" + resultSet.getInt("product_type_id") +"';"; 
+	           	
+	           	resultSet = statment.executeQuery(query);
+	           	while(resultSet.next())
+	           		pt = new ConcreteProductType(resultSet.getInt("id"), resultSet.getString("description"), resultSet.getString("bar_code"), resultSet.getString("note"), resultSet.getInt("quantity"), resultSet.getDouble("price_per_unit"), resultSet.getString("location"));
+	           	
+	        } catch (SQLException ex) {
+	        	throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+	        } finally {
+	            dataSource.close(connection);
+	        }
+		
+		return pt;
+	}
+>>>>>>> e102d70b4819ff06489e3e9ffcd9c6e34e6791ab
 
 }

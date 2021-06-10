@@ -79,5 +79,10 @@ public interface IDAOEZshop {
 
 	public boolean searchProductById(Integer productId) throws DAOException;
 
+<<<<<<< HEAD
     public boolean check_RFID_existance(String rfidRFIDFrom, Integer interval) throws DAOException;
+=======
+	public ProductType getProductTypeByBarRFID(String RFID) throws DAOException;
+
+>>>>>>> e102d70b4819ff06489e3e9ffcd9c6e34e6791ab
 }
