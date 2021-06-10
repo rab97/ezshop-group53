@@ -24,4 +24,8 @@ public interface SaleTransaction {
     
     public void setPayed(boolean payed);
 
+	List<Product> getSaleProducts();
+
+	void setSaleProducts(List<Product> saleProducts);
+
 }

@@ -28,6 +28,7 @@ import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.model.Operator;
 import it.polito.ezshop.model.ConcreteCustomer;
+import it.polito.ezshop.model.ConcreteProduct;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
@@ -4070,7 +4071,165 @@ public class EZShopTest {
 		
 		ezShop.getDAO().resetApplication();
 	}
-
+	
+	@Test
+	public void testAddProudctToSaleRFIDInvalidTransactionID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.addProductToSaleRFID(0,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.addProductToSaleRFID(-1,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.addProductToSaleRFID(null,"000000000001");});
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDInvalidRFID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.addProductToSaleRFID(1,"");});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.addProductToSaleRFID(1, null);});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.addProductToSaleRFID(1,"00000000001");});
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDInvalidUser() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		User user = new ConcreteUser("nome",1, "123", "ciao");
+		ezShop.setRunningUser(user);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.addProductToSaleRFID(1,"000000000001");});
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.addProductToSaleRFID(1, "000000000001");});
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDNotExists() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		ezShop.setSaleTransaction(saleTransaction);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.addProductToSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDNotOpenSale() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.setSaleTransaction(new ConcreteSaleTransaction());
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.addProductToSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDValid() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(1, new ArrayList<TicketEntry>(), 0, 21);
+		Product p = new ConcreteProduct();
+		p.setBarCode("1234567891231");
+		p.setRFID("000000000001");
+		p.setTransactionId(1);
+		saleTransaction.setTicketNumber(1);
+		dao.createProductType(new ConcreteProductType(null, "description", "1234567891231", "note", null, 5.0, null));
+		dao.updatePosition(1, "1-A-1");
+		dao.updateQuantity(1, 12);
+		ezShop.setSaleTransaction(saleTransaction);
+		dao.storeProduct(p);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertTrue(ezShop.addProductToSaleRFID(1, "000000000001"));
+			dao.resetApplication();
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	//
+	@Test
+	public void testdeleteProudctToSaleRFIDInvalidTransactionID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.deleteProductFromSaleRFID(0,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.deleteProductFromSaleRFID(-1,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.deleteProductFromSaleRFID(null,"000000000001");});
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDInvalidRFID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.deleteProductFromSaleRFID(1,"");});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.deleteProductFromSaleRFID(1, null);});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.deleteProductFromSaleRFID(1,"00000000001");});
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDInvalidUser() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		User user = new ConcreteUser("nome",1, "123", "ciao");
+		ezShop.setRunningUser(user);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.deleteProductFromSaleRFID(1,"000000000001");});
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.deleteProductFromSaleRFID(1, "000000000001");});
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDNotExists() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		ezShop.setSaleTransaction(saleTransaction);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.deleteProductFromSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testDeleteProudctFromSaleRFIDNotOpenSale() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.setSaleTransaction(new ConcreteSaleTransaction());
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.deleteProductFromSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDValid() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(1, new ArrayList<TicketEntry>(), 0, 21);
+		Product p = new ConcreteProduct();
+		p.setBarCode("1234567891231");
+		p.setRFID("000000000001");
+		p.setTransactionId(1);
+		dao.createProductType(new ConcreteProductType(null, "description", "1234567891231", "note", null, 5.0, null));
+		dao.updatePosition(1, "1-A-1");
+		dao.updateQuantity(1, 12);
+		List<Product> products = new ArrayList<>();
+		products.add(p);
+		saleTransaction.setTicketNumber(1);
+		saleTransaction.setSaleProducts(products);
+		ezShop.setSaleTransaction(saleTransaction);
+		dao.storeProduct(p);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertTrue(ezShop.deleteProductFromSaleRFID(1, "000000000001"));
+			assertTrue(ezShop.getSaleTransaction().getSaleProducts().isEmpty());
+			dao.resetApplication();
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
 }
 
 

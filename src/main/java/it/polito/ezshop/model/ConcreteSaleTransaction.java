@@ -1,8 +1,10 @@
 package it.polito.ezshop.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor.DiscardOldestPolicy;
 
+import it.polito.ezshop.data.Product;
 import it.polito.ezshop.data.SaleTransaction;
 import it.polito.ezshop.data.TicketEntry;
 
@@ -12,6 +14,7 @@ public class ConcreteSaleTransaction implements SaleTransaction {
     double discountRate;
     double price;
     boolean payed;
+    List<Product> saleProducts = new ArrayList<Product>();
 
     public ConcreteSaleTransaction(){}
 
@@ -71,6 +74,16 @@ public class ConcreteSaleTransaction implements SaleTransaction {
     @Override
     public void setPayed(boolean payed) {
         this.payed = payed;
+    }
+    
+	@Override
+    public List<Product> getSaleProducts() {
+        return saleProducts;
+    }
+
+	@Override
+    public void setSaleProducts(List<Product> saleProducts) {
+        this.saleProducts = saleProducts;
     }
 
 }

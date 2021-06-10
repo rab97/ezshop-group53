@@ -5,7 +5,8 @@ import it.polito.ezshop.data.ProductType;
 
 public class ConcreteProduct implements Product {
 	private String RFID;
-	private ProductType productType;
+	private String barCode;
+	private Integer transactionId;
 	
 	public ConcreteProduct() {
 		
@@ -22,13 +23,24 @@ public class ConcreteProduct implements Product {
 	}
 
 	@Override
-	public ProductType getProductType() {
-		return this.productType;
+	public String getBarCode() {
+		return this.barCode;
 	}
 
 	@Override
-	public void setProductType(ProductType productType) {
-		this.productType = productType;
+	public void setBarCode(String barCode) {
+		this.barCode = barCode;
+	}
+
+	
+	@Override
+	public Integer getTransactionId() {
+		return this.transactionId;
+	}
+	
+	@Override
+	public void setTransactionId(int transactionId) {
+		this.transactionId = transactionId;
 	}
 	
 }

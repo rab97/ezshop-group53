@@ -27,7 +27,7 @@ public class EZShop implements EZShopInterface {
     boolean saleTransaction_state;
     boolean returnTransaction_state;
     private Operator o = new Operator();
-    List<Product> saleProducts = new ArrayList<Product>();
+    
     
     
     @Override
@@ -857,7 +857,7 @@ InvalidLocationException, InvalidRFIDException {
         saleTransaction = new ConcreteSaleTransaction(sale_transaction_id + 1, new ArrayList<TicketEntry>(), 0, 0);
         saleTransaction_state = Constants.OPENED;
         	
-        saleProducts.clear();
+        saleTransaction.getSaleProducts().clear();
         
         return saleTransaction.getTicketNumber();
     }
@@ -977,7 +977,13 @@ InvalidLocationException, InvalidRFIDException {
         if (saleTransaction_state != Constants.OPENED)
             return false;
         
-        ProductType pt = p.getProductType();
+        ProductType pt = null;
+        try {
+        	pt = dao.getProductTypeByBarCode(p.getBarCode());
+        } catch (DAOException e) {
+            System.out.println(e);
+            return false;
+        }
         
         TicketEntry te = new ConcreteTicketEntry(pt.getBarCode(), pt.getProductDescription(), 1, pt.getPricePerUnit(),
                 0);
@@ -1003,7 +1009,7 @@ InvalidLocationException, InvalidRFIDException {
         if (toAdd)
             saleTransaction.getEntries().add(te);
         
-        saleProducts.add(p);
+        saleTransaction.getSaleProducts().add(p);
     
     	return true;
     }
@@ -1040,12 +1046,12 @@ InvalidLocationException, InvalidRFIDException {
             return false;
     	
     	boolean found = false;
-        for (Product p : saleProducts) {
+        for (Product p : saleTransaction.getSaleProducts()) {
             if (p.getRFID().equals(RFID)) {
-                    saleProducts.remove(p);
+                    saleTransaction.getSaleProducts().remove(p);
                     // increment product availability
-                    ProductType pt = p.getProductType();
                     try {
+                    	ProductType pt = dao.getProductTypeByBarCode(p.getBarCode());
                         dao.updateQuantity(pt.getId(), 1);
                     } catch (DAOException e) {
                         System.out.println(e);
@@ -1053,7 +1059,7 @@ InvalidLocationException, InvalidRFIDException {
                     }
                     // remove product from ticket entries
                     for (TicketEntry te : saleTransaction.getEntries()) {
-                        if (te.getBarCode().equals(p.getProductType().getBarCode())) {
+                        if (te.getBarCode().equals(p.getBarCode())) {
                             te.setAmount(te.getAmount() - 1);
                             if (te.getAmount() <= 0)
                                 saleTransaction.getEntries().remove(te);
@@ -1442,39 +1448,62 @@ InvalidLocationException, InvalidRFIDException {
     		return false;
     	}
     	
-    	List<TicketEntry> soldProducts = new ArrayList<TicketEntry>();
+    	List<Product> soldProducts= new ArrayList<Product>();
         try {
-        	soldProducts = dao.getEntries(returnTransaction.getTransactionId());
+        	soldProducts = dao.getSoldProducts(returnTransaction.getTransactionId());
         } catch (DAOException e) {
             System.out.println(e);
         }
+        
+        
+        
     	
-//    	TicketEntry prodToReturn=null;
-//    	for (TicketEntry prod : soldProducts) {
-//    		if(prod.getBarCode().equals(productCode)) {
-//    			prodToReturn=prod;
-//    		}
-//    	}
-//    	if(prodToReturn == null || prodToReturn.getAmount()<amount) {
-//    		return false;
-//    	}
-//    	
-//    	// add to list
-//        boolean toAdd = true;
-//        for (TicketEntry t : returnTransaction.getEntries()) {
-//        	//System.out.println("barcode prod da aggiungere: " + productCode);
-//        	//System.out.println("t attuale: " + t.getBarCode());
-//            if (t.getBarCode().equals(productCode)) {
-//                t.setAmount(t.getAmount() + amount);
-//                toAdd = false;
-//                break;
-//            }
-//        }
-//        //System.out.println("toAdd: " + toAdd);
-//        if (toAdd) {
-//        	prodToReturn.setAmount(amount);
-//            returnTransaction.getEntries().add(prodToReturn);
-//        }
+    	Product prodToReturn = null;
+    	for (Product prod : soldProducts) {
+    		if(prod.getRFID().equals(RFID)) {
+    			prodToReturn = prod;
+    		}
+    	}
+    	if(prodToReturn == null || prodToReturn.getTransactionId() == null) {
+    		return false;
+    	}
+    	
+    	List<TicketEntry> ticketEntries = null;
+		try {
+			ticketEntries = dao.getEntries(returnTransaction.getTransactionId());
+		} catch (DAOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	TicketEntry te = null;
+    	for (TicketEntry prod : ticketEntries) {
+    		if(prod.getBarCode().equals(prodToReturn.getBarCode())) {
+    			te=prod;
+    		}
+    	}
+    	if(te == null || te.getAmount() < 1) {
+    		return false;
+    	}
+    	
+    	// add to list
+        boolean toAdd = true;
+        
+        for (TicketEntry t : returnTransaction.getEntries()) {
+            if (t.getBarCode().equals(prodToReturn.getBarCode())) {
+                t.setAmount(t.getAmount() + 1);
+                toAdd = false;
+                break;
+            }
+        }
+        
+        if (toAdd) {
+        	te.setAmount(1);
+        	returnTransaction.getEntries().add(te);        
+        }
+        
+        returnTransaction.getReturnProducts().add(prodToReturn);
+        
         return true;
     }
 
