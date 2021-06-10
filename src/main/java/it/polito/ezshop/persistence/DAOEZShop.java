@@ -467,6 +467,41 @@ public class DAOEZShop implements IDAOEZshop {
 
 
     @Override
+    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, Integer product_type_id) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+
+            parsedRFID= RFIDfrom.parseInt();
+            for(Integer i=parsedRFID; i<(parsedRFID+orderQuantity); i++){
+
+                //Insert into db
+                String newRFID= ""+ i;
+                String query= "INSERT INTO product (rfid, product_type_id) VALUES ('" + newRFID +"', '"+  product_type_id +"');";
+                int update = statement.executeUpdate(query);
+
+                if(update!=1){
+                    return false;
+                }
+            }
+            
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }                
+
+        return true;
+
+    }
+
+
+
+    @Override
     public Order getOrder(Integer orderId) throws DAOException{
 
         Connection connection = null;
@@ -1522,4 +1557,8 @@ public class DAOEZShop implements IDAOEZshop {
 		
 		return state;
 	}
+
+
+
+    
 }

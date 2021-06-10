@@ -524,11 +524,75 @@ public class EZShop implements EZShopInterface {
         return recordArrival;
     }
 
+
+    /**
+     * @throws InvalidRFIDException if the RFID has invalid format or is not unique 
+     */
+
     @Override
     public boolean recordOrderArrivalRFID(Integer orderId, String RFIDfrom) throws InvalidOrderIdException, UnauthorizedException, 
 InvalidLocationException, InvalidRFIDException {
-        return false;
+
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+             && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
+            throw new UnauthorizedException();
+        }
+        if (orderId == null || orderId <= 0) {
+            throw new InvalidOrderIdException();
+        }
+        if(RFIDfrom.length()!=10){
+            throw new InvalidRFIDException();
+        }
+
+        boolean isNumeric = RFIDfrom.chars().allMatch( Character::isDigit );
+        if(!isNumeric){
+            throw new InvalidRFIDException();
+        }
+
+        Order myOrder;
+        boolean recordArrival= false;
+
+        try {
+            myOrder= dao.getOrder(orderId);
+
+            if(myOrder==null){ //the order doesn't exist
+                return false;
+            }
+
+            if(myOrder.getStatus().equals("COMPLETED")){ //don't modify anything
+                return true;
+            
+            }else if(!myOrder.getStatus().equals("PAYED")  && !myOrder.getStatus().equals("ORDERED")){ //not valid status
+                return false;
+            }
+
+            ConcreteProductType orderProduct= dao.getProductTypeByBarCode(myOrder.getProductCode());
+
+            if(orderProduct.getLocation()==null){
+                throw new InvalidLocationException();
+            }
+
+            recordArrival= dao.recordArrival(orderId);
+
+            if(recordArrival){ //if true, updateProductQuantity
+                boolean updateProductQuantity= dao.updateQuantity(orderProduct.getId(), myOrder.getQuantity());
+                if(!updateProductQuantity){
+                    return false;
+                }
+                boolean updateProductRFID= dao.recordProductArrivalRFID(orderId, myOrder.getQuantity(), RFIDfrom, orderProduct.getId());
+                if(!updateProductRFID){
+                    return false;
+                }
+            }
+
+        } catch (DAOException e) {
+            System.out.println("db excepiton");
+        }
+
+        return recordArrival;
+
     }
+
     @Override
     public List<Order> getAllOrders() throws UnauthorizedException {
 
