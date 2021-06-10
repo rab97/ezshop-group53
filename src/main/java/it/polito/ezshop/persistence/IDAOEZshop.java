@@ -41,6 +41,7 @@ public interface IDAOEZshop {
     public Integer payOrderDirectly(String productCode, int quantity, double pricePerUnit) throws DAOException;
     public boolean payOrder(Integer orderId, double money) throws DAOException;
     public boolean recordArrival(Integer orderId) throws DAOException;
+    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, Integer product_type_id) throws DAOException;
     public Order getOrder(Integer orderId) throws DAOException;
     public ArrayList<Order> getAllOrders() throws DAOException;
 
