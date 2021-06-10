@@ -27,6 +27,7 @@ public class EZShop implements EZShopInterface {
     boolean saleTransaction_state;
     boolean returnTransaction_state;
     private Operator o = new Operator();
+    List<Product> saleProducts = new ArrayList<Product>();
     
     
     @Override
@@ -850,7 +851,9 @@ InvalidLocationException, InvalidRFIDException {
         }
         saleTransaction = new ConcreteSaleTransaction(sale_transaction_id + 1, new ArrayList<TicketEntry>(), 0, 0);
         saleTransaction_state = Constants.OPENED;
-        System.out.println(saleTransaction.getTicketNumber());
+        	
+        saleProducts.clear();
+        
         return saleTransaction.getTicketNumber();
     }
 
@@ -934,7 +937,7 @@ InvalidLocationException, InvalidRFIDException {
             throw new InvalidTransactionIdException();
         }
     	
-    	if(RFID == null || RFID.isEmpty() || RFID.length() != 10) {
+    	if(RFID == null || RFID.isEmpty() || RFID.length() != 12) {
     		throw new InvalidRFIDException();
     	}
     	
@@ -956,18 +959,20 @@ InvalidLocationException, InvalidRFIDException {
             return false;
     	
     	// check on product
-        ProductType pt = null;
+        Product p = null;
         try {
-        	pt = dao.getProductTypeByBarRFID(RFID);
+        	p = dao.getProductByRFID(RFID);
         } catch (DAOException e) {
 			System.out.println(e);
 		} 
-        if (pt == null)
+        if (p == null)
             return false;
         
      // check sale transaction state
         if (saleTransaction_state != Constants.OPENED)
             return false;
+        
+        ProductType pt = p.getProductType();
         
         TicketEntry te = new ConcreteTicketEntry(pt.getBarCode(), pt.getProductDescription(), 1, pt.getPricePerUnit(),
                 0);
@@ -993,6 +998,7 @@ InvalidLocationException, InvalidRFIDException {
         if (toAdd)
             saleTransaction.getEntries().add(te);
         
+        saleProducts.add(p);
     
     	return true;
     }
@@ -1000,7 +1006,65 @@ InvalidLocationException, InvalidRFIDException {
 
     @Override
     public boolean deleteProductFromSaleRFID(Integer transactionId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, InvalidQuantityException, UnauthorizedException{
-        return false;
+    	if(transactionId == null || transactionId <= 0) {
+        	throw new InvalidTransactionIdException();
+        }
+    	if(RFID == null || RFID.isEmpty() || RFID.length() != 12) {
+    		throw new InvalidRFIDException();
+    	}
+    	
+    	if(RFID != null && !RFID.isEmpty()) {
+    		try {
+    			Integer.parseInt(RFID);
+    		} catch(Exception e) {
+    			throw new InvalidRFIDException();
+    		}
+    	}
+    	
+    	if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if (saleTransaction.getTicketNumber() != transactionId) {    		
+    		return false;
+    	}
+    	
+    	if (saleTransaction_state != Constants.OPENED)
+            return false;
+    	
+    	boolean found = false;
+        for (Product p : saleProducts) {
+            if (p.getRFID().equals(RFID)) {
+                    saleProducts.remove(p);
+                    // increment product availability
+                    ProductType pt = p.getProductType();
+                    try {
+                        dao.updateQuantity(pt.getId(), 1);
+                    } catch (DAOException e) {
+                        System.out.println(e);
+                        return false;
+                    }
+                    // remove product from ticket entries
+                    for (TicketEntry te : saleTransaction.getEntries()) {
+                        if (te.getBarCode().equals(p.getProductType().getBarCode())) {
+                            te.setAmount(te.getAmount() - 1);
+                            if (te.getAmount() <= 0)
+                                saleTransaction.getEntries().remove(te);
+                            found = true;
+                            break;
+                        }
+                    }
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+        	return false;
+    	
+    	return found;
+
     }
 
 
@@ -1346,9 +1410,67 @@ InvalidLocationException, InvalidRFIDException {
     }
 
     @Override
-    public boolean returnProductRFID(Integer returnId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, UnauthorizedException 
-    {
-        return false;
+    public boolean returnProductRFID(Integer returnId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, UnauthorizedException {
+    	if (returnId == null || returnId <= 0) {
+            throw new InvalidTransactionIdException();
+        }
+    	
+    	if(RFID == null || RFID.isEmpty() || RFID.length() != 12) {
+    		throw new InvalidRFIDException();
+    	}
+    	
+    	if(RFID != null && !RFID.isEmpty()) {
+    		try {
+    			Integer.parseInt(RFID);
+    		} catch(Exception e) {
+    			throw new InvalidRFIDException();
+    		}
+    	}
+    	
+    	if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if (returnTransaction == null || !returnTransaction.getReturnId().equals(returnId)) {
+    		return false;
+    	}
+    	
+    	List<TicketEntry> soldProducts = new ArrayList<TicketEntry>();
+        try {
+        	soldProducts = dao.getEntries(returnTransaction.getTransactionId());
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+//    	TicketEntry prodToReturn=null;
+//    	for (TicketEntry prod : soldProducts) {
+//    		if(prod.getBarCode().equals(productCode)) {
+//    			prodToReturn=prod;
+//    		}
+//    	}
+//    	if(prodToReturn == null || prodToReturn.getAmount()<amount) {
+//    		return false;
+//    	}
+//    	
+//    	// add to list
+//        boolean toAdd = true;
+//        for (TicketEntry t : returnTransaction.getEntries()) {
+//        	//System.out.println("barcode prod da aggiungere: " + productCode);
+//        	//System.out.println("t attuale: " + t.getBarCode());
+//            if (t.getBarCode().equals(productCode)) {
+//                t.setAmount(t.getAmount() + amount);
+//                toAdd = false;
+//                break;
+//            }
+//        }
+//        //System.out.println("toAdd: " + toAdd);
+//        if (toAdd) {
+//        	prodToReturn.setAmount(amount);
+//            returnTransaction.getEntries().add(prodToReturn);
+//        }
+        return true;
     }
 
     @Override

@@ -475,8 +475,9 @@ public class DAOEZShop implements IDAOEZshop {
         try {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
+            
+            Integer parsedRFID= Integer.valueOf(RFIDfrom);
 
-            parsedRFID= RFIDfrom.parseInt();
             for(Integer i=parsedRFID; i<(parsedRFID+orderQuantity); i++){
 
                 //Insert into db
@@ -1558,13 +1559,12 @@ public class DAOEZShop implements IDAOEZshop {
 		return state;
 	}
 
-
 	@Override
-	public ProductType getProductTypeByBarRFID(String RFID) throws DAOException {
+	public Product getProductByRFID(String RFID) throws DAOException {
 		 Connection connection = null;
 	        Statement statment = null;
 	        ResultSet resultSet = null;
-	        ConcreteProductType pt = null;
+	        Product p = null;
 	        try {
 	            connection = dataSource.getConnection();
 	            statment = connection.createStatement();
@@ -1572,11 +1572,16 @@ public class DAOEZShop implements IDAOEZshop {
 	            resultSet = statment.executeQuery(query);
 	            if(!resultSet.next())
 	            	return null;
+	            p = new ConcreteProduct();
+	            p.setRFID(resultSet.getString("rfid"));
+	            
 	           	query = "select * from product_type where id = '" + resultSet.getInt("product_type_id") +"';"; 
 	           	
 	           	resultSet = statment.executeQuery(query);
-	           	while(resultSet.next())
-	           		pt = new ConcreteProductType(resultSet.getInt("id"), resultSet.getString("description"), resultSet.getString("bar_code"), resultSet.getString("note"), resultSet.getInt("quantity"), resultSet.getDouble("price_per_unit"), resultSet.getString("location"));
+	           	while(resultSet.next()) {
+	           		ProductType pt = new ConcreteProductType(resultSet.getInt("id"), resultSet.getString("description"), resultSet.getString("bar_code"), resultSet.getString("note"), resultSet.getInt("quantity"), resultSet.getDouble("price_per_unit"), resultSet.getString("location"));
+	           		p.setProductType(pt);
+	           	}
 	           	
 	        } catch (SQLException ex) {
 	        	throw new DAOException("Impossibile to execute query: " + ex.getMessage());
@@ -1584,7 +1589,6 @@ public class DAOEZShop implements IDAOEZshop {
 	            dataSource.close(connection);
 	        }
 		
-		return pt;
+		return p;
 	}
-
 }

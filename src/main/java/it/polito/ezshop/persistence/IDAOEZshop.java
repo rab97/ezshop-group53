@@ -14,6 +14,7 @@ import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.data.BalanceOperation;
 import it.polito.ezshop.data.Customer;
 import it.polito.ezshop.data.Order;
+import it.polito.ezshop.data.Product;
 import it.polito.ezshop.data.TicketEntry;
 
 
@@ -79,6 +80,6 @@ public interface IDAOEZshop {
 
 	public boolean searchProductById(Integer productId) throws DAOException;
 
-	public ProductType getProductTypeByBarRFID(String RFID) throws DAOException;
+	public Product getProductByRFID(String RFID) throws DAOException;
 
 }
