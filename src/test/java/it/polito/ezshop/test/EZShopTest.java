@@ -2974,7 +2974,9 @@ public class EZShopTest {
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrderFor("4314324224124",2,2.0);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrder(3);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrival(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrivalRFID(3, "000000001000");});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllOrders();});
+		
 		
 		u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
@@ -2982,6 +2984,7 @@ public class EZShopTest {
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrderFor("4314324224124",2,2.0);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrder(3);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrival(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrivalRFID(3, "000000001000");});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllOrders();});
 	}
 	
@@ -3035,6 +3038,9 @@ public class EZShopTest {
 		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(-1);});
 		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(0);});
 		//assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(null);});	
+
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrivalRFID(-1, "000000001000");});
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrivalRFID(0, "000000001000");});
 	}
 	
 	@Test 
@@ -3053,6 +3059,8 @@ public class EZShopTest {
 			}
 			
 			assertThrows(InvalidLocationException.class, () ->{ezShop.recordOrderArrival(ordId);});
+			assertThrows(InvalidLocationException.class, () ->{ezShop.recordOrderArrivalRFID(ordId, "000000001000");});
+
 
 		}catch(DAOException e){
 			fail();
@@ -3065,6 +3073,84 @@ public class EZShopTest {
 
 	}
 	
+
+	@Test
+    public void testRecordOrderArrivalRFIDInvalidRFID(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);  
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().createProductType(pt);
+			Integer ordId = ezShop.getDAO().payOrderDirectly("4314324224124", 1, 1.0);
+			if(ordId<0){
+				fail();
+			}
+			ezShop.getDAO().updatePosition(1, "4-A-4");
+
+			//Case: Invalid format
+			assertThrows(InvalidRFIDException.class, () ->{ezShop.recordOrderArrivalRFID(ordId, "64701000");});
+			assertThrows(InvalidRFIDException.class,() ->{ezShop.recordOrderArrivalRFID(ordId, "dgd9876543gd");});
+
+			//Case: RFID not unique
+			
+			Product p= new ConcreteProduct();
+			p.setBarCode("4314324224124");
+			p.setRFID("010006001000");
+			p.setTransactionId(1);
+			ezShop.getDAO().storeProduct(p);
+
+			assertThrows(InvalidRFIDException.class,() ->{ezShop.recordOrderArrivalRFID(ordId, p.getRFID());});
+			
+
+		}catch(DAOException e){
+			System.out.println("Exception:  " + e);
+			fail();
+		}
+
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+        
+    }
+
+
+	@Test
+    public void testRecordOrderArrivalRFIDWithSuccess(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);  
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 3, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt);		
+			ezShop.getDAO().updatePosition(1, "4-A-4");
+
+			Integer ordId = ezShop.getDAO().payOrderDirectly("4314324224124", 3, 1.0);
+			ezShop.recordOrderArrivalRFID(ordId, "000000001000");
+			
+		}catch(DAOException e){
+			System.out.println("Exception:  " + e);
+			fail();
+		}catch(UnauthorizedException|InvalidLocationException| InvalidOrderIdException| InvalidRFIDException e){
+			System.out.println("Exception:  " + e);
+			fail();
+		}
+
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+        
+
 	@Test 
 	public void testOrderProductNotExists() {
 		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
@@ -3245,9 +3331,10 @@ public class EZShopTest {
 			ezShop.getDAO().createProductType(pt);
 			ezShop.getDAO().insertNewOrder("4314324224124", 1, 1.0);
 			assertFalse(ezShop.recordOrderArrival(1));		
+			assertFalse(ezShop.recordOrderArrivalRFID(1, "000000001000"));		
 		}catch(DAOException e){
 			fail();
-		} catch(UnauthorizedException|InvalidOrderIdException|InvalidLocationException e) {
+		} catch(UnauthorizedException|InvalidOrderIdException|InvalidLocationException|InvalidRFIDException e) {
 			System.out.println("Error message: " + e);
 			fail();
 		}

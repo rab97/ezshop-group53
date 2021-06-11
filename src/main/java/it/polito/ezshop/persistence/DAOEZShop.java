@@ -468,7 +468,7 @@ public class DAOEZShop implements IDAOEZshop {
 
 
     @Override
-    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, Integer product_type_id) throws DAOException{
+    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, String productCode) throws DAOException{
 
         Connection connection = null;
         Statement statement = null;
@@ -478,17 +478,32 @@ public class DAOEZShop implements IDAOEZshop {
             statement = connection.createStatement();
             
             Integer parsedRFID= Integer.valueOf(RFIDfrom);
+            System.out.print("dao: recordProductArrival: parsedRFID= " + parsedRFID);
+            String baseRFID= "";
 
             for(Integer i=parsedRFID; i<(parsedRFID+orderQuantity); i++){
 
+                //Built the correct base RFID
+
+                int length = String.valueOf(i).length();
+                if(length<12){  //Create a string with all 0
+                
+                    for(int j=0; j<(12-length); j++){
+                         baseRFID= baseRFID+ "0";
+                    }
+                 }
+                String newRFID= baseRFID + i;
+                System.out.println("dao: recordProductArrival: newRFID= " + newRFID);
+
+
                 //Insert into db
-                String newRFID= ""+ i;
-                String query= "INSERT INTO product (rfid, product_type_id) VALUES ('" + newRFID +"', '"+  product_type_id +"');";
+                String query= "INSERT INTO product (rfid, bar_code) VALUES ('" + newRFID +"', '"+  productCode +"');";
                 int update = statement.executeUpdate(query);
 
                 if(update!=1){
                     return false;
                 }
+                baseRFID= "";
             }
             
         } catch (SQLException ex) {
@@ -1587,18 +1602,37 @@ public class DAOEZShop implements IDAOEZshop {
         Statement statement = null;
         ResultSet resultSet = null;
 
+        System.out.println("check_RFID_existance    RFIDFrom = "+ RFIDFrom);
+
         try{
             connection = dataSource.getConnection();
         	statement = connection.createStatement();
 
-            Integer parsedRFID= Integer.parseInt(RFIDFrom);
+            System.out.println("check_RFID_existance    arrivo qui");
+            Integer parsedRFID= Integer.valueOf(RFIDFrom);
+            System.out.println("check_RFID_existance    parsedRFID = "+ parsedRFID);
+            String baseRFID= "";
+
             for(Integer i=parsedRFID; i<(parsedRFID+interval); i++){
 
-                String actualRFID= ""+i;
+                //Built the correct base RFID
+
+                int length = String.valueOf(i).length();
+                if(length<12){  //Create a string with all 0
+                
+                    for(int j=0; j<(12-length); j++){
+                         baseRFID= baseRFID+ "0";
+                    }
+                 }
+                String actualRFID= baseRFID+i;
+                baseRFID= "";
+                System.out.println("check_RFID_existance    actualRFID = "+ actualRFID);
+
         	    String query = "SELECT * FROM product WHERE rfid ='" + actualRFID + "';";
 			
         	    resultSet = statement.executeQuery(query);
                 if(resultSet.next()){
+                    System.out.println("check_RFID_existance= true");
                     return true;
                 }
                            
@@ -1611,6 +1645,7 @@ public class DAOEZShop implements IDAOEZshop {
 			dataSource.close(connection);
 		}
 
+        System.out.println("check_RFID_existance= false");
         return false;
 
     }

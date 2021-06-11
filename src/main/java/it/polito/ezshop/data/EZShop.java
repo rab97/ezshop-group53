@@ -12,6 +12,7 @@ import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
 
+import java.beans.Transient;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -529,17 +530,16 @@ public class EZShop implements EZShopInterface {
     public boolean recordOrderArrivalRFID(Integer orderId, String RFIDfrom) throws InvalidOrderIdException, UnauthorizedException, 
 InvalidLocationException, InvalidRFIDException {
 
-        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
-             && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
-            throw new UnauthorizedException();
-        }
         if (orderId == null || orderId <= 0) {
             throw new InvalidOrderIdException();
         }
-        if(RFIDfrom.length()!=10){
+        if(RFIDfrom.length()!=12){
             throw new InvalidRFIDException();
         }
-
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+         && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
+            throw new UnauthorizedException();
+        }
         boolean isNumeric = RFIDfrom.chars().allMatch( Character::isDigit );
         if(!isNumeric){
             throw new InvalidRFIDException();
@@ -572,12 +572,12 @@ InvalidLocationException, InvalidRFIDException {
 
             
             rfidAlreadyExist= dao.check_RFID_existance(RFIDfrom, myOrder.getQuantity());
+            System.out.println("rfidAlreadyExist in recordOrderArrivalRFID = " + rfidAlreadyExist);
             if(rfidAlreadyExist){ //If true, throw exception
                 throw new InvalidRFIDException();
             }
 
             //Record Arrival
-
             recordArrival= dao.recordArrival(orderId);
 
             if(recordArrival){ //if true, updateProductQuantity
@@ -585,7 +585,8 @@ InvalidLocationException, InvalidRFIDException {
                 if(!updateProductQuantity){
                     return false;
                 }
-                boolean updateProductRFID= dao.recordProductArrivalRFID(orderId, myOrder.getQuantity(), RFIDfrom, orderProduct.getId());
+                
+                boolean updateProductRFID= dao.recordProductArrivalRFID(orderId, myOrder.getQuantity(), RFIDfrom, orderProduct.getBarCode());
                 if(!updateProductRFID){
                     return false;
                 }
@@ -598,6 +599,7 @@ InvalidLocationException, InvalidRFIDException {
         return recordArrival;
 
     }
+
 
     @Override
     public List<Order> getAllOrders() throws UnauthorizedException {
