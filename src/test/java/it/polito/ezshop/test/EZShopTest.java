@@ -4476,18 +4476,18 @@ public class EZShopTest {
 			dao.updateQuantity(1, 50);
 			dao.updateQuantity(2, 150);
 			dao.updateQuantity(3, 150);
-			Product p = new ConcreteProduct();
-			p.setBarCode("123456789104");
-			p.setRFID("000000000001");
-			p.setTransactionId(s2.getTicketNumber());
-			
-			dao.storeProduct(p);
-			s2.getSaleProducts().add(p);
-			p.setBarCode("4314324224124");
-			p.setRFID("000011111111");
-			p.setTransactionId(s2.getTicketNumber());
-			dao.storeProduct(p);
-			s2.getSaleProducts().add(p);
+			Product p1 = new ConcreteProduct();
+			Product p2 = new ConcreteProduct();
+			p1.setBarCode("123456789104");
+			p1.setRFID("000000000001");
+			p1.setTransactionId(s2.getTicketNumber());
+			s2.getSaleProducts().add(p1);
+			dao.storeProduct(p1);
+			p2.setBarCode("4314324224124");
+			p2.setRFID("000011111111");
+			p2.setTransactionId(s2.getTicketNumber());
+			s2.getSaleProducts().add(p2);
+			dao.storeProduct(p2);
 			dao.storeSaleTransaction(s2);
 			assertTrue(ezShop.returnProductRFID(1, "000000000001"));
 		} catch (DAOException e) {

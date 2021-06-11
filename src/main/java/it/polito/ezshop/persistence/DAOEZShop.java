@@ -1205,11 +1205,10 @@ public class DAOEZShop implements IDAOEZshop {
             }
           
 
-            query = "update product set transaction_id = '" + saleTransaction.getTicketNumber() + "' where rfid = '?'";
             for (Product p : saleTransaction.getSaleProducts()) {
+            	query = "update product set transaction_id = '" + saleTransaction.getTicketNumber() + "' where rfid = '?'";
             	pstm = connection.prepareStatement(query);
-            	System.out.println(p.getRFID());
-                pstm.setString(1, p.getRFID());
+                pstm.setString(2, p.getRFID());
                 pstm.executeUpdate();
             }
             

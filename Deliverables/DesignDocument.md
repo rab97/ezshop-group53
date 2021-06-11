@@ -48,12 +48,13 @@ class EZShop{
  getAllProductTypes(): List<ProductType>
  getProductTypeBarCode(barCode:String): ProductType
  getProductTypesByDescription(description:String): List<ProductType>
- updateQuantity(productId:Integer, toBeAdded:int): boolen
+ updateQuantity(productId:Integer, toBeAdded:int): boolean
  updatePosition(productId:Integer, newPos:String): boolean
  issueOrder(productCode:String, quantity:int, pricePerUnit:double): Integer
  payOrderFor(productCode:String, quantity:int, pricePerUnit:double): Integer
  payOrder(orderId:Integer): boolean
  recordOrderArrival(orderId:Integer): boolean
+ recordOrderArrivalRFID(orderId: Integer , RFIDfrom: String): boolean
  getAllOrders(): List<Order>
  getOrder(): Order
  defineCustomer(customerName:String): Integer
@@ -67,7 +68,9 @@ class EZShop{
  startSaleTransaction(): Integer
  applyDiscountToProduct(transactionId:Integer, discountRate:double): boolean
  addProductToSale(transactionId:Integer, productCode:String, amount:int): boolean
+ addProductToSaleRFID(transactionId: Integer , RFID: String) : boolean
  deleteProductFromSale(transactionId:Integer, productCode:String, amount:int): boolean
+ deleteProductFromSaleRFID(transactionId: Integer, RFID: String): boolean
  applyDiscountRateToProduct(transactionId:Integer, productCode:String, discountRate:Double): boolean
  applyDiscountRateToSale(transactionId:Integer, discountRate:Double): boolean
  computePointsForSale(transactionId:Integer): int
@@ -76,6 +79,7 @@ class EZShop{
  getSaleTransaction(transactionID:Integer): SaleTransaction
  startReturnTransaction(transactionID:Integer): Integer
  returnProduct(returnId:Integer, productCode String, amount:int): boolean
+ returnProductRFID(returnId: Integer , RFID: String): boolean
  endReturnTransaction(returnId:Integer, commit:boolean): boolean
  deleteReturnTransaction(returnId:Integer): boolean
  receiveCashPayment(transactionID:Integer, cash:doube): double
@@ -100,6 +104,13 @@ class ReturnTransaction{
  entries: List<TicketEntry>
  discountRate: double
  payed: boolean
+ returnProducts: List<Product>
+}
+
+class Product {
+ RFID: String
+ barCode: String
+ transactionId: Integer
 }
 
 class SaleTransaction{
@@ -108,6 +119,7 @@ class SaleTransaction{
  discountRate: double
  entries: List<TicketEntry>
  payed: boolean
+ saleProducts: List<Product>
 }
 
 class Order {
@@ -159,6 +171,9 @@ EZShop --> "*" ProductType
 EZShop --> "*" Order
 EZShop --> "*" SaleTransaction
 EZShop --> "*" BalanceOperation
+Product "*" -->  ProductType
+SaleTransaction --> "*" Product
+ReturnTransaction --> "*" Product
 @enduml
 ```
 
