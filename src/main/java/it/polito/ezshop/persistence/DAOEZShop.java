@@ -477,11 +477,11 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             
-            Integer parsedRFID= Integer.valueOf(RFIDfrom);
+            Long parsedRFID= Long.valueOf(RFIDfrom);
             System.out.print("dao: recordProductArrival: parsedRFID= " + parsedRFID);
             String baseRFID= "";
 
-            for(Integer i=parsedRFID; i<(parsedRFID+orderQuantity); i++){
+            for(Long i=parsedRFID; i<(parsedRFID+orderQuantity); i++){
 
                 //Built the correct base RFID
 
@@ -1609,11 +1609,11 @@ public class DAOEZShop implements IDAOEZshop {
         	statement = connection.createStatement();
 
             System.out.println("check_RFID_existance    arrivo qui");
-            Integer parsedRFID= Integer.valueOf(RFIDFrom);
+            Long parsedRFID= Long.valueOf(RFIDFrom);
             System.out.println("check_RFID_existance    parsedRFID = "+ parsedRFID);
             String baseRFID= "";
 
-            for(Integer i=parsedRFID; i<(parsedRFID+interval); i++){
+            for(Long i=parsedRFID; i<(parsedRFID+ interval); i++){
 
                 //Built the correct base RFID
 
