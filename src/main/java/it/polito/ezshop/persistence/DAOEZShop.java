@@ -468,7 +468,7 @@ public class DAOEZShop implements IDAOEZshop {
 
 
     @Override
-    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, Integer product_type_id) throws DAOException{
+    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, String bar_code) throws DAOException{
 
         Connection connection = null;
         Statement statement = null;
@@ -483,7 +483,7 @@ public class DAOEZShop implements IDAOEZshop {
 
                 //Insert into db
                 String newRFID= ""+ i;
-                String query= "INSERT INTO product (rfid, product_type_id) VALUES ('" + newRFID +"', '"+  product_type_id +"');";
+                String query= "INSERT INTO product (rfid, bar_code) VALUES ('" + newRFID +"', '"+  bar_code +"');";
                 int update = statement.executeUpdate(query);
 
                 if(update!=1){
@@ -1192,6 +1192,7 @@ public class DAOEZShop implements IDAOEZshop {
             query = "update product set transaction_id = '" + saleTransaction.getTicketNumber() + "' where rfid = '?'";
             for (Product p : saleTransaction.getSaleProducts()) {
             	pstm = connection.prepareStatement(query);
+            	System.out.println(p.getRFID());
                 pstm.setString(1, p.getRFID());
                 pstm.executeUpdate();
             }
@@ -1652,7 +1653,7 @@ public class DAOEZShop implements IDAOEZshop {
             connection = dataSource.getConnection();
             statement = connection.createStatement();
             System.out.println(transactionId);
-            String query = "SELECT * FROM product WHERE transactionId= '" + transactionId + "'";
+            String query = "SELECT * FROM product WHERE transaction_id= '" + transactionId + "'";
             resultSet = statement.executeQuery(query);
             while (resultSet.next()) {
                 Product te = new ConcreteProduct();

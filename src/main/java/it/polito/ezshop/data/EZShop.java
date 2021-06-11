@@ -585,7 +585,7 @@ InvalidLocationException, InvalidRFIDException {
                 if(!updateProductQuantity){
                     return false;
                 }
-                boolean updateProductRFID= dao.recordProductArrivalRFID(orderId, myOrder.getQuantity(), RFIDfrom, orderProduct.getId());
+                boolean updateProductRFID= dao.recordProductArrivalRFID(orderId, myOrder.getQuantity(), RFIDfrom, orderProduct.getBarCode());
                 if(!updateProductRFID){
                     return false;
                 }
@@ -1454,9 +1454,6 @@ InvalidLocationException, InvalidRFIDException {
         } catch (DAOException e) {
             System.out.println(e);
         }
-        
-        
-        
     	
     	Product prodToReturn = null;
     	for (Product prod : soldProducts) {
@@ -1472,7 +1469,6 @@ InvalidLocationException, InvalidRFIDException {
 		try {
 			ticketEntries = dao.getEntries(returnTransaction.getTransactionId());
 		} catch (DAOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     	
