@@ -1204,12 +1204,11 @@ public class DAOEZShop implements IDAOEZshop {
                 pstm.executeUpdate();
             }
           
-
+            Statement s = connection.createStatement();
+            ResultSet resulSet = null;
             for (Product p : saleTransaction.getSaleProducts()) {
-            	query = "update product set transaction_id = '" + saleTransaction.getTicketNumber() + "' where rfid = '?'";
-            	pstm = connection.prepareStatement(query);
-                pstm.setString(2, p.getRFID());
-                pstm.executeUpdate();
+            	query = "update product set transaction_id = '" + saleTransaction.getTicketNumber() + "' where rfid = '" + p.getRFID() + "'";
+            	s.executeUpdate(query);
             }
             
         } catch (SQLException ex) {
@@ -1554,11 +1553,12 @@ public class DAOEZShop implements IDAOEZshop {
 		
 		try {
 			String query = "DELETE FROM ";
-			String table[] = {"balance_operation", "product","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'", "user", "customer"};
+			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'", "user", "customer", "product"};
 			connection = dataSource.getConnection();
-			for(int i = 0; i < 9; i++) {
+			for(int i = 0; i < 10; i++) {
 				pstm = connection.prepareStatement(query + table[i]);
 				pstm.executeUpdate();
+				System.out.println("reset");
 			}
 			
 		} catch(SQLException ex) {
@@ -1699,6 +1699,7 @@ public class DAOEZShop implements IDAOEZshop {
                 } else {                	
                 	te.setTransactionId(resultSet.getInt("transaction_id"));
                 }
+                entries.add(te);
             }
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());

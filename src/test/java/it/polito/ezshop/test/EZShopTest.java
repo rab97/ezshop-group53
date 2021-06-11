@@ -49,10 +49,10 @@ public class EZShopTest {
 	Operator o = new Operator();
 	
 	@Before	
-	public void setUp () {
+	public void setUp () throws DAOException {
 		ezShop = new EZShop();
 		dao = new DAOEZShop();
-		ezShop.reset();
+		dao.resetApplication();
 	}
 	
 	
@@ -4310,11 +4310,11 @@ public class EZShopTest {
 		try {
 			assertTrue(ezShop.deleteProductFromSaleRFID(1, "000000000001"));
 			assertTrue(ezShop.getSaleTransaction().getSaleProducts().isEmpty());
-			dao.resetApplication();
 		} catch (Exception e) {
 			System.out.println(e);
 			fail();
 		}
+		dao.resetApplication();
 	}
 	
 	@Test
@@ -4342,7 +4342,7 @@ public class EZShopTest {
 	}
 	
 	@Test
-	public void testReturnProductRFIDInvalidReturnTransaction() {
+	public void testReturnProductRFIDInvalidReturnTransaction() throws DAOException {
 		try {
 			User user = new ConcreteUser("username", 1, "password", Constants.ADMINISTRATOR);
 			ezShop.setRunningUser(user);
@@ -4370,7 +4370,7 @@ public class EZShopTest {
 		} catch(InvalidTransactionIdException e) {
 			fail();
 		}
-		
+		dao.resetApplication();
 	}
 
 	@Test
@@ -4387,6 +4387,7 @@ public class EZShopTest {
 			dao.createProductType(pt);
 			dao.recordProductArrivalRFID(1, 1, "000000000001", "1234567891231");
 			assertFalse(ezShop.returnProductRFID(1, "000000000001"));
+			dao.resetApplication();
 		} catch(DAOException e) {
 			e.printStackTrace();
 			fail();
@@ -4400,6 +4401,7 @@ public class EZShopTest {
 			e.printStackTrace();
 			fail();
 		}
+		;
 	}
 	
 	@Test
@@ -4434,6 +4436,7 @@ public class EZShopTest {
 			dao.recordProductArrivalRFID(1, 50, "0000000000001", "123456789104");
 			dao.recordProductArrivalRFID(1, 10, "000011111111", "4314324224124");
 			assertFalse(ezShop.returnProductRFID(1, "000000000001"));
+			dao.resetApplication();
 		} catch (DAOException e) {
 			e.printStackTrace();
 			fail();
@@ -4452,6 +4455,7 @@ public class EZShopTest {
 	@Test
 	public void testReturnProductRFIDValid() {
 		try {
+			dao.resetApplication();
 			User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
 			ezShop.setRunningUser(user);
 			ReturnTransaction r = new ConcreteReturnTransaction();
@@ -4490,6 +4494,7 @@ public class EZShopTest {
 			dao.storeProduct(p2);
 			dao.storeSaleTransaction(s2);
 			assertTrue(ezShop.returnProductRFID(1, "000000000001"));
+			dao.resetApplication();
 		} catch (DAOException e) {
 			e.printStackTrace();
 			fail();
