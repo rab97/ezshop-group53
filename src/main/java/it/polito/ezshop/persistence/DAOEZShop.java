@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import it.polito.ezshop.data.*;
+import it.polito.ezshop.data.Product;
 import it.polito.ezshop.model.*;
 
 public class DAOEZShop implements IDAOEZshop {
@@ -464,6 +465,58 @@ public class DAOEZShop implements IDAOEZshop {
         }
 
     }
+
+
+    @Override
+
+    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, String productCode) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            
+            Long parsedRFID= Long.valueOf(RFIDfrom);
+            System.out.print("dao: recordProductArrival: parsedRFID= " + parsedRFID);
+            String baseRFID= "";
+
+            for(Long i=parsedRFID; i<(parsedRFID+orderQuantity); i++){
+
+                //Built the correct base RFID
+
+                int length = String.valueOf(i).length();
+                if(length<12){  //Create a string with all 0
+                
+                    for(int j=0; j<(12-length); j++){
+                         baseRFID= baseRFID+ "0";
+                    }
+                 }
+                String newRFID= baseRFID + i;
+                System.out.println("dao: recordProductArrival: newRFID= " + newRFID);
+
+
+                //Insert into db
+                String query= "INSERT INTO product (rfid, bar_code) VALUES ('" + newRFID +"', '"+  productCode +"');";
+                int update = statement.executeUpdate(query);
+
+                if(update!=1){
+                    return false;
+                }
+                baseRFID= "";
+            }
+            
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }                
+
+        return true;
+
+    }
+
 
 
     @Override
@@ -1150,6 +1203,13 @@ public class DAOEZShop implements IDAOEZshop {
                 pstm.setString(7, te.getProductDescription());
                 pstm.executeUpdate();
             }
+          
+            Statement s = connection.createStatement();
+            ResultSet resulSet = null;
+            for (Product p : saleTransaction.getSaleProducts()) {
+            	query = "update product set transaction_id = '" + saleTransaction.getTicketNumber() + "' where rfid = '" + p.getRFID() + "'";
+            	s.executeUpdate(query);
+            }
             
         } catch (SQLException ex) {
         	System.out.println(ex);
@@ -1160,6 +1220,11 @@ public class DAOEZShop implements IDAOEZshop {
 
         return true;
     }
+    
+    
+    
+    
+    
     
     @Override
     public boolean storeReturnTransaction(ReturnTransaction returnTransaction) throws DAOException {
@@ -1194,6 +1259,13 @@ public class DAOEZShop implements IDAOEZshop {
                 pstm.executeUpdate();
             }
 
+            query = "update product set transaction_id = '" + 0 + "' where rfid = '?'";
+            for (Product p : returnTransaction.getReturnProducts()) {
+            	pstm = connection.prepareStatement(query);
+                pstm.setString(1, p.getRFID());
+                pstm.executeUpdate();
+            }
+            
         } catch (SQLException ex) {
             throw new DAOException("Impossibile to execute query: " + ex.getMessage());
         } finally {
@@ -1481,11 +1553,12 @@ public class DAOEZShop implements IDAOEZshop {
 		
 		try {
 			String query = "DELETE FROM ";
-			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'", "user", "customer"};
+			String table[] = {"balance_operation","product_type","return_ticket_entry","return_transaction","sale_transaction","ticket_entry","'order'", "user", "customer", "product"};
 			connection = dataSource.getConnection();
-			for(int i = 0; i < 9; i++) {
+			for(int i = 0; i < 10; i++) {
 				pstm = connection.prepareStatement(query + table[i]);
 				pstm.executeUpdate();
+				System.out.println("reset");
 			}
 			
 		} catch(SQLException ex) {
@@ -1522,4 +1595,138 @@ public class DAOEZShop implements IDAOEZshop {
 		
 		return state;
 	}
+
+    @Override
+    public boolean check_RFID_existance(String RFIDFrom, Integer interval) throws DAOException{
+
+        Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        System.out.println("check_RFID_existance    RFIDFrom = "+ RFIDFrom);
+
+        try{
+            connection = dataSource.getConnection();
+        	statement = connection.createStatement();
+
+            System.out.println("check_RFID_existance    arrivo qui");
+            Long parsedRFID= Long.valueOf(RFIDFrom);
+            System.out.println("check_RFID_existance    parsedRFID = "+ parsedRFID);
+            String baseRFID= "";
+
+            for(Long i=parsedRFID; i<(parsedRFID+ interval); i++){
+
+                //Built the correct base RFID
+
+                int length = String.valueOf(i).length();
+                if(length<12){  //Create a string with all 0
+                
+                    for(int j=0; j<(12-length); j++){
+                         baseRFID= baseRFID+ "0";
+                    }
+                 }
+                String actualRFID= baseRFID+i;
+                baseRFID= "";
+                System.out.println("check_RFID_existance    actualRFID = "+ actualRFID);
+
+        	    String query = "SELECT * FROM product WHERE rfid ='" + actualRFID + "';";
+			
+        	    resultSet = statement.executeQuery(query);
+                if(resultSet.next()){
+                    System.out.println("check_RFID_existance= true");
+                    return true;
+                }
+                           
+            }
+			
+		} catch(SQLException ex) {
+			throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+			
+		} finally {
+			dataSource.close(connection);
+		}
+
+        System.out.println("check_RFID_existance= false");
+        return false;
+
+    }
+
+	@Override
+	public Product getProductByRFID(String RFID) throws DAOException {
+		Connection connection = null;
+        Statement statment = null;
+        ResultSet resultSet = null;
+        Product p = null;
+        try {
+            connection = dataSource.getConnection();
+            statment = connection.createStatement();
+            String query = "select * from product where rfid = '" + RFID + "';";
+            resultSet = statment.executeQuery(query);
+            if(!resultSet.next())
+            	return null;
+        	p = new ConcreteProduct();
+        	p.setRFID(resultSet.getString("rfid"));
+        	p.setBarCode(resultSet.getString("bar_code"));
+        	p.setTransactionId(resultSet.getInt("transaction_id"));
+           	
+        } catch (SQLException ex) {
+        	throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+	
+	return p;
+	}
+
+	@Override
+	public List<Product> getSoldProducts(Integer transactionId) throws DAOException {
+		Connection connection = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        List<Product> entries = new ArrayList<Product>();
+        try {
+            connection = dataSource.getConnection();
+            statement = connection.createStatement();
+            System.out.println(transactionId);
+            String query = "SELECT * FROM product WHERE transaction_id= '" + transactionId + "'";
+            resultSet = statement.executeQuery(query);
+            while (resultSet.next()) {
+                Product te = new ConcreteProduct();
+                te.setBarCode(resultSet.getString("bar_code"));
+                te.setRFID(resultSet.getString("rfid"));
+                if(resultSet.getInt("transaction_id") == 0) {
+                	te.setTransactionId(resultSet.getInt(null));
+                } else {                	
+                	te.setTransactionId(resultSet.getInt("transaction_id"));
+                }
+                entries.add(te);
+            }
+        } catch (SQLException ex) {
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+        return entries;
+	}
+	
+
+	@Override
+    public void storeProduct(Product product) throws DAOException {
+        Connection connection = null;
+        try {
+            connection = dataSource.getConnection();
+            String query = "insert into product (rfid, transaction_id, bar_code) values (?,?,?);";
+            PreparedStatement pstm = connection.prepareStatement(query);
+            pstm.setString(1, product.getRFID());
+            pstm.setInt(2, product.getTransactionId());
+            pstm.setString(3, product.getBarCode());
+            pstm.executeUpdate();
+            
+        } catch (SQLException ex) {
+        	System.out.println(ex);
+            throw new DAOException("Impossibile to execute query: " + ex.getMessage());
+        } finally {
+            dataSource.close(connection);
+        }
+    }
 }

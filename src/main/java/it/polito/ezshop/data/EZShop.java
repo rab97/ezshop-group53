@@ -12,6 +12,7 @@ import it.polito.ezshop.persistence.DAOEZShop;
 import it.polito.ezshop.persistence.DAOException;
 import it.polito.ezshop.persistence.IDAOEZshop;
 
+import java.beans.Transient;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class EZShop implements EZShopInterface {
     boolean saleTransaction_state;
     boolean returnTransaction_state;
     private Operator o = new Operator();
+    
     
     
     @Override
@@ -527,8 +529,78 @@ public class EZShop implements EZShopInterface {
     @Override
     public boolean recordOrderArrivalRFID(Integer orderId, String RFIDfrom) throws InvalidOrderIdException, UnauthorizedException, 
 InvalidLocationException, InvalidRFIDException {
-        return false;
+
+        if (orderId == null || orderId <= 0) {
+            throw new InvalidOrderIdException();
+        }
+        if(RFIDfrom.length()!=12){
+            throw new InvalidRFIDException();
+        }
+        if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+         && !runningUser.getRole().equals(Constants.SHOP_MANAGER))) {
+            throw new UnauthorizedException();
+        }
+        boolean isNumeric = RFIDfrom.chars().allMatch( Character::isDigit );
+        if(!isNumeric){
+            throw new InvalidRFIDException();
+        }
+
+        Order myOrder;
+        boolean recordArrival= false;
+        boolean rfidAlreadyExist= true;
+
+        try {
+
+            myOrder= dao.getOrder(orderId);
+
+            if(myOrder==null){ //the order doesn't exist
+                return false;
+            }
+
+            if(myOrder.getStatus().equals("COMPLETED")){ //don't modify anything
+                return true;
+            
+            }else if(!myOrder.getStatus().equals("PAYED")  && !myOrder.getStatus().equals("ORDERED")){ //not valid status
+                return false;
+            }
+
+            ConcreteProductType orderProduct= dao.getProductTypeByBarCode(myOrder.getProductCode());
+
+            if(orderProduct.getLocation()==null){
+                throw new InvalidLocationException();
+            }
+
+            
+            rfidAlreadyExist= dao.check_RFID_existance(RFIDfrom, myOrder.getQuantity());
+            System.out.println("rfidAlreadyExist in recordOrderArrivalRFID = " + rfidAlreadyExist);
+            if(rfidAlreadyExist){ //If true, throw exception
+                throw new InvalidRFIDException();
+            }
+
+            //Record Arrival
+            recordArrival= dao.recordArrival(orderId);
+
+            if(recordArrival){ //if true, updateProductQuantity
+                boolean updateProductQuantity= dao.updateQuantity(orderProduct.getId(), myOrder.getQuantity());
+                if(!updateProductQuantity){
+                    return false;
+                }
+
+                boolean updateProductRFID= dao.recordProductArrivalRFID(orderId, myOrder.getQuantity(), RFIDfrom, orderProduct.getBarCode());
+                if(!updateProductRFID){
+                    return false;
+                }
+            }
+
+        } catch (DAOException e) {
+            System.out.println("db excepiton");
+        }
+
+        return recordArrival;
+
     }
+
+
     @Override
     public List<Order> getAllOrders() throws UnauthorizedException {
 
@@ -786,7 +858,9 @@ InvalidLocationException, InvalidRFIDException {
         }
         saleTransaction = new ConcreteSaleTransaction(sale_transaction_id + 1, new ArrayList<TicketEntry>(), 0, 0);
         saleTransaction_state = Constants.OPENED;
-        System.out.println(saleTransaction.getTicketNumber());
+        	
+        saleTransaction.getSaleProducts().clear();
+        
         return saleTransaction.getTicketNumber();
     }
 
@@ -866,13 +940,144 @@ InvalidLocationException, InvalidRFIDException {
 
     @Override
     public boolean addProductToSaleRFID(Integer transactionId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, InvalidQuantityException, UnauthorizedException{
-        return false;
+    	if (transactionId == null || transactionId <= 0) {
+            throw new InvalidTransactionIdException();
+        }
+    	
+    	if(RFID == null || RFID.isEmpty() || RFID.length() != 12) {
+    		throw new InvalidRFIDException();
+    	}
+    	
+    	if(RFID != null && !RFID.isEmpty()) {
+    		try {
+    			Integer.parseInt(RFID);
+    		} catch(Exception e) {
+    			throw new InvalidRFIDException();
+    		}
+    	}
+    	
+    	if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if (saleTransaction.getTicketNumber() != transactionId)
+            return false;
+    	
+    	// check on product
+        Product p = null;
+        try {
+        	p = dao.getProductByRFID(RFID);
+        } catch (DAOException e) {
+			System.out.println(e);
+		} 
+        if (p == null)
+            return false;
+        
+     // check sale transaction state
+        if (saleTransaction_state != Constants.OPENED)
+            return false;
+        
+        ProductType pt = null;
+        try {
+        	pt = dao.getProductTypeByBarCode(p.getBarCode());
+        } catch (DAOException e) {
+            System.out.println(e);
+            return false;
+        }
+        
+        TicketEntry te = new ConcreteTicketEntry(pt.getBarCode(), pt.getProductDescription(), 1, pt.getPricePerUnit(),
+                0);
+        
+     // decrement product availability
+        try {
+            dao.updateQuantity(pt.getId(), -1);
+        } catch (DAOException e) {
+            System.out.println(e);
+            return false;
+        }
+        
+     // add to list
+        boolean toAdd = true;
+        for (TicketEntry t : saleTransaction.getEntries()) {
+            if (t.getBarCode().equals(pt.getBarCode())) {
+                t.setAmount(t.getAmount() + 1);
+                toAdd = false;
+                break;
+            }
+        }
+        
+        if (toAdd)
+            saleTransaction.getEntries().add(te);
+        
+        saleTransaction.getSaleProducts().add(p);
+    
+    	return true;
     }
     
 
     @Override
     public boolean deleteProductFromSaleRFID(Integer transactionId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, InvalidQuantityException, UnauthorizedException{
-        return false;
+    	if(transactionId == null || transactionId <= 0) {
+        	throw new InvalidTransactionIdException();
+        }
+    	if(RFID == null || RFID.isEmpty() || RFID.length() != 12) {
+    		throw new InvalidRFIDException();
+    	}
+    	
+    	if(RFID != null && !RFID.isEmpty()) {
+    		try {
+    			Integer.parseInt(RFID);
+    		} catch(Exception e) {
+    			throw new InvalidRFIDException();
+    		}
+    	}
+    	
+    	if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if (saleTransaction.getTicketNumber() != transactionId) {    		
+    		return false;
+    	}
+    	
+    	if (saleTransaction_state != Constants.OPENED)
+            return false;
+    	
+    	boolean found = false;
+        for (Product p : saleTransaction.getSaleProducts()) {
+            if (p.getRFID().equals(RFID)) {
+                    saleTransaction.getSaleProducts().remove(p);
+                    // increment product availability
+                    try {
+                    	ProductType pt = dao.getProductTypeByBarCode(p.getBarCode());
+                        dao.updateQuantity(pt.getId(), 1);
+                    } catch (DAOException e) {
+                        System.out.println(e);
+                        return false;
+                    }
+                    // remove product from ticket entries
+                    for (TicketEntry te : saleTransaction.getEntries()) {
+                        if (te.getBarCode().equals(p.getBarCode())) {
+                            te.setAmount(te.getAmount() - 1);
+                            if (te.getAmount() <= 0)
+                                saleTransaction.getEntries().remove(te);
+                            found = true;
+                            break;
+                        }
+                    }
+                found = true;
+                break;
+            }
+        }
+        if(!found)
+        	return false;
+    	
+    	return found;
+
     }
 
 
@@ -1218,9 +1423,86 @@ InvalidLocationException, InvalidRFIDException {
     }
 
     @Override
-    public boolean returnProductRFID(Integer returnId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, UnauthorizedException 
-    {
-        return false;
+    public boolean returnProductRFID(Integer returnId, String RFID) throws InvalidTransactionIdException, InvalidRFIDException, UnauthorizedException {
+    	if (returnId == null || returnId <= 0) {
+            throw new InvalidTransactionIdException();
+        }
+    	
+    	if(RFID == null || RFID.isEmpty() || RFID.length() != 12) {
+    		throw new InvalidRFIDException();
+    	}
+    	
+    	if(RFID != null && !RFID.isEmpty()) {
+    		try {
+    			Integer.parseInt(RFID);
+    		} catch(Exception e) {
+    			throw new InvalidRFIDException();
+    		}
+    	}
+    	
+    	if (runningUser == null || (!runningUser.getRole().equals(Constants.ADMINISTRATOR)
+                && !runningUser.getRole().equals(Constants.SHOP_MANAGER)
+                && !runningUser.getRole().equals(Constants.CASHIER))) {
+            throw new UnauthorizedException();
+        }
+    	
+    	if (returnTransaction == null || !returnTransaction.getReturnId().equals(returnId)) {
+    		return false;
+    	}
+    	
+    	List<Product> soldProducts= new ArrayList<Product>();
+        try {
+        	soldProducts = dao.getSoldProducts(returnTransaction.getTransactionId());
+        } catch (DAOException e) {
+            System.out.println(e);
+        }
+    	
+    	Product prodToReturn = null;
+    	for (Product prod : soldProducts) {
+    		if(prod.getRFID().equals(RFID)) {
+    			prodToReturn = prod;
+    		}
+    	}
+    	if(prodToReturn == null || prodToReturn.getTransactionId() == null) {
+    		return false;
+    	}
+    	
+    	List<TicketEntry> ticketEntries = null;
+		try {
+			ticketEntries = dao.getEntries(returnTransaction.getTransactionId());
+		} catch (DAOException e) {
+			e.printStackTrace();
+		}
+    	
+    	TicketEntry te = null;
+    	for (TicketEntry prod : ticketEntries) {
+    		if(prod.getBarCode().equals(prodToReturn.getBarCode())) {
+    			te=prod;
+    		}
+    	}
+    	if(te == null || te.getAmount() < 1) {
+    		return false;
+    	}
+    	
+    	// add to list
+        boolean toAdd = true;
+        
+        for (TicketEntry t : returnTransaction.getEntries()) {
+            if (t.getBarCode().equals(prodToReturn.getBarCode())) {
+                t.setAmount(t.getAmount() + 1);
+                toAdd = false;
+                break;
+            }
+        }
+        
+        if (toAdd) {
+        	te.setAmount(1);
+        	returnTransaction.getEntries().add(te);        
+        }
+        
+        returnTransaction.getReturnProducts().add(prodToReturn);
+        
+        return true;
     }
 
     @Override

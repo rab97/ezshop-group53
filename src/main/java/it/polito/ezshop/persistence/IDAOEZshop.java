@@ -14,6 +14,7 @@ import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.data.BalanceOperation;
 import it.polito.ezshop.data.Customer;
 import it.polito.ezshop.data.Order;
+import it.polito.ezshop.data.Product;
 import it.polito.ezshop.data.TicketEntry;
 
 
@@ -41,6 +42,7 @@ public interface IDAOEZshop {
     public Integer payOrderDirectly(String productCode, int quantity, double pricePerUnit) throws DAOException;
     public boolean payOrder(Integer orderId, double money) throws DAOException;
     public boolean recordArrival(Integer orderId) throws DAOException;
+    public boolean recordProductArrivalRFID(Integer orderId, Integer orderQuantity, String RFIDfrom, String productCode) throws DAOException;
     public Order getOrder(Integer orderId) throws DAOException;
     public ArrayList<Order> getAllOrders() throws DAOException;
 
@@ -77,5 +79,12 @@ public interface IDAOEZshop {
 	public void resetApplication() throws DAOException;
 
 	public boolean searchProductById(Integer productId) throws DAOException;
+
+	public Product getProductByRFID(String RFID) throws DAOException;
+
+    public boolean check_RFID_existance(String rfidRFIDFrom, Integer interval) throws DAOException;
+    public List<Product> getSoldProducts(Integer transactionId) throws DAOException;
+
+	void storeProduct(Product product) throws DAOException;
 
 }

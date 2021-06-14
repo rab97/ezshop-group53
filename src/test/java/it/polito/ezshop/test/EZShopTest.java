@@ -28,6 +28,7 @@ import it.polito.ezshop.exceptions.*;
 import it.polito.ezshop.model.ConcreteUser;
 import it.polito.ezshop.model.Operator;
 import it.polito.ezshop.model.ConcreteCustomer;
+import it.polito.ezshop.model.ConcreteProduct;
 import it.polito.ezshop.model.ConcreteProductType;
 import it.polito.ezshop.model.ConcreteReturnTransaction;
 import it.polito.ezshop.model.ConcreteSaleTransaction;
@@ -48,10 +49,10 @@ public class EZShopTest {
 	Operator o = new Operator();
 	
 	@Before	
-	public void setUp () {
+	public void setUp () throws DAOException {
 		ezShop = new EZShop();
 		dao = new DAOEZShop();
-		ezShop.reset();
+		dao.resetApplication();
 	}
 	
 	
@@ -2973,7 +2974,9 @@ public class EZShopTest {
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrderFor("4314324224124",2,2.0);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrder(3);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrival(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrivalRFID(3, "000000001000");});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllOrders();});
+		
 		
 		u= new ConcreteUser("name", 1, "123", Constants.CASHIER);
 		ezShop.setRunningUser(u);
@@ -2981,6 +2984,7 @@ public class EZShopTest {
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrderFor("4314324224124",2,2.0);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.payOrder(3);});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrival(3);});
+		assertThrows(UnauthorizedException.class, ()->{ezShop.recordOrderArrivalRFID(3, "000000001000");});
 		assertThrows(UnauthorizedException.class, ()->{ezShop.getAllOrders();});
 	}
 	
@@ -3034,6 +3038,9 @@ public class EZShopTest {
 		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(-1);});
 		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(0);});
 		//assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrival(null);});	
+
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrivalRFID(-1, "000000001000");});
+		assertThrows(InvalidOrderIdException.class, ()->{ezShop.recordOrderArrivalRFID(0, "000000001000");});
 	}
 	
 	@Test 
@@ -3052,6 +3059,8 @@ public class EZShopTest {
 			}
 			
 			assertThrows(InvalidLocationException.class, () ->{ezShop.recordOrderArrival(ordId);});
+			assertThrows(InvalidLocationException.class, () ->{ezShop.recordOrderArrivalRFID(ordId, "000000001000");});
+
 
 		}catch(DAOException e){
 			fail();
@@ -3064,6 +3073,84 @@ public class EZShopTest {
 
 	}
 	
+
+	@Test
+    public void testRecordOrderArrivalRFIDInvalidRFID(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);  
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 1, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().createProductType(pt);
+			Integer ordId = ezShop.getDAO().payOrderDirectly("4314324224124", 1, 1.0);
+			if(ordId<0){
+				fail();
+			}
+			ezShop.getDAO().updatePosition(1, "4-A-4");
+
+			//Case: Invalid format
+			assertThrows(InvalidRFIDException.class, () ->{ezShop.recordOrderArrivalRFID(ordId, "64701000");});
+			assertThrows(InvalidRFIDException.class,() ->{ezShop.recordOrderArrivalRFID(ordId, "dgd9876543gd");});
+
+			//Case: RFID not unique
+			
+			Product p= new ConcreteProduct();
+			p.setBarCode("4314324224124");
+			p.setRFID("010006001000");
+			p.setTransactionId(1);
+			ezShop.getDAO().storeProduct(p);
+
+			assertThrows(InvalidRFIDException.class,() ->{ezShop.recordOrderArrivalRFID(ordId, p.getRFID());});
+			
+
+		}catch(DAOException e){
+			System.out.println("Exception:  " + e);
+			fail();
+		}
+
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+        
+    }
+
+
+	@Test
+    public void testRecordOrderArrivalRFIDWithSuccess(){
+
+		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(u);  
+		
+		ProductType pt = new ConcreteProductType(null, "prova", "4314324224124", "prova", 3, 1.0, null);
+		
+		try {	
+			ezShop.getDAO().insertBalanceOperation(100, Constants.CREDIT, LocalDate.now());	
+			ezShop.getDAO().createProductType(pt);		
+			ezShop.getDAO().updatePosition(1, "4-A-4");
+
+			Integer ordId = ezShop.getDAO().payOrderDirectly("4314324224124", 3, 1.0);
+			ezShop.recordOrderArrivalRFID(ordId, "000000001000");
+			
+		}catch(DAOException e){
+			System.out.println("Exception:  " + e);
+			fail();
+		}catch(UnauthorizedException|InvalidLocationException| InvalidOrderIdException| InvalidRFIDException e){
+			System.out.println("Exception:  " + e);
+			fail();
+		}
+
+		try {
+			dao.resetApplication();
+		} catch (DAOException e) {
+			System.out.println(e);
+		}
+	}
+        
+
 	@Test 
 	public void testOrderProductNotExists() {
 		User u= new ConcreteUser("name", 1, "123", Constants.ADMINISTRATOR);
@@ -3244,9 +3331,10 @@ public class EZShopTest {
 			ezShop.getDAO().createProductType(pt);
 			ezShop.getDAO().insertNewOrder("4314324224124", 1, 1.0);
 			assertFalse(ezShop.recordOrderArrival(1));		
+			assertFalse(ezShop.recordOrderArrivalRFID(1, "000000001000"));		
 		}catch(DAOException e){
 			fail();
-		} catch(UnauthorizedException|InvalidOrderIdException|InvalidLocationException e) {
+		} catch(UnauthorizedException|InvalidOrderIdException|InvalidLocationException|InvalidRFIDException e) {
 			System.out.println("Error message: " + e);
 			fail();
 		}
@@ -4070,7 +4158,358 @@ public class EZShopTest {
 		
 		ezShop.getDAO().resetApplication();
 	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDInvalidTransactionID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.addProductToSaleRFID(0,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.addProductToSaleRFID(-1,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.addProductToSaleRFID(null,"000000000001");});
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDInvalidRFID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.addProductToSaleRFID(1,"");});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.addProductToSaleRFID(1, null);});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.addProductToSaleRFID(1,"00000000001");});
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDInvalidUser() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		User user = new ConcreteUser("nome",1, "123", "ciao");
+		ezShop.setRunningUser(user);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.addProductToSaleRFID(1,"000000000001");});
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.addProductToSaleRFID(1, "000000000001");});
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDNotExists() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		ezShop.setSaleTransaction(saleTransaction);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.addProductToSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDNotOpenSale() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.setSaleTransaction(new ConcreteSaleTransaction());
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.addProductToSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testAddProudctToSaleRFIDValid() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(1, new ArrayList<TicketEntry>(), 0, 21);
+		Product p = new ConcreteProduct();
+		p.setBarCode("1234567891231");
+		p.setRFID("000000000001");
+		p.setTransactionId(1);
+		saleTransaction.setTicketNumber(1);
+		dao.createProductType(new ConcreteProductType(null, "description", "1234567891231", "note", null, 5.0, null));
+		dao.updatePosition(1, "1-A-1");
+		dao.updateQuantity(1, 12);
+		ezShop.setSaleTransaction(saleTransaction);
+		dao.storeProduct(p);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertTrue(ezShop.addProductToSaleRFID(1, "000000000001"));
+			dao.resetApplication();
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	//
+	@Test
+	public void testdeleteProudctToSaleRFIDInvalidTransactionID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.deleteProductFromSaleRFID(0,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.deleteProductFromSaleRFID(-1,"000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.deleteProductFromSaleRFID(null,"000000000001");});
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDInvalidRFID() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.deleteProductFromSaleRFID(1,"");});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.deleteProductFromSaleRFID(1, null);});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.deleteProductFromSaleRFID(1,"00000000001");});
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDInvalidUser() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		User user = new ConcreteUser("nome",1, "123", "ciao");
+		ezShop.setRunningUser(user);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.deleteProductFromSaleRFID(1,"000000000001");});
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.deleteProductFromSaleRFID(1, "000000000001");});
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDNotExists() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(0, new ArrayList<TicketEntry>(), 0, 0);
+		ezShop.setSaleTransaction(saleTransaction);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.deleteProductFromSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testDeleteProudctFromSaleRFIDNotOpenSale() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		ezShop.setSaleTransaction(new ConcreteSaleTransaction());
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertFalse(ezShop.deleteProductFromSaleRFID(1, "000000000001"));
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+	}
+	
+	@Test
+	public void testDeleteProudctToSaleRFIDValid() throws DAOException, InvalidProductIdException, InvalidLocationException, UnauthorizedException {
+		SaleTransaction saleTransaction = new ConcreteSaleTransaction(1, new ArrayList<TicketEntry>(), 0, 21);
+		Product p = new ConcreteProduct();
+		p.setBarCode("1234567891231");
+		p.setRFID("000000000001");
+		p.setTransactionId(1);
+		dao.createProductType(new ConcreteProductType(null, "description", "1234567891231", "note", null, 5.0, null));
+		dao.updatePosition(1, "1-A-1");
+		dao.updateQuantity(1, 12);
+		List<Product> products = new ArrayList<>();
+		products.add(p);
+		saleTransaction.setTicketNumber(1);
+		saleTransaction.setSaleProducts(products);
+		ezShop.setSaleTransaction(saleTransaction);
+		dao.storeProduct(p);
+		User user = new ConcreteUser("nome",1, "123", Constants.ADMINISTRATOR);
+		ezShop.setRunningUser(user);
+		try {
+			assertTrue(ezShop.deleteProductFromSaleRFID(1, "000000000001"));
+			assertTrue(ezShop.getSaleTransaction().getSaleProducts().isEmpty());
+		} catch (Exception e) {
+			System.out.println(e);
+			fail();
+		}
+		dao.resetApplication();
+	}
+	
+	@Test
+	public void testReturnProductRFIDInvalidReturnID() {
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.returnProductRFID(null, "000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.returnProductRFID(-1, "000000000001");});
+		assertThrows(InvalidTransactionIdException.class, () -> {ezShop.returnProductRFID(0, "000000000001");});
+	}
+	
+	@Test
+	public void testReturnProductRFIDInvalidRFID() {
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.returnProductRFID(1, null);});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.returnProductRFID(1, "");});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.returnProductRFID(1, "000001111");});
+		assertThrows(InvalidRFIDException.class, () -> {ezShop.returnProductRFID(1, "abcdefghijkl");});
+	}
+	
+	@Test
+	public void testReturnProductRFIDInvalidUser() {
+		User user = new ConcreteUser("username", 1, "password", "role");
+		ezShop.setRunningUser(user);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.returnProductRFID(1, "000000000001");});
+		ezShop.setRunningUser(null);
+		assertThrows(UnauthorizedException.class, () -> {ezShop.returnProductRFID(1, "000000000001");});
+	}
+	
+	@Test
+	public void testReturnProductRFIDInvalidReturnTransaction() throws DAOException {
+		try {
+			User user = new ConcreteUser("username", 1, "password", Constants.ADMINISTRATOR);
+			ezShop.setRunningUser(user);
+			ReturnTransaction rt = new ConcreteReturnTransaction();
+			rt.setReturnId(null);
+			assertFalse(ezShop.returnProductRFID(1, "000000000001"));
+		} catch(InvalidRFIDException e) {
+			fail();
+		} catch(UnauthorizedException e) {
+			fail();
+		} catch(InvalidTransactionIdException e) {
+			fail();
+		}
+		
+		try {
+			User user = new ConcreteUser("username", 1, "password", Constants.SHOP_MANAGER);
+			ezShop.setRunningUser(user);
+			ReturnTransaction rt = new ConcreteReturnTransaction();
+			rt.setReturnId(1);
+			assertFalse(ezShop.returnProductRFID(2, "000000000001"));
+		} catch(InvalidRFIDException e) {
+			fail();
+		} catch(UnauthorizedException e) {
+			fail();
+		} catch(InvalidTransactionIdException e) {
+			fail();
+		}
+		dao.resetApplication();
+	}
 
+	@Test
+	public void testReturnProductRFIDInvalidProductNull() {
+		try {
+			User user = new ConcreteUser("username", 1, "password", Constants.CASHIER);
+			ezShop.setRunningUser(user);
+			Product p = new ConcreteProduct();
+			p.setBarCode("1234567891231");
+			p.setRFID("000000000001");
+			ReturnTransaction rt = new ConcreteReturnTransaction(1, 1, null, 0, 0);
+			ezShop.setReturnTransaction(rt);
+			ProductType pt = new ConcreteProductType(1, "description", "1234567891231", "note", 10, 5.0, "1-A-1");
+			dao.createProductType(pt);
+			dao.recordProductArrivalRFID(1, 1, "000000000001", "1234567891231");
+			assertFalse(ezShop.returnProductRFID(1, "000000000001"));
+			dao.resetApplication();
+		} catch(DAOException e) {
+			e.printStackTrace();
+			fail();
+		} catch (InvalidTransactionIdException e) {
+			e.printStackTrace();
+			fail();
+		} catch (InvalidRFIDException e) {
+			e.printStackTrace();
+			fail();
+		} catch (UnauthorizedException e) {
+			e.printStackTrace();
+			fail();
+		}
+		;
+	}
+	
+	@Test
+	public void testReturnProductRFIDInvalidProduct() {
+		try {
+			User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+			ezShop.setRunningUser(user);
+			ReturnTransaction r = new ConcreteReturnTransaction();
+			r.setPayed(false);
+			r.setDiscountRate(0);
+			r.setReturnId(1);
+			r.setTransactionId(2);
+			r.setEntries(new ArrayList<>());
+			ezShop.setReturnTransaction(r);
+			
+			TicketEntry t1 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+			TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+			List<TicketEntry> tickets = new ArrayList<>();
+			SaleTransaction s1 = new ConcreteSaleTransaction(3, new ArrayList<>(), 0 , 32.5);
+			SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 44.5);
+			s1.setPayed(false);
+			s2.setPayed(true);
+			tickets.add(t1);
+			tickets.add(t2);
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			dao.recordProductArrivalRFID(1, 50, "0000000000001", "123456789104");
+			dao.recordProductArrivalRFID(1, 10, "000011111111", "4314324224124");
+			assertFalse(ezShop.returnProductRFID(1, "000000000001"));
+			dao.resetApplication();
+		} catch (DAOException e) {
+			e.printStackTrace();
+			fail();
+		} catch (InvalidTransactionIdException e) {
+			e.printStackTrace();
+			fail();
+		} catch (InvalidRFIDException e) {
+			e.printStackTrace();
+			fail();
+		} catch (UnauthorizedException e) {
+			e.printStackTrace();
+			fail();
+		}
+	}
+	
+	@Test
+	public void testReturnProductRFIDValid() {
+		try {
+			dao.resetApplication();
+			User user = new ConcreteUser("name", 1, "123", Constants.SHOP_MANAGER);
+			ezShop.setRunningUser(user);
+			ReturnTransaction r = new ConcreteReturnTransaction();
+			r.setPayed(false);
+			r.setDiscountRate(0);
+			r.setReturnId(1);
+			r.setTransactionId(2);
+			r.setEntries(new ArrayList<>());
+			ezShop.setReturnTransaction(r);
+			
+			TicketEntry t1 = new ConcreteTicketEntry("123456789104","", 25, 0.5, 0.0);
+			TicketEntry t2 = new ConcreteTicketEntry("4314324224124","", 1, 32.0, 0.0);
+			List<TicketEntry> tickets = new ArrayList<>();
+			SaleTransaction s2 = new ConcreteSaleTransaction(2, tickets, 0 , 44.5);
+			s2.setPayed(true);
+			tickets.add(t1);
+			tickets.add(t2);
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(1), "red bic", "123456789104", "", 50, Double.valueOf(0.5), "1-A-25"));
+			dao.createProductType( new ConcreteProductType(Integer.valueOf(2), "bics", "4314324224124", "", 150, Double.valueOf(12.5), "1-A-24"));
+			dao.updatePosition(1, "1-A-25");
+			dao.updatePosition(2, "1-A-24");
+			dao.updateQuantity(1, 50);
+			dao.updateQuantity(2, 150);
+			dao.updateQuantity(3, 150);
+			Product p1 = new ConcreteProduct();
+			Product p2 = new ConcreteProduct();
+			p1.setBarCode("123456789104");
+			p1.setRFID("000000000001");
+			p1.setTransactionId(s2.getTicketNumber());
+			s2.getSaleProducts().add(p1);
+			dao.storeProduct(p1);
+			p2.setBarCode("4314324224124");
+			p2.setRFID("000011111111");
+			p2.setTransactionId(s2.getTicketNumber());
+			s2.getSaleProducts().add(p2);
+			dao.storeProduct(p2);
+			dao.storeSaleTransaction(s2);
+			assertTrue(ezShop.returnProductRFID(1, "000000000001"));
+			dao.resetApplication();
+		} catch (DAOException e) {
+			e.printStackTrace();
+			fail();
+		} catch (InvalidTransactionIdException e) {
+			e.printStackTrace();
+			fail();
+		} catch (InvalidRFIDException e) {
+			e.printStackTrace();
+			fail();
+		} catch (UnauthorizedException e) {
+			e.printStackTrace();
+			fail();
+		}
+		
+	}
 }
 
 

@@ -27,4 +27,8 @@ public interface ReturnTransaction {
     double getDiscountRate();
 
     void setDiscountRate(double discountRate);
+
+	List<Product> getReturnProducts();
+
+	void setReturnProducts(List<Product> returnProducts);
 }

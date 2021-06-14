@@ -1,7 +1,9 @@
 package it.polito.ezshop.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import it.polito.ezshop.data.Product;
 import it.polito.ezshop.data.ReturnTransaction;
 import it.polito.ezshop.data.TicketEntry;
 
@@ -12,6 +14,7 @@ public class ConcreteReturnTransaction implements ReturnTransaction {
 	private double price;
 	private double discountRate;
 	private boolean payed;
+	private List<Product> returnProducts = new ArrayList<Product>();
 	
 	public ConcreteReturnTransaction(){
 		
@@ -85,5 +88,15 @@ public class ConcreteReturnTransaction implements ReturnTransaction {
     public void setDiscountRate(double discountRate) {
 		this.discountRate=discountRate;
 	}
+	
+	@Override
+    public List<Product> getReturnProducts() {
+        return returnProducts;
+    }
+
+	@Override
+    public void setReturnProducts(List<Product> returnProducts) {
+        this.returnProducts = returnProducts;
+    }
 
 }
